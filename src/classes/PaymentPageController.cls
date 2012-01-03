@@ -13,7 +13,7 @@ global with sharing virtual class PaymentPageController {
 	global string whatToDo { get; set; }
 	global boolean success { get; set; }
 	global OnlinePayment.OnlinePayer payer { get; set; }
-	global OnlinePayment.CreditCardData card { get; set; }
+	global OnlinePayment.CreditCardData card { get; set; } 
 	global OnlinePayment.PaymentData payment { get; set; }
 	global string itemName { get; set; }
 	global string pmtPeriod { get; set; }
@@ -129,7 +129,7 @@ global with sharing virtual class PaymentPageController {
 			list<OnlinePayment.OnlineTxnMessage> msgs;
 			string errorMsg;
 			if (whatToDo == 'paynow') {
-				paymentResult = op.SinglePayment( payer, card, payment, false, false, true );					
+				paymentResult = op.DoSinglePayment( payer, card, payment);					
 				msgs = paymentResult.messages;
 				errorMsg = paymentResult.errorMessage;
 				success = paymentResult.success;
@@ -139,7 +139,7 @@ global with sharing virtual class PaymentPageController {
 					(pmtPeriod == 'weeks') ? OnlinePayment.RecurringPeriod.WEEK :
 					(pmtPeriod == 'years') ? OnlinePayment.RecurringPeriod.YEAR :
 					OnlinePayment.RecurringPeriod.MONTH;
-				recurringResult = op.RecurringPayment( payer, card, payment, true );
+				recurringResult = op.CreateRecurringPayment( payer, card, payment );
 				msgs = recurringResult.messages;
 				errorMsg = recurringResult.errorMessage;
 				success = recurringResult.success;

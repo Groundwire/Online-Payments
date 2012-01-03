@@ -6,9 +6,6 @@ global virtual class OnlinePayment {
 * Base class containing data structures and utilities for online payment processing
 -----------------------------------------------------------------------------------------------*/	
 
-// UNDONE: 
-// Reconsider exception handling - does the exception class here need other data members or methods?
-
 	// store the auth once for all calls
 	public APIAuthorization auth;		
 	protected string endpoint;
@@ -40,16 +37,16 @@ global virtual class OnlinePayment {
 	}
 	
 	// process a single transaction payment
-	global virtual PaymentTxnResult SinglePayment( OnlinePayer payer, CreditCardData card, PaymentData payment, boolean testRequest, boolean emailCustomer, boolean fLog ) {
+	global virtual PaymentTxnResult DoSinglePayment( OnlinePayer payer, CreditCardData card, PaymentData payment ) {
 		PaymentTxnResult paymentResult;
-		if (payment.pmtProcessor == OnlinePayment.Processor.PAYPAL) {			
+		if (payment.pmtProcessor == Processor.PAYPAL) {			
 			OnlinePaymentPaypal ppal = Test.IsRunningTest() ? 
 				new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );
 			if (Test.IsRunningTest()) {
 				OnlinePaymentPaypalTest.testName = 'payment';						
 			}							
 			paymentResult = ppal.DoDirectPayment( payer, card, payment );			
-		} else /* if (payment.pmtProcessor == OnlinePayment.Processor.AUTHNET) */ {			
+		} else /* if (payment.pmtProcessor == Processor.AUTHNET) */ {			
 			OnlinePaymentAuthnet authnet = Test.IsRunningTest() ? 
 				new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );
 			if (Test.IsRunningTest()) {
@@ -61,16 +58,16 @@ global virtual class OnlinePayment {
 	}
 	
 	// process a recurring transaction payment
-	global virtual PaymentProfileResult RecurringPayment( OnlinePayer payer, CreditCardData card, PaymentData payment, boolean preAuthorize ) {
+	global virtual PaymentProfileResult CreateRecurringPayment( OnlinePayer payer, CreditCardData card, PaymentData payment ) {
 		PaymentProfileResult recurringResult;		
-		if (payment.pmtProcessor == OnlinePayment.Processor.PAYPAL) {
+		if (payment.pmtProcessor == Processor.PAYPAL) {
 			OnlinePaymentPaypal ppal = Test.IsRunningTest() ? 
 				new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );
 			if (Test.IsRunningTest()) {
 				OnlinePaymentPaypalTest.testName = 'profile';						
 			}	
 			recurringResult = ppal.CreateRecurringPaymentsProfile( payer, card, payment );
-		} else /* if (payment.pmtProcessor == OnlinePayment.Processor.AUTHNET) */ {						
+		} else /* if (payment.pmtProcessor == Processor.AUTHNET) */ {						
 			OnlinePaymentAuthnet authnet = Test.IsRunningTest() ? 
 				new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );
 			if (Test.IsRunningTest()) {
@@ -84,11 +81,11 @@ global virtual class OnlinePayment {
 	// get results from the transaction
 	global virtual OnlineTxnResult getTransactionDetails( PaymentData payment, string txnId ) {
 		OnlineTxnResult result;
-		if (payment.pmtProcessor == OnlinePayment.Processor.PAYPAL) {
+		if (payment.pmtProcessor == Processor.PAYPAL) {
 			OnlinePaymentPaypal ppal = Test.IsRunningTest() ? 
 				new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );				
 			result = ppal.getTransactionDetails( txnId );	
-		} else /* if (payment.pmtProcessor == OnlinePayment.Processor.AUTHNET) */ {						
+		} else /* if (payment.pmtProcessor == Processor.AUTHNET) */ {						
 			OnlinePaymentAuthnet authnet = Test.IsRunningTest() ? 
 				new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );				
 			result = authnet.getTransactionDetails( txnId );						
@@ -307,11 +304,18 @@ global virtual class OnlinePayment {
 	}
 	
 	global virtual class OnlineTxnResult {
-		global boolean success { get; set; }
+		global boolean success { get; set; }  // success with payment processor
+		global boolean dbSuccess { get; set; } // UNDONE:  use this! saved data to Salesforce.
+		
+		// UNDONE: also set in the IPN. processingerrorMessage/LineNo/Stack....
+		global string dberrorMessage { get; set; }
+		global integer dberrorLineNumber { get; set; }
+		global string dberrorStackTrace { get; set; }
+				
 		
 		// this will contain an appropriate error message if success is false
 		global string errorMessage { get; set; }
-
+		   
 		// this is the full set of messages or errors
 		global list<OnlineTxnMessage> messages { get; set; }
 		

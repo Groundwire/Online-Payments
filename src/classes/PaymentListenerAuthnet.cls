@@ -81,7 +81,7 @@ global virtual class PaymentListenerAuthnet {
 
     global PageReference processNotification() {
     	
-    	//UNDONE DJH: Evan, is this the correct way to get the logid?
+    	// find the first default entry for Authnet and use its APILoginId
     	OnlinePayment op = new OnlinePayment();
     	string strAPILoginId = null;
     	if (op.setDefaultProcessor('Authnet')) {
@@ -114,6 +114,7 @@ global virtual class PaymentListenerAuthnet {
                 // check for a match 
                 mismatch = (hash != hashReceived && hashWithApi != hashReceived);   
             }
+            // UNDONE: put this in a loop, trying all of the authnet configurations' strAPILoginId's.
             
             // assign key posted parameters to local variables
             String txnType = nv(params.get('x_type'));
@@ -291,6 +292,7 @@ global virtual class PaymentListenerAuthnet {
 
         } catch (exception e) {
             system.debug(loggingLevel.error, e);
+            //UNDONE: put line number etc in new ipn fields!
 			ipn.Processing_Result__c = e.getMessage() + '(line ' + e.getLineNumber() + ')\n' + e.getCause(); 
 			Database.Rollback( sp );
         }       
