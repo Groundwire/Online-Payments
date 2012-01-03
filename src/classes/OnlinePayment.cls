@@ -39,19 +39,17 @@ global virtual class OnlinePayment {
 		return foundDefault;
 	}
 	
-	global virtual PaymentTxnResult SingleTransaction( OnlinePayer payer, CreditCardData card, PaymentData payment, boolean testRequest, boolean emailCustomer, boolean fLog ) {
-		OnlinePayment.PaymentTxnResult paymentResult;
-		if (payment.pmtProcessor == OnlinePayment.Processor.PAYPAL) {
-			
+	// process a single transaction payment
+	global virtual PaymentTxnResult SinglePayment( OnlinePayer payer, CreditCardData card, PaymentData payment, boolean testRequest, boolean emailCustomer, boolean fLog ) {
+		PaymentTxnResult paymentResult;
+		if (payment.pmtProcessor == OnlinePayment.Processor.PAYPAL) {			
 			OnlinePaymentPaypal ppal = Test.IsRunningTest() ? 
 				new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );
 			if (Test.IsRunningTest()) {
 				OnlinePaymentPaypalTest.testName = 'payment';						
 			}							
-			paymentResult = ppal.DoDirectPayment( payer, card, payment );
-			
-		} else /* if (payment.pmtProcessor == OnlinePayment.Processor.AUTHNET) */ {
-			
+			paymentResult = ppal.DoDirectPayment( payer, card, payment );			
+		} else /* if (payment.pmtProcessor == OnlinePayment.Processor.AUTHNET) */ {			
 			OnlinePaymentAuthnet authnet = Test.IsRunningTest() ? 
 				new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );
 			if (Test.IsRunningTest()) {
@@ -62,6 +60,41 @@ global virtual class OnlinePayment {
 		return paymentResult;		
 	}
 	
+	// process a recurring transaction payment
+	global virtual PaymentProfileResult RecurringPayment( OnlinePayer payer, CreditCardData card, PaymentData payment, boolean preAuthorize ) {
+		PaymentProfileResult recurringResult;		
+		if (payment.pmtProcessor == OnlinePayment.Processor.PAYPAL) {
+			OnlinePaymentPaypal ppal = Test.IsRunningTest() ? 
+				new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );
+			if (Test.IsRunningTest()) {
+				OnlinePaymentPaypalTest.testName = 'profile';						
+			}	
+			recurringResult = ppal.CreateRecurringPaymentsProfile( payer, card, payment );
+		} else /* if (payment.pmtProcessor == OnlinePayment.Processor.AUTHNET) */ {						
+			OnlinePaymentAuthnet authnet = Test.IsRunningTest() ? 
+				new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );
+			if (Test.IsRunningTest()) {
+				OnlinePaymentAuthnetTest.testName = 'profile';						
+			}							
+			recurringResult = authnet.ARBCreateSubscriptionRequest( payer, card, payment, true );					
+		}
+		return recurringResult;
+	}
+	
+	// get results from the transaction
+	global virtual OnlineTxnResult getTransactionDetails( PaymentData payment, string txnId ) {
+		OnlineTxnResult result;
+		if (payment.pmtProcessor == OnlinePayment.Processor.PAYPAL) {
+			OnlinePaymentPaypal ppal = Test.IsRunningTest() ? 
+				new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );				
+			result = ppal.getTransactionDetails( txnId );	
+		} else /* if (payment.pmtProcessor == OnlinePayment.Processor.AUTHNET) */ {						
+			OnlinePaymentAuthnet authnet = Test.IsRunningTest() ? 
+				new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );				
+			result = authnet.getTransactionDetails( txnId );						
+		}
+		return result;
+	}		
 	
 	// subclass to track one or more items for a payment or order
 	global class Item {

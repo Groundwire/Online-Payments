@@ -129,8 +129,7 @@ global with sharing virtual class PaymentPageController {
 			list<OnlinePayment.OnlineTxnMessage> msgs;
 			string errorMsg;
 			if (whatToDo == 'paynow') {
-
-				paymentResult = op.SingleTransaction( payer, card, payment, false, false, true );					
+				paymentResult = op.SinglePayment( payer, card, payment, false, false, true );					
 				msgs = paymentResult.messages;
 				errorMsg = paymentResult.errorMessage;
 				success = paymentResult.success;
@@ -140,38 +139,12 @@ global with sharing virtual class PaymentPageController {
 					(pmtPeriod == 'weeks') ? OnlinePayment.RecurringPeriod.WEEK :
 					(pmtPeriod == 'years') ? OnlinePayment.RecurringPeriod.YEAR :
 					OnlinePayment.RecurringPeriod.MONTH;
-										
-				if (processor == 'Paypal') {
-					OnlinePaymentPaypal ppal = Test.IsRunningTest() ? 
-						new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );
-					if (Test.IsRunningTest()) {
-						OnlinePaymentPaypalTest.testName = 'profile';						
-					}	
-					recurringResult = ppal.CreateRecurringPaymentsProfile( payer, card, payment );
-				} else {
-					
-					OnlinePaymentAuthnet authnet = Test.IsRunningTest() ? 
-						new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );
-					if (Test.IsRunningTest()) {
-						OnlinePaymentAuthnetTest.testName = 'profile';						
-					}							
-					recurringResult = authnet.ARBCreateSubscriptionRequest( payer, card, payment, true );					
-				}
+				recurringResult = op.RecurringPayment( payer, card, payment, true );
 				msgs = recurringResult.messages;
 				errorMsg = recurringResult.errorMessage;
 				success = recurringResult.success;
 			} else {
-				if (processor == 'Paypal') {
-					OnlinePaymentPaypal ppal = Test.IsRunningTest() ? 
-						new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );
-						
-					result = ppal.getTransactionDetails( txnId );	
-				} else {
-					OnlinePaymentAuthnet authnet = Test.IsRunningTest() ? 
-						new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );
-						
-					result = authnet.getTransactionDetails( txnId );						
-				}
+				result = op.getTransactionDetails(payment, txnId );
 				msgs = result.messages;
 				errorMsg = result.errorMessage;
 				success = result.success;
