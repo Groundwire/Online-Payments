@@ -131,26 +131,6 @@ global with sharing virtual class PaymentPageController {
 			if (whatToDo == 'paynow') {
 
 				paymentResult = op.SingleTransaction( payer, card, payment, false, false, true );					
-/*
-				if (processor == 'Paypal') {
-					
-					OnlinePaymentPaypal ppal = Test.IsRunningTest() ? 
-						new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );
-					if (Test.IsRunningTest()) {
-						OnlinePaymentPaypalTest.testName = 'payment';						
-					}							
-					paymentResult = ppal.DoDirectPayment( payer, card, payment );
-					
-				} else {
-					
-					OnlinePaymentAuthnet authnet = Test.IsRunningTest() ? 
-						new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );
-					if (Test.IsRunningTest()) {
-						OnlinePaymentAuthnetTest.testName = 'payment';						
-					}													
-					paymentResult = authnet.CreateTransactionRequest( payer, card, payment, false, false, true );					
-				}
-*/
 				msgs = paymentResult.messages;
 				errorMsg = paymentResult.errorMessage;
 				success = paymentResult.success;
