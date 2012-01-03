@@ -1,0 +1,4 @@
+<apex:page controller="PaymentListenerAuthnet" action="{!processNotification}">
+	<h1>Authorize.net Silent Post Listener</h1>
+	<apex:messages />
+</apex:page>

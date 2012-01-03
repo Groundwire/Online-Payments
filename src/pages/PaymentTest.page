@@ -1,0 +1,341 @@
+<apex:page controller="PaymentPageController" title="Online Payments from Groundwire" showHeader="true" sidebar="true" id="pg" >
+	<apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery-1.6.2.min.js')}" />
+	<apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery.validate.js')}" />
+
+	<style type="text/css">
+	 	table.spaceRight label { margin-right:10px; }
+		.narrow { width:60px; }
+		.wide { width:240px; }
+		.helptext { font-size: 95%; }
+		.wrapper { 
+			width: 600px;
+			white-space: pre-wrap;
+			white-space: -moz-pre-wrap;
+			word-wrap: break-word;
+		}
+		input.invalid { border: 2px solid red; }
+		label.invalid { border: 0px; float: none; color: red; padding-left: .5em; vertical-align: middle; font-style:italic; white-space: nowrap; }
+		#overlay {
+		   position: fixed;
+		    top: 150px;
+		    left: 300px;
+		    right: 250px;
+		    bottom: 150px;
+		    background-color: #ddd;
+		    opacity: .8;
+		    filter: alpha(opacity=80);
+		    z-index:0;
+		    border: 3px solid #666;
+		    -moz-border-radius: 25px;
+			border-radius: 25px;
+		}
+		.pleaseWait {
+			margin-top:200px;
+			vertical-align:middle;
+			font-size: 1.8em;
+			line-height: 2.5em;
+		}
+	 </style>
+
+	<script type="text/javascript">
+		var j$ = jQuery.noConflict(); 
+	
+		var validator;
+		
+		var prefill = function () {
+		    j$('[name$=":fname"]').val('Test');
+		    j$('[name$=":lname"]').val('User');
+		    j$('[name$=":street"]').val('1402 3rd Ave');
+		    j$('[name$=":city"]').val('Seattle');
+		    j$('[name$=":st"]').val('WA');
+		    j$('[name$=":zip"]').val('98101');
+		    j$('[name$=":email"]').val('test@example.com');
+		    j$('[name$=":acct"]').val('4111111111111111');
+		    j$('[name$=":xmo"]').val('1');
+		    j$('[name$=":xyr"]').val('2016');
+		    j$('[name$=":cvv"]').val('111');
+		}
+		
+		j$().ready(function() {
+			j$("#overlay").hide();
+		
+			validator = j$("form.validate").validate( {
+				errorClass: "invalid"
+			} );
+			j$.validator.addClassRules( "positive", {
+				digits: true,
+				min: 1,
+				max: 999
+			});
+			
+			j$(".actionRadio").change(function() {
+				if( j$(this).find("input:checked").val() == 'paylater' ) {
+					j$("#recurrence").show();
+					j$("#infoId").hide();
+				} else if( j$(this).find("input:checked").val() == 'getdetails' ) {
+					j$("#recurrence").hide();
+					j$("#infoId").show();
+				} else {
+					j$("#recurrence").hide();
+					j$("#infoId").hide();
+				}
+			});
+	
+			j$("form.validate").submit( function(){
+				if (validator.form()) {
+					j$("#overlay").show();
+					return true;
+				} else {
+					return false;
+				}
+			});
+		});
+	</script>
+
+  <apex:form styleclass="validate" >
+  <apex:sectionheader title="Online Payments from Groundwire" subtitle="Online Transaction Test Page" />
+        <apex:pageBlock >
+            <apex:pageBlockButtons >
+                <button onclick="prefill();">Prefill</button>
+                <apex:commandButton value="Submit" action="{!submitToPaymentProcessor}" styleclass="submitbtn" />
+            </apex:pageBlockButtons>
+            
+  		<apex:pageMessages id="errMsgs" />
+
+		<div id="overlay" style="display:none;" >
+			<div align="center" class="pleaseWait">Please wait while your payment is processed...<br/>
+			<img id="processing" src="{!URLFOR($Resource.OnlinePaymentResources, 'spinner.gif')}" />
+			</div>
+		</div>
+
+	     <apex:pageBlockSection title="Transaction" columns="1" collapsible="false" >
+	     	<apex:pageBlockSectionItem >
+	      	<apex:outputLabel value="Operation" />
+	          <apex:selectRadio value="{!whatToDo}" styleclass="spaceRight actionRadio" >
+	          <apex:selectOption itemvalue="paynow" itemlabel="Make Payment" />
+	          <apex:selectOption itemvalue="paylater" itemlabel="Create Recurring Payment Profile" />
+	          <apex:selectOption itemvalue="getdetails" itemlabel="Get Transaction Details" />
+	         </apex:selectRadio>	         
+	      </apex:pageBlockSectionItem>
+	     </apex:pageBlockSection>
+	     <div id="infoId" style="display:none;" >
+	     <apex:pageBlockSection columns="1" collapsible="false" >
+    	    	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Transaction Id" for="tid" />
+	                <apex:inputText value="{!txnId}" id="tid" />
+	            </apex:pageBlockSectionItem>
+	      </apex:pageBlockSection>
+	   </div>
+	     <apex:pageBlockSection columns="2" collapsible="false" >
+	     	<apex:pageBlockSectionItem >
+	      	<apex:outputLabel value="Payment Processor" />
+	          <apex:selectList value="{!selectedConfig}" >
+	          <apex:selectOptions value="{!configOptions}" />
+	         </apex:selectList>
+	      </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="<<<" styleclass="helptext" />
+	                <apex:outputText value="List includes all active payment processor settings you have created. If you leave this control off the page, it will use the processor marked as Default." styleclass="helptext" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Amount" for="amt" />
+	                <apex:inputText value="{!amountText}" id="amt" styleclass="required number" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="<<<" styleclass="helptext" />
+	                <apex:outputText value="Amount is required." styleclass="helptext" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Item Name / Type" for="itemname" />
+	                <apex:inputText value="{!itemname}" id="itemname" styleclass="wide" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="<<<" styleclass="helptext" />
+	                <apex:outputText value="Provide an item name to submit a product line item for your payment.  If this value matches a record type name, our payment code will use the record type when creating an opportunity for the payment." styleclass="helptext" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Description" for="descr" />
+	                <apex:inputText value="{!payment.memo}" id="descr" styleclass="wide" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="<<<" styleclass="helptext" />
+	                <apex:outputText value="This value ends up in the opportunity Description field." styleclass="helptext" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Custom / Campaign" for="custom" />
+	                <apex:inputText value="{!payment.custom}" id="custom" styleclass="wide" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="<<<" styleclass="helptext" />
+	                <apex:outputText value="Submits custom field data to the processor. If you provide a valid campaign Id, the opportunity gets added to that campaign. Or, provide JSON data to set custom fields on opportunity, contact, or account." styleclass="helptext" />
+	            </apex:pageBlockSectionItem>
+    	  </apex:pageBlockSection>
+    	  <div id="recurrence" style="display:none;" >
+	     <apex:pageBlockSection title="Recurrence" columns="1" collapsible="false" >
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Every" for="every" />
+	            	<apex:outputPanel >
+	                <apex:inputText value="{!payment.frequency}" id="every" styleclass="positive" />
+	                <apex:selectList value="{!pmtPeriod}" size="1" >
+			          <apex:selectOption itemLabel="day(s)" itemvalue="days" />
+			          <apex:selectOption itemLabel="week(s)" itemvalue="weeks" />
+			          <apex:selectOption itemLabel="month(s)" itemvalue="months" />
+			          <apex:selectOption itemLabel="year(s)" itemvalue="years" />
+	                </apex:selectList>
+	                </apex:outputPanel>
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Total Ocurrences" for="occ" />
+	                <apex:inputText value="{!payment.occurrences}" id="occ" styleclass="positive" />
+	            </apex:pageBlockSectionItem>
+    	  </apex:pageBlockSection>
+    	  </div>
+            <apex:pageBlockSection title="Payer" columns="2" collapsible="false" >
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="First Name" for="fname" />
+	                <apex:inputText value="{!payer.FirstName}" id="fname" styleclass="required"  />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Street" for="street" />
+	                <apex:inputText value="{!payer.billingAddress.street}" id="street" styleclass="wide required" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Last Name" for="lname" />
+	                <apex:inputText value="{!payer.LastName}" id="lname" styleclass="required" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="City" for="city" />
+	                <apex:inputText value="{!payer.billingAddress.city}" id="city"  styleclass="required" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Email" for="email" />
+	                <apex:inputText value="{!payer.Email}" id="email" styleclass="wide required email" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="State" for="st" />
+	                <apex:inputText value="{!payer.billingAddress.state}" id="st" styleclass="required"  />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Phone" for="phone" />
+	                <apex:inputText value="{!payer.billingAddress.phone}" id="phone" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Zip" for="zip" />
+	                <apex:inputText value="{!payer.billingAddress.zip}" id="zip" styleclass="required" />
+	            </apex:pageBlockSectionItem>
+	            <apex:outputPanel />
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Country" for="countrycode" />
+	                <apex:selectList value="{!payer.billingAddress.country}" id="countrycode" size="1" >
+			          <apex:selectOption itemLabel="United States" itemvalue="US" />
+			          <apex:selectOption itemLabel="Canada" itemvalue="CA" />
+			         </apex:selectList>
+	            </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection title="Credit Card" columns="1" collapsible="false" >
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Card Type" for="ctype" />
+	                <apex:selectRadio value="{!card.cardType}" id="ctype" styleclass="spaceRight" >
+			          <apex:selectOption itemLabel="Visa" itemvalue="Visa" />
+			          <apex:selectOption itemLabel="MasterCard" itemvalue="MasterCard" />
+			          <apex:selectOption itemLabel="Discover" itemvalue="Discover" />
+			          <apex:selectOption itemLabel="American Express" itemvalue="Amex" />
+			         </apex:selectRadio>
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Account Number" for="acct" />
+	                <apex:inputText value="{!card.acctNumber}" id="acct" styleclass="required creditcard" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Expiration Month" for="xmo" />
+	                <apex:selectList value="{!card.expMonth}" id="xmo" size="1" styleclass="required" >
+			          <apex:selectOptions value="{!expMonths}" />
+			         </apex:selectList>
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Expiration Year" for="xyr" />
+	                <apex:selectList value="{!card.expYear}" id="xyr" size="1" styleclass="required" >
+			          <apex:selectOptions value="{!expYears}" />
+			         </apex:selectList>
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="CVV Security Code" for="cvv" />
+	                <apex:inputText value="{!card.cvvCode}" id="cvv" styleclass="narrow positive" />
+	            </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+
+       </apex:pageBlock>
+
+		<apex:outputPanel id="results">
+       <apex:pageBlock title="Payment Result" rendered="{!NOT(ISNULL(paymentResult))}" >
+            <apex:pageBlockSection columns="2" collapsible="false" >
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Success?" for="success" />
+	                <apex:outputText value="{!paymentResult.success}" id="success" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Transaction Id" for="txnid" />
+	                <apex:outputText value="{!paymentResult.txnId}" id="txnId" />
+	            </apex:pageBlockSectionItem>
+	        </apex:pageBlockSection>
+            <apex:pageBlockSection columns="1" collapsible="false" >
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Messages" for="err" />
+	                <apex:outputText value="{!errText}" id="err" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Full Response Text" for="fullresp" />
+	       			<apex:outputPanel layout="block" styleclass="wrapper" >
+	                	<apex:outputText value="{!paymentResult.responseText}" id="fullresp" />
+	                </apex:outputPanel>
+	            </apex:pageBlockSectionItem>
+	        </apex:pageBlockSection>
+       </apex:pageBlock>
+       <apex:pageBlock title="Recurring Profile Result" rendered="{!NOT(ISNULL(recurringResult))}">
+            <apex:pageBlockSection columns="2" collapsible="false" >
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Success?" for="success" />
+	                <apex:outputText value="{!recurringResult.success}" id="success" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Recurring Transaction Id" for="txnid" />
+	                <apex:outputText value="{!recurringResult.success}" id="txnId" />
+	            </apex:pageBlockSectionItem>
+	        </apex:pageBlockSection>
+            <apex:pageBlockSection columns="1" collapsible="false" >
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Messages" for="err" />
+	                <apex:outputText value="{!errText}" id="err" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Full Response Text" for="fullresp" />
+	       			<apex:outputPanel layout="block" styleclass="wrapper" >
+		                <apex:outputText value="{!recurringResult.responseText}" id="fullresp" />
+	                </apex:outputPanel>
+	            </apex:pageBlockSectionItem>
+	        </apex:pageBlockSection>
+       </apex:pageBlock>
+       <apex:pageBlock title="Transaction Detail Result" rendered="{!NOT(ISNULL(result))}">
+            <apex:pageBlockSection columns="2" collapsible="false" >
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Success?" for="success" />
+	                <apex:outputText value="{!result.success}" id="success" />
+	            </apex:pageBlockSectionItem>
+	        </apex:pageBlockSection>
+            <apex:pageBlockSection columns="1" collapsible="false" >
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Messages" for="err" />
+	                <apex:outputText value="{!errText}" id="err" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Full Response Text" for="fullresp" />
+	       			<apex:outputPanel layout="block" styleclass="wrapper" >
+		                <apex:outputText value="{!result.responseText}" id="fullresp" />
+	                </apex:outputPanel>
+	            </apex:pageBlockSectionItem>
+	        </apex:pageBlockSection>
+       </apex:pageBlock>
+       </apex:outputPanel>
+</apex:form>
+</apex:page>

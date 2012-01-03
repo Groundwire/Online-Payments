@@ -1,0 +1,103 @@
+<apex:page controller="PaymentConfigController" title="Online Payments from Groundwire" showHeader="true" sidebar="true" id="pg" >
+ <style>
+ 	table.spaceRight label { margin-right:10px; }
+	.narrow { width:60px; }
+	.mediumwide { width:200px; }
+	.wide { width:300px; }
+	.verywide { width:400px; }
+	input.invalid { border: 2px solid red; }
+	label.invalid { border: 0px; float: none; color: red; padding-left: .5em; vertical-align: middle; font-style:italic; white-space: nowrap; }
+ </style>
+
+	<apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery-1.6.2.min.js')}" />
+	<apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery.validate.js')}" />
+
+	<script type="text/javascript">
+		var j$ = jQuery.noConflict(); 
+		j$().ready(function() {
+			j$("form.validate").validate( {
+				errorClass: "invalid"
+			} );
+		
+			// set field labels for Authnet or Paypal
+			fixLabels( j$(".gateway input:checked").val() );
+
+			j$(".gateway").change(function() {
+				fixLabels( j$(this).find("input:checked").val() );
+			});
+			
+		});
+
+		function fixLabels( gateway ) {
+			if ( gateway == 'Authnet') {
+				j$("label.loginid").html('API Login Id');
+				j$("label.password").html('Transaction Key');
+				j$("label.signature").closest("tr").removeClass("required").hide();
+			} else {
+				j$("label.loginid").html('API Username');
+				j$("label.password").html('API Password');
+				j$("label.signature").closest("tr").addClass("required").show();
+			} 
+		}				
+	</script>
+
+  <apex:form styleclass="validate" >
+  <apex:sectionheader title="Online Payments from Groundwire" subtitle="Online Transaction Configuration Page" />
+        <apex:pageBlock title="Saved Configurations" id="configList" rendered="{!NOT(ISNULL(configList))}">
+        	<apex:pageBlockTable value="{!configList}" var="c">
+        		<apex:column >
+        			<apex:facet name="header">Action</apex:facet>
+        			<apex:commandLink action="{!loadConfig}" value="edit" styleclass="editLink" >
+        				<apex:param name="conf" value="{!c.name}" assignTo="{!selection}" />
+        			</apex:commandLink>&nbsp;&nbsp;
+        			<apex:commandLink action="{!deleteConfig}" value="delete" onclick="return confirm('Delete this configuration?');">
+        				<apex:param name="conf" value="{!c.name}" assignTo="{!selection}" />
+        			</apex:commandLink>
+        		</apex:column>
+        		<apex:column value="{!c.name}">
+        			<apex:facet name="header">Configuration Name</apex:facet>
+        		</apex:column>
+        		<apex:column value="{!c.Processor__c}">
+        			<apex:facet name="header">Gateway</apex:facet>
+        		</apex:column>
+        		<apex:column value="{!c.Sandbox__c}">
+        			<apex:facet name="header">Sandbox</apex:facet>
+        		</apex:column>
+        		<apex:column value="{!c.Default_Connection__c}">
+        			<apex:facet name="header">Default</apex:facet>
+        		</apex:column>
+        	</apex:pageBlockTable>
+		</apex:pageBlock>
+        <apex:pageBlock title="Gateway Configuration Detail" id="configForm" >
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Save" action="{!save}" />
+                <apex:commandButton value="Clear" action="{!clear}" styleclass="cancel" />
+            </apex:pageBlockButtons>
+            
+  		<apex:pageMessages id="errMsgs" />
+	     <apex:pageBlockSection columns="2" collapsible="false" >
+          <apex:inputText value="{!config.name}" label="Configuration Name" styleclass="wide required" />
+          <apex:inputCheckbox value="{!config.Default_Connection__c}" label="Default Configuration" />
+          <apex:selectRadio value="{!config.Processor__c}" label="Payment Gateway" styleclass="gateway spaceRight" layout="vertical" >
+	          <apex:selectOption itemlabel="Paypal" itemvalue="Paypal" />
+	          <apex:selectOption itemlabel="Authorize.net" itemvalue="Authnet" />
+         </apex:selectRadio>
+          <apex:inputCheckbox value="{!config.Sandbox__c}" label="Use Sandbox" />
+	     	<apex:pageBlockSectionItem >
+	      	<apex:outputLabel value="API Username" styleclass="loginid" />
+	          <apex:inputText value="{!config.Login_Id__c}" styleclass="wide required " />
+	      </apex:pageBlockSectionItem>
+	      <apex:outputPanel />
+	     	<apex:pageBlockSectionItem >
+	      	<apex:outputLabel value="API Password" styleclass="password" />
+	          <apex:inputText value="{!config.Password__c}" styleclass="mediumwide required" />
+	      </apex:pageBlockSectionItem>
+	      <apex:outputPanel />
+	     	<apex:pageBlockSectionItem >
+	      	<apex:outputLabel value="API Signature" styleclass="signature" />
+	          <apex:inputText value="{!config.Signature__c}" styleclass="verywide required" />
+	      </apex:pageBlockSectionItem>
+	        </apex:pageBlockSection>
+       </apex:pageBlock>
+</apex:form>
+</apex:page>

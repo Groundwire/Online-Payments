@@ -1,0 +1,4 @@
+<apex:page controller="PaymentListenerPaypal" action="{!processNotification}">
+	<h1>Paypal Instant Payment Notification (IPN) Listener</h1>
+	<apex:messages />
+</apex:page>
