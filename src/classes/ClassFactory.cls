@@ -1,4 +1,4 @@
-public with sharing class ClassFactory {
+public with sharing class ClassFactory { 
 
 
     public PaymentToSalesforce makePaymentToSalesforce() {

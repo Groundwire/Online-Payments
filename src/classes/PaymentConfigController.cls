@@ -1,4 +1,4 @@
-public with sharing class PaymentConfigController {
+public with sharing class PaymentConfigController { 
 /*-----------------------------------------------------------------------------------------------
 * Written by Evan Callahan, copyright (c) 2010 Groundwire
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/

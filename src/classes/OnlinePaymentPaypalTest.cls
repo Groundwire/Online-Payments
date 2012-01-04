@@ -1,5 +1,5 @@
 @istest
-global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {
+global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {  
 
 	public static string testName;
 
@@ -8,11 +8,17 @@ global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {
 		super( paypalAuth );
 	}
 
+    public class PaypalHTTPException extends Exception {}
+
 	// override methods for calling paypal 
 	public virtual override HttpResponse execute(Http h, HttpRequest request) {
 		system.debug(logginglevel.WARN, request);
+        if (testName == 'httpError') {
+            throw(new PaypalHTTPException('we hit a problem trying to contact paypal!')); 
+        }		
 		return new HttpResponse();
 	}
+	
 	public virtual override string getResponseBody(HttpResponse response) {
 		return 
 			(testName == 'payment') ? 'TIMESTAMP=2011%2d12%2d01T06%3a35%3a40Z&CORRELATIONID=ca81b861b0ea7&ACK=Success&VERSION=52%2e0&BUILD=2278658&AMT=4%2e00&CURRENCYCODE=USD&AVSCODE=X&CVV2MATCH=M&TRANSACTIONID=0CN71292R76361617' : 
@@ -163,6 +169,31 @@ global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {
 		system.assertEquals(true, listPn[0].IsTest__c); 		
 	}
 	
+	static testmethod void testHTTPError() {
+		OnlinePaymentPaypalTest.testName = 'httpError';
+		OnlinePaymentPaypalTest.createConfig();
+		OnlinePaymentPaypalTest opt = new OnlinePaymentPaypalTest( null );
+		
+		OnlinePayer payer = new OnlinePayer('httpError@test.com', 'testy', 'mctest', 'testco', 
+			new AddressData('123 4th', 'Seattle', 'WA', '98101', 'USA', null), null, null);
+		PaymentData payment = new PaymentData(123.45, system.today().adddays(1), OnlinePayment.RecurringPeriod.MONTH, 2);
+		CreditCardData card = new CreditCardData('Visa', '1234567890', '01', '2014', '123');
+					
+		PaymentProfileResult result = opt.CreateRecurringPaymentsProfile(payer, card, payment);
+		system.assertEquals( false, result.success );
+		system.assert( result.errorMessage.contains('we hit a problem trying to contact paypal!') );
+
+		list<Payment_Notification__c> listPn = [select Id, Payer_Email__c, Transaction_Id__c, Recurring_Transaction_Id__c, IsProcessed__c, IsTest__c, Payment_Status__c 
+			from Payment_Notification__c where Payer_Email__c =: 'httpError@test.com'];
+		system.debug(listPn);
+		system.assertEquals(1, listPn.size());
+		system.assertEquals('Failed', listPn[0].Payment_Status__c);
+		// can't assume PaymentToSalesforce hooked up
+		//system.assertEquals(false, listPn[0].IsProcessed__c); 
+		system.assertEquals(true, listPn[0].IsTest__c); 		
+	}
+
+
 	static testmethod void testTxnInfo() {
 		OnlinePaymentPaypalTest.testName = 'txnInfo';
 		OnlinePaymentPaypalTest.createConfig();

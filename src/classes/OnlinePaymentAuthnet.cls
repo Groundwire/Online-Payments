@@ -1,11 +1,11 @@
-global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
+global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {    
 /*-----------------------------------------------------------------------------------------------
 * Written by Evan Callahan, copyright (c) 2010 Groundwire
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
 -----------------------------------------------------------------------------------------------*/
 
 	/*
-	TODO:
+	TODO: 
 	WRITE APEX TESTS
 	need to log payments and/or errors via the new logging in OnlinePayment
 	should use the exception class for raising errors
@@ -531,21 +531,30 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 
 	protected OnlineTxnResult callAuthnet( string xml ) {
 
-		Http h = new Http();
-		HttpRequest req = new HttpRequest();
-		req.setTimeout(60000);
-		req.setMethod('POST');
-		req.setEndpoint(endpoint);
-		req.setHeader('Content-Type', 'text/xml');
-		req.setBody(xml);
-
-		//system.debug(logginglevel.warn, xml);
-		HttpResponse resp = execute( h, req );
-		string responseBody = getResponseBody( resp );
-		//system.debug(logginglevel.warn, responseBody);
-		XMLDecoder decoder = new XMLDecoder( responseBody );
-		
+		string responseBody;
 		list<OnlineTxnMessage> msgs = new list<OnlineTxnMessage>();
+
+		try {
+			Http h = new Http();
+			HttpRequest req = new HttpRequest();
+			req.setTimeout(60000);
+			req.setMethod('POST');
+			req.setEndpoint(endpoint);
+			req.setHeader('Content-Type', 'text/xml');
+			req.setBody(xml);
+			//system.debug(logginglevel.warn, xml);
+			HttpResponse resp = execute( h, req );
+			responseBody = getResponseBody( resp );
+			//system.debug(logginglevel.warn, responseBody);
+		} catch (Exception ex){
+			// we treat http errors as an authnet handled error, so that we will still
+			// log the notification record appropriately.
+			responseBody = '<?xml version="1.0" encoding="utf-8"?><ErrorResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd">' + 
+				'<messages><resultCode>Error</resultCode><message>' +  
+				'<text>' + 'There was a communication problem with the payment processor, so your credit card was not charged. ' +
+				'Error details: ' + ex.getMessage() + '</text></message></messages></ErrorResponse>';
+		}
+		XMLDecoder decoder = new XMLDecoder( responseBody );
 
 		// success?
 		boolean gMsgs = decoder.openGroup('messages');
@@ -698,7 +707,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		
 		global XMLDecoder( string xml ) {
 			doc = new Dom.Document();
-			system.debug('DJH: ' + xml);
+			//system.debug('DJH: ' + xml);
 			doc.load(xml);
 			currentNode = doc.getRootElement();
 			ns = currentNode.getNamespace();

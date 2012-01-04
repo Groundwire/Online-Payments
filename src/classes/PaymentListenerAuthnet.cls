@@ -1,4 +1,4 @@
-global virtual class PaymentListenerAuthnet {
+global virtual class PaymentListenerAuthnet { 
 /*-----------------------------------------------------------------------------------------------
 * Written by Evan Callahan, copyright (c) 2010 Groundwire
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
@@ -121,7 +121,7 @@ global virtual class PaymentListenerAuthnet {
             String subscriptionId = nv(params.get('x_subscription_id'));
             integer respCode = params.containsKey('x_response_code') ? integer.valueOf(params.get('x_response_code')) : null;
             String paymentStatus = (respCode == 1) ? 'Approved' : (respCode == 2) ? 'Declined' : 
-                                    (respCode == 3) ? 'Error' : (respCode == 1) ? 'Held for Review' : null;
+                                    (respCode == 3) ? 'Error' : (respCode == 1) ? 'Held for Review' : 'Unknown';
             String payerEmail = nv(params.get('x_email'));
             String payerId = nv(params.get('x_cust_id'));
             boolean spTest = (params.get('x_test_request')=='true');

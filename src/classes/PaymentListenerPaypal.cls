@@ -1,4 +1,4 @@
-global virtual class PaymentListenerPaypal {
+global virtual class PaymentListenerPaypal { 
 /*-----------------------------------------------------------------------------------------------
 * Written by Evan Callahan, copyright (c) 2010 Groundwire
 * Modified by David Habib, copyright (c) 2011 Groundwire
@@ -482,6 +482,7 @@ global virtual class PaymentListenerPaypal {
         ApexPages.currentPage().getParameters().put('mc_fee', '1');
         ApexPages.currentPage().getParameters().put('tax', '1');
         ApexPages.currentPage().getParameters().put('mc_shipping', '1');
+        ApexPages.currentPage().getParameters().put('payment_status', 'Completed');
 		
 		// get a ppn tester class - overrides the real controller class
 		ppn = new PaymentListenerPaypal();
@@ -503,6 +504,7 @@ global virtual class PaymentListenerPaypal {
         ApexPages.currentPage().getParameters().put('amount3', '1234.56');
         ApexPages.currentPage().getParameters().put('recur_times', '2');
         ApexPages.currentPage().getParameters().put('period3', '1 M');
+        ApexPages.currentPage().getParameters().put('payment_status', 'Completed');
 		
 		// get a ppn tester class - overrides the real controller class
 		ppn = new PaymentListenerPaypal();
@@ -560,6 +562,7 @@ global virtual class PaymentListenerPaypal {
 	        ApexPages.currentPage().getParameters().put('mc_fee', '1');
 	        ApexPages.currentPage().getParameters().put('tax', '1');
 	        ApexPages.currentPage().getParameters().put('mc_shipping', '1');		
+	        ApexPages.currentPage().getParameters().put('payment_status', 'Completed');
 	
 			// add params for a realistic incoming IPN
 			ppn = new PaymentListenerPaypal();

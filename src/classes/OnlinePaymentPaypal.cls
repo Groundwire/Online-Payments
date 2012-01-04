@@ -1,4 +1,4 @@
-global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
+global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {  
 /*-----------------------------------------------------------------------------------------------
 * Written by Evan Callahan, copyright (c) 2010 Groundwire
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
@@ -9,7 +9,7 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 	need to log payments and/or errors via the new logging in OnlinePayment - OBSCURE AUTH CREDS
 	should use the exception class for raising errors
 	In testing, should check encoding - e.g. accented chars
-
+ 
 	FUTURE: 
 	  - Support paying with a Paypal account (via Express Checkout)
 	  - Support Fraud Management Filters 
@@ -413,21 +413,33 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 	}
 	
 	protected OnlineTxnResult callPaypal( string url ) {
-				
-		// prepare the request
-		Http h = new Http();
-		HttpRequest req = new HttpRequest();
-		req.setTimeout(60000);
-		req.setMethod('GET');
-		req.setEndpoint(url);
-		//system.debug( LOGGINGLEVEL.warn, url );
-		
-		// execute the request
-		HttpResponse resp = execute( h, req );
-		
-		// interpret the response
-		string body = getResponseBody( resp );		
-		//system.debug( LOGGINGLEVEL.warn, body );
+		string body;
+	
+		try {				
+			// prepare the request
+			Http h = new Http();
+			HttpRequest req = new HttpRequest();
+			req.setTimeout(60000);
+			req.setMethod('GET');
+			req.setEndpoint(url);
+			//system.debug( LOGGINGLEVEL.warn, url );
+			
+			// execute the request
+			HttpResponse resp = execute( h, req );
+			
+			// interpret the response
+			body = getResponseBody( resp );		
+			//system.debug( LOGGINGLEVEL.warn, body );
+		} catch (Exception ex) {
+			// we treat http errors as an Paypal handled error, so that we will still
+			// log the notification record appropriately.			
+			body = '&ACK=Failure' + 
+				'&L_ERRORCODE0=10002' + 
+				'&L_SHORTMESSAGE0=Communication%20Error' + 
+				'&L_LONGMESSAGE0=' + 'There%20was%20a%20communication%20problem%20with%20the%20payment%20processor,%20so%20your%20credit%20card%20was%20not%20charged.%20' +
+					'Error%20details:%20' + ex.getMessage().replace(' ', '%20') +  
+				'&L_SEVERITYCODE0=Error';
+		}
 		NVPDecoder decoder = new NVPDecoder( body );
 		string ack = decoder.params.get('ACK');
 		boolean success = (ack != null && ack.toLowerCase().startsWith('success'));

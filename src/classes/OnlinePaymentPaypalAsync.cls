@@ -1,4 +1,4 @@
-global virtual class OnlinePaymentPaypalAsync implements Database.Batchable<SObject>, Schedulable {
+global virtual class OnlinePaymentPaypalAsync implements Database.Batchable<SObject>, Schedulable { 
 // batch apex class to process paypal payment notifications later (via scheduled apex) 
 // Written by David Habib, copyright (c) 2011 Groundwire, 1402 3rd Avenue, Suite 1000, Seattle, WA 98101
 // This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
