@@ -189,7 +189,7 @@ global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet 
             from Payment_Notification__c where Transaction_Id__c =: 'my txnid'];
         system.debug(listPn);
         system.assertEquals(1, listPn.size());
-        system.assertEquals(true, listPn[0].IsProcessed__c); 
+        system.assertEquals(false, listPn[0].IsProcessed__c); 
     }
     
     static testmethod void testHTTPError() {
