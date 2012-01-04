@@ -6,8 +6,6 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 
 	/*
 	TODO: 
-	need to log payments and/or errors via the new logging in OnlinePayment - OBSCURE AUTH CREDS
-	should use the exception class for raising errors
 	In testing, should check encoding - e.g. accented chars
  
 	FUTURE: 
@@ -201,34 +199,34 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 			payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
 		}		
 		
-        // UNDONE DJH: for Paypal, do we want to store params in ipn, for full encoder.url?
-
 		// create the log
 		// UNDONE: we need to strip out the authentication info (password) out of encoder.url, before logging it.  pwd= and &, replace w/ stars.
 		// UNDONE: what about the credit card info.  need to obscure or remove?
 		Payment_Notification__c ipn = logNotification(payer, payment, notificationType, payment.action, encoder.url, 
-			baseResult.responseText, isTest, false, null, false);	
+			baseResult.responseText, isTest, false, baseResult.errorMessage, false);	
 
-		// set other ipn fields common api doesn't handle
-		//ipn.Transaction_Type__c = ?
+		ipn.Transaction_Type__c = 'Paypal DoDirectPayment()';
 
-		// process the log to create opportunities.
-        // use the generic payment processing class
-    	ClassFactory f = new ClassFactory();
-    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
-	    	                                              
-        opmt.payer = payer;
-        opmt.payment = payment;
-		
-        if (opmt.processSinglePayment()) {
-            ipn.isProcessed__c = true;
-            ipn.opportunity__c = opmt.opportunityId;                    
-        }
-                        
+		result.dbSuccess = false;
+		if (result.success) {
+			// process the log to create opportunities.
+	        // use the generic payment processing class
+	    	ClassFactory f = new ClassFactory();
+	    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
+		    	                                              
+	        opmt.payer = payer;
+	        opmt.payment = payment;
+			
+	        if (opmt.processSinglePayment()) {
+	            ipn.isProcessed__c = true;
+	            ipn.opportunity__c = opmt.opportunityId;
+	            result.dbSuccess = true;                    
+	        }
+		}
+		                        
         // log the ipn record
         insert ipn;
 
-		// UNDONE DJH: what needs to change in result if we fail to create the SF opp?
 		return result;			
 	}
 	
@@ -362,33 +360,33 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 			payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
 		}		
 		
-        // UNDONE DJH: for Paypal, do we want to store params in ipn, for full encoder.url?
-
 		// create the log
 		// UNDONE: we need to strip out the authentication info (password) out of encoder.url, before logging it.  pwd= and &, replace w/ stars.
 		Payment_Notification__c ipn = logNotification(payer, payment, notificationType, payment.action, encoder.url, 
 			baseResult.responseText, isTest, false, null, false);	
 
-		// set other ipn fields common api doesn't handle
-		//ipn.Transaction_Type__c = ?
-
-		// process the log to create opportunities.
-        // use the generic payment processing class
-    	ClassFactory f = new ClassFactory();
-    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
-	    	                                      
-        opmt.payer = payer;
-        opmt.payment = payment;
+		ipn.Transaction_Type__c = 'Paypal CreateRecurringPaymentsProfile()';
 		
-        if (opmt.startRecurringPayments()) {
-            ipn.isProcessed__c = true;
-            ipn.opportunity__c = opmt.opportunityId;                    
-        }
-                        
+		result.dbSuccess = false;
+		if (result.success) {
+			// process the log to create opportunities.
+	        // use the generic payment processing class
+	    	ClassFactory f = new ClassFactory();
+	    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
+		    	                                      
+	        opmt.payer = payer;
+	        opmt.payment = payment;
+			
+	        if (opmt.startRecurringPayments()) {
+	            ipn.isProcessed__c = true;
+	            ipn.opportunity__c = opmt.opportunityId;                    
+				result.dbSuccess = true;
+	        }
+		}
+		                        
         // log the ipn record
         insert ipn;
 
-		// UNDONE DJH: what needs to change in result if we fail to create the SF opp?
 		return result;			
 	}
 	

@@ -129,6 +129,7 @@ global virtual class PaymentListenerPaypal {
 			// create a payment record for the log
 			Payment_Notification__c ipn = new Payment_Notification__c (
 				Name = 'Paypal IPN - ' + txnType + ' from ' + payerEmail,
+				Notification_Type__c = 'IPN / Silent Post',
 				Transaction_Type__c = txnType,
 				Transaction_Id__c = txnId,
 				IsTest__c = ipnTest,

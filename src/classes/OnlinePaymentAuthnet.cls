@@ -239,7 +239,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 				
 		// put authnet data into payment object
 		payment.txnId = transId;	
-		string notificationType = 'Apex Payment Callout';
+		string notificationType = 'Apex Payment Callout'; 
 		boolean isTest = auth.sandbox || testRequest; 
 		
 		// set payment status to correct state

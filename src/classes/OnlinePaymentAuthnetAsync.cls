@@ -32,6 +32,7 @@ global class OnlinePaymentAuthnetAsync implements Database.Batchable<SObject>, D
                 'SELECT id, gwop__Transaction_Type__c, gwop__Transaction_Id__c, gwop__Recurring_Transaction_Id__c, gwop__Item_Name__c, gwop__Payer_Email__c, ' +
                     ' gwop__Payer_ID__c, gwop__Payment_Amount__c, gwop__Payment_Status__c, gwop__Request__c from gwop__Payment_Notification__c ' + 
                     ' WHERE gwop__IsProcessed__c = false AND gwop__IsTest__c = false AND gwop__transaction_type__c != null ' +
+	       			' AND gwop__Notification_Type__c = \'IPN / Silent Post\' ' +
                     ' AND gwop__Payment_Status__c != \'Error\' AND gwop__Payment_Status__c != \'Declined\' AND gwop__Payment_Status__c != \'Failed\' ' +
                     ' ORDER BY gwop__transaction_type__c DESC '        
             );

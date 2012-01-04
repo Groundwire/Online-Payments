@@ -80,14 +80,8 @@ global virtual class PaymentListenerAuthnet {
     }
 
     global PageReference processNotification() {
+    	string strAPILoginId;
     	
-    	// find the first default entry for Authnet and use its APILoginId
-    	OnlinePayment op = new OnlinePayment();
-    	string strAPILoginId = null;
-    	if (op.setDefaultProcessor('Authnet')) {
-    		strAPILoginId =  op.auth.loginId; 	
-    	}
- 
         if (params.containsKey('x_trans_id')) {
 
             // gather the data we need to compare the hash value
@@ -105,16 +99,26 @@ global virtual class PaymentListenerAuthnet {
                 string hash = EncodingUtil.convertToHex(
                     crypto.generateDigest('MD5', blob.valueOf(
                         opSettings.Merchant_Verification_String__c + txnId + amountString ))); 
-                string hashWithApi = EncodingUtil.convertToHex(
-                    crypto.generateDigest('MD5', blob.valueOf(
-                        opSettings.Merchant_Verification_String__c +
-                        //opSettings.Payment_API_Login_Id__c + txnId + amountString ))); 
-                         strAPILoginId + txnId + amountString )));
+				
+				// try all Authnet logins.                         
+		    	string hashWithApi;
+		        for (Payment_API_Config__c config : Payment_API_Config__c.getAll().values()) {
+		            if (config.processor__c == 'Authnet') {
+		            	strAPILoginId = config.login_id__c;
+
+		                hashWithApi = EncodingUtil.convertToHex(
+		                    crypto.generateDigest('MD5', blob.valueOf(
+		                        opSettings.Merchant_Verification_String__c +
+		                         strAPILoginId + txnId + amountString )));
+				
+						if (hashWithApi == hashReceived)
+							break;	                         
+		            }
+		        }                               
                 
                 // check for a match 
                 mismatch = (hash != hashReceived && hashWithApi != hashReceived);   
             }
-            // UNDONE: put this in a loop, trying all of the authnet configurations' strAPILoginId's.
             
             // assign key posted parameters to local variables
             String txnType = nv(params.get('x_type'));
@@ -130,6 +134,7 @@ global virtual class PaymentListenerAuthnet {
             // create a payment record for the log
             Payment_Notification__c ipn = new Payment_Notification__c (
                 Name = 'Authnet Silent Post - ' + txnType + ((payerEmail == null) ? '' : ' from ' + payerEmail),
+				Notification_Type__c = 'IPN / Silent Post',
                 Transaction_Type__c = txnType,
                 Transaction_Id__c = txnId,
                 IsTest__c = spTest,

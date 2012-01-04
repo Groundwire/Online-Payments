@@ -190,7 +190,7 @@ global virtual class OnlinePayment {
     global enum PaymentAction { 
         PAY,
         AUTHORIZE,
-        VOIDTXN
+        VOIDTXN 
     }
     
     // the return result from the processor     
@@ -400,7 +400,8 @@ global virtual class OnlinePayment {
                 (payment.pmtStatus == OnlinePayment.PaymentStatus.AUTHORIZED) ? 'Authorized' :
                 (payment.pmtStatus == OnlinePayment.PaymentStatus.PENDING) ? 'Pending' :
                 (payment.pmtStatus == OnlinePayment.PaymentStatus.DECLINED) ? 'Declined' :
-                (payment.pmtStatus == OnlinePayment.PaymentStatus.REVERSED) ? 'Reversed' : 'Failed'),
+                (payment.pmtStatus == OnlinePayment.PaymentStatus.REVERSED) ? 'Reversed' : 
+                (payment.pmtStatus == OnlinePayment.PaymentStatus.FAILED) ? 'Failed' : 'unknown'),
             Transaction_Id__c = payment.txnId,
             Recurring_Transaction_Id__c = payment.recurringTxnId,
             Payer_Email__c = (payer == null ? null : payer.email),

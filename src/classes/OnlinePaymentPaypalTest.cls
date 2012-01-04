@@ -1,5 +1,5 @@
 @istest
-global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {  
+global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {   
 
 	public static string testName;
 
