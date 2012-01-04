@@ -1,4 +1,4 @@
-global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {    
+global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {   
 /*-----------------------------------------------------------------------------------------------
 * Written by Evan Callahan, copyright (c) 2010 Groundwire
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
@@ -7,8 +7,6 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 	/*
 	TODO: 
 	WRITE APEX TESTS
-	need to log payments and/or errors via the new logging in OnlinePayment
-	should use the exception class for raising errors
 	In testing, should check encoding - e.g. accented chars
 
 	FUTURE:
@@ -232,7 +230,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			while (decoder.openGroup('userField', i)) {
 				result.userFields.put(decoder.getElement('name'), decoder.getElement('value'));
 				decoder.closeGroup();
-				i++;
+				i++; 
 			}
 			decoder.closeGroup();
 		}
@@ -245,42 +243,40 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		// set payment status to correct state
 		if (result.success) {
 			payment.pmtStatus = (payment.action == OnlinePayment.PaymentAction.AUTHORIZE) ? 
-				OnlinePayment.PaymentStatus.AUTHORIZED: OnlinePayment.PaymentStatus.COMPLETED;
+				OnlinePayment.PaymentStatus.AUTHORIZED : OnlinePayment.PaymentStatus.COMPLETED;
 		} else {
-			// UNDONE: Evan needs to figure out how to map various Authnet failures to the correct status.
 			payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
 		}		
 		
-        // UNDONE DJH: for authnet, do we want to store params in ipn, for full encoder.xml?
-
 		// create the log
-		// UNDONE: we need to strip out the authentication info (password) out of encoder.xml, before logging it.  pwd= and &, replace w/ stars.
-		// it's <transactionKey> ..... </transactionKey>
-		Payment_Notification__c ipn = logNotification(payer, payment, notificationType, payment.action, encoder.xml, 
-			baseResult.responseText, isTest, false, null, false);	
+		Payment_Notification__c ipn = logNotification(payer, payment, notificationType, payment.action, strUrlScrub(encoder.xml), 
+			baseResult.responseText, isTest, false, baseResult.errorMessage, false);	
 
 		// set other ipn fields common api doesn't handle
 		ipn.Transaction_Type__c = (payment.action == null || payment.action == PaymentAction.PAY) ? 
 				'authCaptureTransaction' : 'authOnlyTransaction';
 
-		// process the log to create opportunities.
-        // use the generic payment processing class
-    	ClassFactory f = new ClassFactory();
-    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
-        opmt.payer = payer;
-        opmt.payment = payment;
-		
-        if (opmt.processSinglePayment()) {
-            ipn.isProcessed__c = true;
-            ipn.opportunity__c = opmt.opportunityId;                    
-        }
-                        
+		result.dbSuccess = false;
+		if (result.success) {
+			// process the log to create opportunities.
+	        // use the generic payment processing class
+	    	ClassFactory f = new ClassFactory();
+	    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
+	        opmt.payer = payer;
+	        opmt.payment = payment;
+			
+	        if (opmt.processSinglePayment()) {
+	            ipn.isProcessed__c = true;
+	            ipn.opportunity__c = opmt.opportunityId;
+	            result.dbSuccess = true;                    
+	        }
+		}
+		                        
         // log the ipn record
         if (fLog) {
         	insert ipn;
         }
 
-		// UNDONE DJH: what needs to change in result if we fail to create the SF opp?
 		return result;
 	}
 
@@ -307,7 +303,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			payment.txnId = txnId;
 			
 			Payment_Notification__c ipn = logNotification(null, payment, notificationType, payment.action, null, 
-				result.responseText, false, true, null, true);	
+				result.responseText, false, false, result.errorMessage, true);	
 		}
 		return result;
 	}
@@ -327,7 +323,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			if (!authRequest.success) {
 				// log the failure.
 				Payment_Notification__c ipn = logNotification(payer, payment, notificationType, payment.action, null, 
-					authRequest.responseText, isTest, false, null, false);	
+					authRequest.responseText, isTest, false, authRequest.errorMessage, false);	
 				insert ipn;
 				
 		 		return new PaymentProfileResult(
@@ -457,38 +453,36 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			payment.pmtStatus = (payment.action == OnlinePayment.PaymentAction.AUTHORIZE) ? 
 				 OnlinePayment.PaymentStatus.AUTHORIZED : OnlinePayment.PaymentStatus.COMPLETED;
 		} else {
-			// UNDONE: Evan needs to figure out how to map various Authnet failures to the correct status.
 			payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
 		}		
 		
-        // UNDONE DJH: for authnet, do we want to store params in ipn, for full encoder.xml?
-
 		// create the log
-		// UNDONE: we need to strip out the authentication info (password) out of encoder.xml, before logging it.  pwd= and &, replace w/ stars.
-		// it's <transactionKey> ..... </transactionKey>
-		Payment_Notification__c ipn = logNotification(payer, payment, notificationType, payment.action, encoder.xml, 
-			baseResult.responseText, isTest, false, null, false);	
+		Payment_Notification__c ipn = logNotification(payer, payment, notificationType, payment.action, strUrlScrub(encoder.xml), 
+			baseResult.responseText, isTest, false, baseResult.errorMessage, false);	
 
 		// set other ipn fields common api doesn't handle
 		ipn.Transaction_Type__c = (payment.action == null || payment.action == PaymentAction.PAY) ? 
 				'authCaptureTransaction' : 'authOnlyTransaction';
 			
-        // use the generic payment processing class
-    	ClassFactory f = new ClassFactory();
-    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
-	    	                                              
-        opmt.payer = payer;
-        opmt.payment = payment;
-		
-        if (opmt.startRecurringPayments()) {
-            ipn.isProcessed__c = true;
-            ipn.opportunity__c = opmt.opportunityId;                    
-        }
-                        
+		result.dbSuccess = false;
+		if (result.success) {
+	        // use the generic payment processing class
+	    	ClassFactory f = new ClassFactory();
+	    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
+		    	                                              
+	        opmt.payer = payer;
+	        opmt.payment = payment;
+			
+	        if (opmt.startRecurringPayments()) {
+	            ipn.isProcessed__c = true;
+	            ipn.opportunity__c = opmt.opportunityId;   
+	            result.dbSuccess = true;                 
+	        }
+		}
+		                        
         // log the ipn record
         insert ipn;
 
-		// UNDONE DJH: what needs to change in result if we fail to create the SF opp?
 		return result;
 	}
 
@@ -629,6 +623,15 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		return result;
 	}
 
+	// utility to strip out pwd and cc info from the url.		
+	private string strUrlScrub(string strUrl) {
+		// strip out pwd and cc info from the url.		
+		strUrl = strUrl.replaceAll('<transactionKey>[a-zA-z0-9]*</transactionKey>', '<transactionKey>****</transactionKey>');
+		strUrl = strUrl.replaceAll('<cardNumber>[a-zA-z0-9]*</cardNumber>', '<cardNumber>****</cardNumber>');
+		strUrl = strUrl.replaceAll('<cardCode>[a-zA-z0-9]*</cardCode>', '<cardCode>****</cardCode>');
+		return strUrl;
+	}
+	
 	protected virtual HttpResponse execute(Http h, HttpRequest request) {
 		return h.send(request);
 	}

@@ -1,4 +1,4 @@
-global virtual class OnlinePayment {   
+global virtual class OnlinePayment { 
 /*-----------------------------------------------------------------------------------------------
 * Written by Evan Callahan, copyright (c) 2010 Groundwire
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
@@ -183,7 +183,7 @@ global virtual class OnlinePayment {
     global enum Processor { 
         PAYPAL,
         AUTHNET,
-        OTHER
+        OTHER 
     }
     
     // to tell the OnlinePayment classes whether to authorize only, or complete the payment.

@@ -1,4 +1,4 @@
-global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {  
+global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment { 
 /*-----------------------------------------------------------------------------------------------
 * Written by Evan Callahan, copyright (c) 2010 Groundwire
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
@@ -195,14 +195,11 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 			payment.pmtStatus = (payment.action == OnlinePayment.PaymentAction.AUTHORIZE) ? 
 				OnlinePayment.PaymentStatus.AUTHORIZED: OnlinePayment.PaymentStatus.COMPLETED;
 		} else {
-			// UNDONE: Evan needs to figure out how to map various Paypal failures to the correct status.
 			payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
 		}		
 		
 		// create the log
-		// UNDONE: we need to strip out the authentication info (password) out of encoder.url, before logging it.  pwd= and &, replace w/ stars.
-		// UNDONE: what about the credit card info.  need to obscure or remove?
-		Payment_Notification__c ipn = logNotification(payer, payment, notificationType, payment.action, encoder.url, 
+		Payment_Notification__c ipn = logNotification(payer, payment, notificationType, payment.action, strUrlScrub(encoder.url), 
 			baseResult.responseText, isTest, false, baseResult.errorMessage, false);	
 
 		ipn.Transaction_Type__c = 'Paypal DoDirectPayment()';
@@ -356,14 +353,12 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 			payment.pmtStatus = (payment.action == OnlinePayment.PaymentAction.AUTHORIZE) ? 
 				OnlinePayment.PaymentStatus.AUTHORIZED: OnlinePayment.PaymentStatus.COMPLETED;
 		} else {
-			// UNDONE: Evan needs to figure out how to map various Paypal failures to the correct status.
 			payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
 		}		
 		
 		// create the log
-		// UNDONE: we need to strip out the authentication info (password) out of encoder.url, before logging it.  pwd= and &, replace w/ stars.
-		Payment_Notification__c ipn = logNotification(payer, payment, notificationType, payment.action, encoder.url, 
-			baseResult.responseText, isTest, false, null, false);	
+		Payment_Notification__c ipn = logNotification(payer, payment, notificationType, payment.action, strUrlScrub(encoder.url), 
+			baseResult.responseText, isTest, false, baseResult.errorMessage, false);	
 
 		ipn.Transaction_Type__c = 'Paypal CreateRecurringPaymentsProfile()';
 		
@@ -463,6 +458,15 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 			result.errorMessage = result.messages[0].longMessage;
 
 		return result;
+	}
+	
+	// utility to strip out pwd and cc info from the url.		
+	private string strUrlScrub(string strUrl) {
+		// strip out pwd and cc info from the url.		
+		strUrl = strUrl.replaceAll('&PWD=[a-zA-z0-9]*&', '&PWD=*****&');
+		strUrl = strUrl.replaceAll('&ACCT=[a-zA-z0-9]*&', '&ACCT=*****&');
+		strUrl = strUrl.replaceAll('&CVV2=[a-zA-z0-9]*&', '&CVV2=*****&');
+		return strUrl;
 	}
 
 	public virtual HttpResponse execute(Http h, HttpRequest request) {
