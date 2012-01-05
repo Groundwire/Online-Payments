@@ -1,4 +1,4 @@
-global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
+global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment { 
 /*-----------------------------------------------------------------------------------------------
 * Written by Evan Callahan, copyright (c) 2010 Groundwire
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
@@ -44,235 +44,255 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		}
 		return encoder;
 	}
+	
+	public class TestException extends Exception {}
 
-	global virtual PaymentTxnResult CreateTransactionRequest( OnlinePayer payer, CreditCardData card, PaymentData payment, boolean testRequest, boolean emailCustomer, boolean fLog ) {
-
-		// build the URL
-		XMLEncoder encoder = getEncoder('createTransactionRequest');
-
-		// top section
-		encoder.openGroup('transactionRequest');
-		encoder.addElement('transactionType', 
-			(payment.action == null || payment.action == PaymentAction.PAY) ? 
-				'authCaptureTransaction' : 'authOnlyTransaction');
-		encoder.addElement('amount', payment.totalAmount);
-
-		// payment section
-		encoder.openGroup('payment');
-		if (card != null && card.acctNumber != null) {
-			encoder.openGroup('creditCard');
-			//encoder.addElement('track1',);
-			//encoder.addElement('track2',);
-			encoder.addElement('cardNumber',  card.acctNumber);
-			if (card.expMonth != null && card.expYear != null)
-				encoder.addElement('expirationDate', card.expMonth + ((card.expYear.length()==2) ? '20' : '') + card.expYear);
-			encoder.addElement('cardCode', card.cvvCode);
-			encoder.closeGroup();
-		}
-		/* if (bank != null && bank.accountNumber != null) {
-			encoder.openGroup('bankAccount');
-			encoder.addElement('accountNumber', bank.acctNumber);
-			encoder.addElement('routingNumber', );
-			encoder.addElement('nameOnAccount', );
-			encoder.addElement('bankName', );
-			encoder.addElement('echeckType', );
-			encoder.closeGroup();
-		} */
-		//encoder.addElement('authCode',);
-		//encoder.addElement('refTransId',);
-		//encoder.addElement('splitTenderId',);
-		encoder.closeGroup();
-
-		// order
-		string descrip = 
-			(payment.memo != null) ? payment.memo : 
-			(payment.itemList != null && payment.itemList.size() == 1) ?
-			((payment.itemList[0].description != null) ? payment.itemList[0].description : 
-			payment.itemList[0].name) : null ;		
-		if (payment.invoice != null || descrip != null) {
-			encoder.openGroup('order');
-			if (payment.invoice != null)
-				encoder.addElement('invoiceNumber', payment.invoice);
-			if (payment.memo != null)
-				encoder.addElement('description', descrip);
-			encoder.closeGroup();
-		}
+	global virtual PaymentTxnResult CreateTransactionRequest( OnlinePayer payer, CreditCardData card, PaymentData payment, 
+		boolean testRequest, boolean emailCustomer, boolean fLog ) {
 		
-		// items
-		if (!payment.itemList.isEmpty()) {
-			encoder.openGroup('lineItems');
-			for (Item item : payment.itemList) {
-				encoder.openGroup('lineItem');
-				encoder.addElement('itemId', (item.code != null) ? item.code : '0');
-				encoder.addElement('name', (item.name != null && item.name != '') ? item.name : '[unknown item]');
-				encoder.addElement('description', item.description);
-				encoder.addElement('quantity', (item.quantity != null) ? item.quantity : 1);
-				encoder.addElement('unitPrice', (item.amount != null) ? item.amount : 0);
+		// declare all variables before we do the try/catch, so we can access things afterwards.
+		XMLEncoder encoder;
+		OnlineTxnResult baseResult = new OnlineTxnResult(false, null);
+		PaymentTxnResult result = new PaymentTxnResult(); 
+		ID oppId;
+		
+		try {
+			// build the URL
+			encoder = getEncoder('createTransactionRequest');
+	
+			// top section
+			encoder.openGroup('transactionRequest');
+			encoder.addElement('transactionType', 
+				(payment.action == null || payment.action == PaymentAction.PAY) ? 
+					'authCaptureTransaction' : 'authOnlyTransaction');
+			encoder.addElement('amount', payment.totalAmount);
+	
+			// payment section
+			encoder.openGroup('payment');
+			if (card != null && card.acctNumber != null) {
+				encoder.openGroup('creditCard');
+				//encoder.addElement('track1',);
+				//encoder.addElement('track2',);
+				encoder.addElement('cardNumber',  card.acctNumber);
+				if (card.expMonth != null && card.expYear != null)
+					encoder.addElement('expirationDate', card.expMonth + ((card.expYear.length()==2) ? '20' : '') + card.expYear);
+				encoder.addElement('cardCode', card.cvvCode);
 				encoder.closeGroup();
 			}
+			/* if (bank != null && bank.accountNumber != null) {
+				encoder.openGroup('bankAccount');
+				encoder.addElement('accountNumber', bank.acctNumber);
+				encoder.addElement('routingNumber', );
+				encoder.addElement('nameOnAccount', );
+				encoder.addElement('bankName', );
+				encoder.addElement('echeckType', );
+				encoder.closeGroup();
+			} */
+			//encoder.addElement('authCode',);
+			//encoder.addElement('refTransId',);
+			//encoder.addElement('splitTenderId',);
 			encoder.closeGroup();
-		}
-
-		if (payment.tax != null) {
-			encoder.openGroup('tax');
-			encoder.addElement('amount', payment.tax);
-			encoder.addElement('name', 'Tax');
-			//encoder.addElement('description', );
-			encoder.closeGroup();
-		}
-		/* if (payment.duty != null) {
-			encoder.openGroup('duty');
-			encoder.addElement('amount', duty.shipping);
-			encoder.addElement('name', 'Duty');
-			//encoder.addElement('description', );
-			encoder.closeGroup();
-		} */
-		if (payment.shipping != null) {
-			encoder.openGroup('shipping');
-			encoder.addElement('amount', payment.shipping);
-			encoder.addElement('name', 'Shipping');
-			//encoder.addElement('description', );
-			encoder.closeGroup();
-		}
-		//encoder.addElement('taxExempt',);
-		//encoder.addElement('poNumber',);
-		
-		// customer
-		encoder.openGroup('customer');
-		//encoder.addElement('type', (payment.companyIsPayer) ? 'Business' : 'Individual');
-		//encoder.addElement('id',);
-		encoder.addElement('email', payer.email);
-		encoder.closeGroup();
-			
-		if (payer.billingAddress != null) {
-			encoder.openGroup('billTo');
-			encoder.addElement('firstName', payer.firstName);
-			encoder.addElement('lastName', payer.lastName);
-			encoder.addElement('company', payer.companyName);
-			encoder.addElement('address', payer.billingAddress.street);
-			encoder.addElement('city', payer.billingAddress.city);
-			encoder.addElement('state', payer.billingAddress.state);
-			encoder.addElement('zip', payer.billingAddress.zip);
-			encoder.addElement('country', payer.billingAddress.country);
-			encoder.addElement('phoneNumber', (payer.shippingAddress == null || payer.shippingAddress.phone == null) ? payer.billingAddress.phone : payer.shippingAddress.phone);
-			//encoder.addElement('faxNumber', payer.fax);
-			encoder.closeGroup();
-		}
-		
-		if (payer.shippingAddress != null && payer.shippingAddress.street != null) {
-			encoder.openGroup('shipTo');
-			encoder.addElement('firstName', payer.firstName);
-			encoder.addElement('lastName', payer.lastName);
-			encoder.addElement('company', payer.companyName);
-			encoder.addElement('address', payer.shippingAddress.street);
-			encoder.addElement('city', payer.shippingAddress.city);
-			encoder.addElement('state', payer.shippingAddress.state);
-			encoder.addElement('zip', payer.shippingAddress.zip);
-			encoder.addElement('country', payer.shippingAddress.country);
-			encoder.closeGroup();
-		}
-
-		if (auth.remoteIpAddress != null)
-			encoder.addElement('customerIP', auth.remoteIpAddress);
-			
-		encoder.openGroup('transactionSettings');
-		encoder.openGroup('setting');
-		encoder.addElement('settingName', 'testRequest');
-		encoder.addElement('settingValue', (testRequest) ? 'true' : 'false');
-		encoder.closeGroup();
-		encoder.openGroup('setting');
-		encoder.addElement('settingName', 'emailCustomer');
-		encoder.addElement('settingValue', (emailCustomer) ? 'true' : 'false');
-		encoder.closeGroup();
-		encoder.closeGroup();
-
-		if (payment.custom != null) {
-			encoder.openGroup('userFields');
-			encoder.openGroup('userField');
-			encoder.addElement('name', 'custom');
-			encoder.addElement('value', payment.custom);
-			encoder.closeGroup();
-			encoder.closeGroup();
-		}
-
-		// make the call
-		OnlineTxnResult baseResult = callAuthnet( encoder.xml );
-		
-		// get all the result data
-		string responseCode;
-		string authCode;
-		string avsResultCode;
-		string cavvResultCode;
-		string transId;
-		string accountNumber;
-		string accountType;
-		string transHash;
-		
-		XMLDecoder decoder = new XMLDecoder( baseResult.responseText );
-		
-		if ( decoder.openGroup('transactionResponse') ) {
-			responseCode = decoder.getElement('responseCode');
-			authCode = decoder.getElement('authCode');
-			avsResultCode = decoder.getElement('avsResultCode');
-			cavvResultCode = decoder.getElement('cavvResultCode');
-			transId = decoder.getElement('transId');
-			accountNumber = decoder.getElement('accountNumber');
-			accountType = decoder.getElement('accountType');
-			transHash = decoder.getElement('transHash');
-		}
-			
- 		PaymentTxnResult result = new PaymentTxnResult(
-			baseResult.success, baseResult.responseText, transId, responseCode, authCode, transHash, 
-			accountNumber, accountType, avsResultCode, cavvResultCode, baseResult.errorMessage, baseResult.messages );
-
-		if (decoder.openGroup('userFields')) {
-			integer i = 0;
-			while (decoder.openGroup('userField', i)) {
-				result.userFields.put(decoder.getElement('name'), decoder.getElement('value'));
-				decoder.closeGroup();
-				i++; 
+	
+			// order
+			string descrip = 
+				(payment.memo != null) ? payment.memo : 
+				(payment.itemList != null && payment.itemList.size() == 1) ?
+				((payment.itemList[0].description != null) ? payment.itemList[0].description : 
+				payment.itemList[0].name) : null ;		
+			if (payment.invoice != null || descrip != null) {
+				encoder.openGroup('order');
+				if (payment.invoice != null)
+					encoder.addElement('invoiceNumber', payment.invoice);
+				if (payment.memo != null)
+					encoder.addElement('description', descrip);
+				encoder.closeGroup();
 			}
-			decoder.closeGroup();
-		}
-				
-		// put authnet data into payment object
-		payment.txnId = transId;	
-		string notificationType = 'Apex Payment Callout'; 
-		boolean isTest = auth.sandbox || testRequest; 
-		
-		// set payment status to correct state
-		if (result.success) {
-			payment.pmtStatus = (payment.action == OnlinePayment.PaymentAction.AUTHORIZE) ? 
-				OnlinePayment.PaymentStatus.AUTHORIZED : OnlinePayment.PaymentStatus.COMPLETED;
-		} else {
-			payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
-		}		
-		
-		// create the log
-		Payment_Notification__c ipn = logNotification(payer, payment, notificationType, payment.action, strUrlScrub(encoder.xml), 
-			baseResult.responseText, isTest, false, baseResult.errorMessage, false);	
-
-		// set other ipn fields common api doesn't handle
-		ipn.Transaction_Type__c = 'Authnet CreateTransactionRequest()';
-
-		result.dbSuccess = false;
-		if (result.success) {
-			// process the log to create opportunities.
-	        // use the generic payment processing class
-	    	ClassFactory f = new ClassFactory();
-	    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
-	        opmt.payer = payer;
-	        opmt.payment = payment;
 			
-	        if (opmt.processSinglePayment()) {
-	            ipn.isProcessed__c = true;
-	            ipn.opportunity__c = opmt.opportunityId;
-	            result.dbSuccess = true;                    
-	        }
-		}
-		                        
+			// items
+			if (!payment.itemList.isEmpty()) {
+				encoder.openGroup('lineItems');
+				for (Item item : payment.itemList) {
+					
+					// hack to test exception handling!!
+					if (item.name == 'cause exception') {
+						throw (new TestException('you asked, we delivered: your exception!'));
+					}			
+					
+					encoder.openGroup('lineItem');
+					encoder.addElement('itemId', (item.code != null) ? item.code : '0');
+					encoder.addElement('name', (item.name != null && item.name != '') ? item.name : '[unknown item]');
+					encoder.addElement('description', item.description);
+					encoder.addElement('quantity', (item.quantity != null) ? item.quantity : 1);
+					encoder.addElement('unitPrice', (item.amount != null) ? item.amount : 0);
+					encoder.closeGroup();
+				}
+				encoder.closeGroup();
+			}
+	
+			if (payment.tax != null) {
+				encoder.openGroup('tax');
+				encoder.addElement('amount', payment.tax);
+				encoder.addElement('name', 'Tax');
+				//encoder.addElement('description', );
+				encoder.closeGroup();
+			}
+			/* if (payment.duty != null) {
+				encoder.openGroup('duty');
+				encoder.addElement('amount', duty.shipping);
+				encoder.addElement('name', 'Duty');
+				//encoder.addElement('description', );
+				encoder.closeGroup();
+			} */
+			if (payment.shipping != null) {
+				encoder.openGroup('shipping');
+				encoder.addElement('amount', payment.shipping);
+				encoder.addElement('name', 'Shipping');
+				//encoder.addElement('description', );
+				encoder.closeGroup();
+			}
+			//encoder.addElement('taxExempt',);
+			//encoder.addElement('poNumber',);
+			
+			// customer
+			encoder.openGroup('customer');
+			//encoder.addElement('type', (payment.companyIsPayer) ? 'Business' : 'Individual');
+			//encoder.addElement('id',);
+			encoder.addElement('email', payer.email);
+			encoder.closeGroup();
+				
+			if (payer.billingAddress != null) {
+				encoder.openGroup('billTo');
+				encoder.addElement('firstName', payer.firstName);
+				encoder.addElement('lastName', payer.lastName);
+				encoder.addElement('company', payer.companyName);
+				encoder.addElement('address', payer.billingAddress.street);
+				encoder.addElement('city', payer.billingAddress.city);
+				encoder.addElement('state', payer.billingAddress.state);
+				encoder.addElement('zip', payer.billingAddress.zip);
+				encoder.addElement('country', payer.billingAddress.country);
+				encoder.addElement('phoneNumber', (payer.shippingAddress == null || payer.shippingAddress.phone == null) ? payer.billingAddress.phone : payer.shippingAddress.phone);
+				//encoder.addElement('faxNumber', payer.fax);
+				encoder.closeGroup();
+			}
+			
+			if (payer.shippingAddress != null && payer.shippingAddress.street != null) {
+				encoder.openGroup('shipTo');
+				encoder.addElement('firstName', payer.firstName);
+				encoder.addElement('lastName', payer.lastName);
+				encoder.addElement('company', payer.companyName);
+				encoder.addElement('address', payer.shippingAddress.street);
+				encoder.addElement('city', payer.shippingAddress.city);
+				encoder.addElement('state', payer.shippingAddress.state);
+				encoder.addElement('zip', payer.shippingAddress.zip);
+				encoder.addElement('country', payer.shippingAddress.country);
+				encoder.closeGroup();
+			}
+	
+			if (auth.remoteIpAddress != null)
+				encoder.addElement('customerIP', auth.remoteIpAddress);
+				
+			encoder.openGroup('transactionSettings');
+			encoder.openGroup('setting');
+			encoder.addElement('settingName', 'testRequest');
+			encoder.addElement('settingValue', (testRequest) ? 'true' : 'false');
+			encoder.closeGroup();
+			encoder.openGroup('setting');
+			encoder.addElement('settingName', 'emailCustomer');
+			encoder.addElement('settingValue', (emailCustomer) ? 'true' : 'false');
+			encoder.closeGroup();
+			encoder.closeGroup();
+	
+			if (payment.custom != null) {
+				encoder.openGroup('userFields');
+				encoder.openGroup('userField');
+				encoder.addElement('name', 'custom');
+				encoder.addElement('value', payment.custom);
+				encoder.closeGroup();
+				encoder.closeGroup();
+			}
+	
+			// make the call
+			baseResult = callAuthnet( encoder.xml );
+			
+			// get all the result data
+			string responseCode;
+			string authCode;
+			string avsResultCode;
+			string cavvResultCode;
+			string transId;
+			string accountNumber;
+			string accountType;
+			string transHash;
+			
+			XMLDecoder decoder = new XMLDecoder( baseResult.responseText );
+			
+			if ( decoder.openGroup('transactionResponse') ) {
+				responseCode = decoder.getElement('responseCode');
+				authCode = decoder.getElement('authCode');
+				avsResultCode = decoder.getElement('avsResultCode');
+				cavvResultCode = decoder.getElement('cavvResultCode');
+				transId = decoder.getElement('transId');
+				accountNumber = decoder.getElement('accountNumber');
+				accountType = decoder.getElement('accountType');
+				transHash = decoder.getElement('transHash');
+			}
+				
+	 		result = new PaymentTxnResult(
+				baseResult.success, baseResult.responseText, transId, responseCode, authCode, transHash, 
+				accountNumber, accountType, avsResultCode, cavvResultCode, baseResult.errorMessage, baseResult.messages );
+	
+			if (decoder.openGroup('userFields')) {
+				integer i = 0;
+				while (decoder.openGroup('userField', i)) {
+					result.userFields.put(decoder.getElement('name'), decoder.getElement('value'));
+					decoder.closeGroup();
+					i++; 
+				}
+				decoder.closeGroup();
+			}
+					
+			// put authnet data into payment object
+			payment.txnId = transId;	
+			
+			// set payment status to correct state
+			if (result.success) {
+				payment.pmtStatus = (payment.action == OnlinePayment.PaymentAction.AUTHORIZE) ? 
+					OnlinePayment.PaymentStatus.AUTHORIZED : OnlinePayment.PaymentStatus.COMPLETED;
+			} else {
+				payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
+			}		
+			
+			if (result.success) {
+				// process the log to create opportunities.
+		        // use the generic payment processing class
+		    	ClassFactory f = new ClassFactory();
+		    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
+		        opmt.payer = payer;
+		        opmt.payment = payment;
+				
+		        if (opmt.processSinglePayment()) {
+		        	oppId = opmt.opportunityId;
+		            result.dbSuccess = true;                    
+		        }
+			}
+		} catch (exception ex) {
+			result.errorMessage = ex.getMessage();
+			result.errorStackTrace = ex.getStackTraceString();
+			result.errorLineNumber = ex.getLineNumber();	
+			// fall thru to log the ipn, and return the result object.		
+		}	
+			                        
         // log the ipn record
         if (fLog) {
+			boolean isTest = auth.sandbox || testRequest; 
+			Payment_Notification__c ipn = logNotification(payer, payment, 'Apex Payment Callout', payment.action, 
+				encoder == null ? null : strXmlScrub(encoder.xml), 
+				baseResult.responseText, isTest, false, result.errorMessage, false);	
+			ipn.Transaction_Type__c = 'Authnet CreateTransactionRequest()';
+            ipn.isProcessed__c = result.dbSuccess == null ? false : result.dbSuccess;  
+            ipn.opportunity__c = oppId;
+            ipn.errorLineNumber__c = result.errorLineNumber;
+            ipn.errorStackTrace__c = result.errorStackTrace;
         	insert ipn;
         }
 
@@ -456,7 +476,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		}		
 		
 		// create the log
-		Payment_Notification__c ipn = logNotification(payer, payment, notificationType, payment.action, strUrlScrub(encoder.xml), 
+		Payment_Notification__c ipn = logNotification(payer, payment, notificationType, payment.action, strXmlScrub(encoder.xml), 
 			baseResult.responseText, isTest, false, baseResult.errorMessage, false);	
 
 		// set other ipn fields common api doesn't handle
@@ -501,6 +521,11 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		global string accountNumber { get; set; }
 		global string accountType { get; set; }
 		map<string, string> userFields { get; set; }	
+		
+		global PaymentTxnResult() {
+			super();
+			userFields = new map<string, string>();				
+		}
 		
 		global PaymentTxnResult( boolean fSuccess, string sXml, string sTxnId, string sResponseCode, string sAuthCode, string sTransHash, string sAccountNumber, string sAccountType, string sAvsResponse, string sCvvResponse, string sErrMsg, list<OnlineTxnMessage> sMsgs ) {
 			super( fSuccess, sXml, sTxnId, sAvsResponse, sCvvResponse, sErrMsg, sMsgs );
@@ -621,13 +646,13 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		return result;
 	}
 
-	// utility to strip out pwd and cc info from the url.		
-	private string strUrlScrub(string strUrl) {
-		// strip out pwd and cc info from the url.		
-		strUrl = strUrl.replaceAll('<transactionKey>[a-zA-z0-9]*</transactionKey>', '<transactionKey>****</transactionKey>');
-		strUrl = strUrl.replaceAll('<cardNumber>[a-zA-z0-9]*</cardNumber>', '<cardNumber>****</cardNumber>');
-		strUrl = strUrl.replaceAll('<cardCode>[a-zA-z0-9]*</cardCode>', '<cardCode>****</cardCode>');
-		return strUrl;
+	// utility to strip out pwd and cc info from the xml.		
+	private string strXmlScrub(string str) {
+		if (str == null) return null;
+		str = str.replaceAll('<transactionKey>[a-zA-z0-9]*</transactionKey>', '<transactionKey>****</transactionKey>');
+		str = str.replaceAll('<cardNumber>[a-zA-z0-9]*</cardNumber>', '<cardNumber>****</cardNumber>');
+		str = str.replaceAll('<cardCode>[a-zA-z0-9]*</cardCode>', '<cardCode>****</cardCode>');
+		return str;
 	}
 	
 	protected virtual HttpResponse execute(Http h, HttpRequest request) {

@@ -1,4 +1,4 @@
-global virtual class OnlinePayment {  
+global virtual class OnlinePayment {    
 /*-----------------------------------------------------------------------------------------------
 * Written by Evan Callahan, copyright (c) 2010 Groundwire
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
@@ -306,6 +306,8 @@ global virtual class OnlinePayment {
     global virtual class OnlineTxnResult {
         global boolean success { get; set; } // success with payment processor
         global string errorMessage { get; set; } // this will contain an appropriate error message if success is false
+        global integer errorLineNumber { get; set; }
+        global string errorStackTrace { get; set; }
         
         global boolean dbSuccess { get; set; } // success saving data (opps) to Salesforce.
         
@@ -326,6 +328,10 @@ global virtual class OnlinePayment {
         global string txnId { get; set; }
         global string avsResponse { get; set; }
         global string cvvResponse { get; set; }
+        
+        global PaymentTxnResult() {
+            super( false, null );
+       	}
         
         global PaymentTxnResult( boolean fSuccess, string sResponse, string sTxnId, string sAvsResponse, string sCvvResponse, string sErrMsg, list<OnlineTxnMessage> sMsgs ) {
             super( fSuccess, sResponse );

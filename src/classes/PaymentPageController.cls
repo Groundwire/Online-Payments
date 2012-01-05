@@ -170,11 +170,13 @@ global with sharing virtual class PaymentPageController {
 				((e.getCause() == null) ? '' : '\n' + e.getCause());
 			
 			apexPages.addmessage(new ApexPages.Message(ApexPages.Severity.ERROR, errMsg));		
-			throw new onlinepayment.OnlinePaymentException( errMsg );	
+			// don't throw.  handle it so error displayed on page.
+			//throw new onlinepayment.OnlinePaymentException( errMsg );	
 		}
 		
 		return null;
 	}
+	
 	
 	global virtual void constructItems() {
 		if (itemName != null && itemName != '') {

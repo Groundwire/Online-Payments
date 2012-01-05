@@ -101,6 +101,7 @@ global virtual class PaymentListenerPaypal {
 				params.get('recurring_payment_id') : params.get('subscr_id');
 			String parentTxnId = params.get('parent_txn_id');
 			String paymentStatus = params.get('payment_status');
+			if (paymentStatus == null) paymentStatus = 'Unknown';
 			String itemName = params.get('item_name');
 			if (itemName == null) itemName = params.get('product_name');
 			String itemNumber = params.get('item_number');			
