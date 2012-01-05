@@ -308,9 +308,6 @@ global virtual class OnlinePayment {
         global string errorMessage { get; set; } // this will contain an appropriate error message if success is false
         
         global boolean dbSuccess { get; set; } // success saving data (opps) to Salesforce.
-        global string dberrorMessage { get; set; }
-        global integer dberrorLineNumber { get; set; }
-        global string dberrorStackTrace { get; set; } 
         
         // this is the full set of messages or errors
         global list<OnlineTxnMessage> messages { get; set; }

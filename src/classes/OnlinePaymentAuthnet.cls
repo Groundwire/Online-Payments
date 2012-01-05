@@ -1,4 +1,4 @@
-global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {    
+global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 /*-----------------------------------------------------------------------------------------------
 * Written by Evan Callahan, copyright (c) 2010 Groundwire
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/

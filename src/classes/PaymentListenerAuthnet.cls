@@ -181,7 +181,6 @@ global virtual class PaymentListenerAuthnet {
             } 
             
             // log the ipn record
-            // UNDONE DJH: Evan, PayPal inserts its ipn before processing.  what's correct?
             insert ipn;
         
             // clear out old notifications
@@ -295,8 +294,7 @@ global virtual class PaymentListenerAuthnet {
 
         } catch (exception e) {
             system.debug(loggingLevel.error, e);
-            //UNDONE: put line number etc in new ipn fields!
-			ipn.Processing_Result__c = e.getMessage() + '(line ' + e.getLineNumber() + ')\n' + e.getCause(); 
+			ipn.Processing_Result__c = e.getMessage() + '(line ' + e.getLineNumber() + ')\n' + '(stack trace: ' + e.getStackTraceString() + ')'; 
 			Database.Rollback( sp );
         }       
     }

@@ -5,13 +5,6 @@ global virtual class OnlinePaymentWebservice {
 * Use this class to insert online payments from a website
 -----------------------------------------------------------------------------------------------*/	
 
-	// UNDONE DJH: Is the intent of the web service to do the payment to the processor, or
-	// to just log it and creates opps (like it currently does)?
-	
-	// UNDONE DJH: I don't see anything in here that hooks it up to the appropriate processor.
-	// Is that not needed, since instantiating OP main class should look at processor registration and 
-	// just do this?
-
 
 	// instantiate the Groundwire online payments class
 	static PaymentToSalesforce gwop { 
@@ -67,7 +60,7 @@ global virtual class OnlinePaymentWebservice {
 		WebService string priceBook;
 		WebService string txnId;
 		WebService string parentTxnId;   // for refund or reversal
-		WebService string cardType;
+		//WebService string cardType;
 		WebService string last4digits;
 		WebService string currencyCode;
 		WebService decimal exchangeRate;
@@ -131,7 +124,7 @@ global virtual class OnlinePaymentWebservice {
 			resp.errorStackTrace = e.getStackTraceString();
 			resp.errorLineNumber = e.getLineNumber();
 		}
-		logNotification( payment, OnlinePayment.PaymentAction.PAY, resp.success );
+		logNotification( payment, OnlinePayment.PaymentAction.PAY, resp );
 		resp.payment = payment;
 		return resp;
 	}	
@@ -148,8 +141,7 @@ global virtual class OnlinePaymentWebservice {
 			resp.errorStackTrace = e.getStackTraceString();
 			resp.errorLineNumber = e.getLineNumber();
 		}
-		// UNDONE: should we also add errorCause and errorLineNumber and errorMessage into Salesforce
-		logNotification( payment, OnlinePayment.PaymentAction.PAY, resp.success );
+		logNotification( payment, OnlinePayment.PaymentAction.PAY, resp );
 		resp.payment = payment;
 		return resp;
 	}
@@ -166,7 +158,7 @@ global virtual class OnlinePaymentWebservice {
 			resp.errorStackTrace = e.getStackTraceString();
 			resp.errorLineNumber = e.getLineNumber();
 		}
-		logNotification( payment, OnlinePayment.PaymentAction.PAY, resp.success );
+		logNotification( payment, OnlinePayment.PaymentAction.PAY, resp );
 		resp.payment = payment;
 		return resp;
 	}	
@@ -183,7 +175,7 @@ global virtual class OnlinePaymentWebservice {
 			resp.errorStackTrace = e.getStackTraceString();
 			resp.errorLineNumber = e.getLineNumber();
 		}
-		logNotification( payment, OnlinePayment.PaymentAction.PAY, resp.success );
+		logNotification( payment, OnlinePayment.PaymentAction.PAY, resp );
 		resp.payment = payment;
 		return resp;
 	}
@@ -200,12 +192,12 @@ global virtual class OnlinePaymentWebservice {
 			resp.errorStackTrace = e.getStackTraceString();
 			resp.errorLineNumber = e.getLineNumber();
 		}
-		logNotification( payment, OnlinePayment.PaymentAction.VOIDTXN, resp.success );
+		logNotification( payment, OnlinePayment.PaymentAction.VOIDTXN, resp );
 		resp.payment = payment;
 		return resp;
 	}
 
-	global static void logNotification( PaymentInfo payment, OnlinePayment.PaymentAction action, boolean processed ) {
+	global static void logNotification( PaymentInfo payment, OnlinePayment.PaymentAction action, Response resp ) {
 
 		// map the webservice payment data to OnlinePayment equivalents
 		
@@ -220,7 +212,7 @@ global virtual class OnlinePaymentWebservice {
 		opayment.opportunityId = payment.opportunityId;
 		
 		Payment_Notification__c ipn = OnlinePayment.logNotification(opayer, opayment, 'Webservice Call', action, null, 
-			payment.paymentResponse, false, processed, null, false );	
+			payment.paymentResponse, false, resp.success, resp.errorMessage, false );	
 
 		// get the first item, if any
 		if (payment.itemList != null && !payment.itemList.isEmpty()) {
@@ -251,9 +243,6 @@ global virtual class OnlinePaymentWebservice {
  		gwop.payment.pmtStatus = payment.pmtStatus; 
 		gwop.payment.txnId = payment.txnId;
 		gwop.payment.parentTxnId = payment.parentTxnId;  // for refund or reversal
-		// UNDONE DJH: credit card info is its own class
-		// OnlinePayment code doesn't hold onto this.  can we just ignore this?  
-		//gwop.payment.cardType = payment.cardType;
 		gwop.payment.last4digits = payment.last4digits;
 		gwop.payment.currencyCode = payment.currencyCode;
 		gwop.payment.exchangeRate = payment.exchangeRate;

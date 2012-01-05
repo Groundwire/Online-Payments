@@ -405,7 +405,7 @@ global virtual class PaymentListenerPaypal {
 				 
 		} catch (exception e) {
 			system.debug(e);
-			ipn.Processing_Result__c = e.getMessage() + '(line ' + e.getLineNumber() + ')\n' + e.getCause(); 
+			ipn.Processing_Result__c = e.getMessage() + '(line ' + e.getLineNumber() + ')\n' + '(stack trace: ' + e.getStackTraceString() + ')'; 
 			Database.Rollback( sp );
 		}				
 

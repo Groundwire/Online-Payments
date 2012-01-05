@@ -1,5 +1,5 @@
 @istest
-global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet {  
+global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet { 
 
     public static string testName;  
 
@@ -140,7 +140,7 @@ global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet 
         system.assertEquals(true, listPn[0].IsTest__c);  
 
         /*
-        // UNDONE DJH: no way to find the opp, because authnet doesn't give a transId, just a subscriptionId,
+        // no way to find the opp, because authnet doesn't give a transId, just a subscriptionId,
         // and GWBase saves the subscriptionId in the recurring payment profile, which we can't query for in a non-gwbase specific way!!
         // for now, just look for our unique amount!
         list<Opportunity> listOpp = [select Id, Name, Amount, StageName, Online_Transaction_Id__c, Online_Pledge_Transaction_Id__c from Opportunity
