@@ -1,4 +1,4 @@
-global virtual class PaymentListenerPaypal { 
+global virtual class PaymentListenerPaypal {
 /*-----------------------------------------------------------------------------------------------
 * Written by Evan Callahan, copyright (c) 2010 Groundwire
 * Modified by David Habib, copyright (c) 2011 Groundwire
@@ -340,7 +340,7 @@ global virtual class PaymentListenerPaypal {
 				 || ipn.Transaction_Type__c == 'send_money') {		// Send Money tab on the PayPal website	
 				
 				// process this single payment
-				if (opmt.processSinglePayment() && opmt.opportunityId != null) {
+				if (opmt.processSinglePayment()) {
 					ipn.opportunity__c = opmt.opportunityId;					
 					ipn.isProcessed__c = true;
 				}
@@ -354,7 +354,7 @@ global virtual class PaymentListenerPaypal {
 					opmt.payment.occurrences = integer.valueOf(params.get('recur_times'));
 
 				// process this subscription/recurring payment profile
-				if (opmt.startRecurringPayments() && opmt.opportunityId != null) {
+				if (opmt.startRecurringPayments()) {
 					ipn.opportunity__c = opmt.opportunityId;					
 					ipn.isProcessed__c = true;
 				}
@@ -363,7 +363,7 @@ global virtual class PaymentListenerPaypal {
 						|| ipn.Transaction_Type__c == 'subscr_payment')	{	// Subscription payment received
 				
 				// process this recurring payment
-				if (opmt.processRecurringPayment() && opmt.opportunityId != null) {
+				if (opmt.processRecurringPayment()) {
 					ipn.opportunity__c = opmt.opportunityId;					
 					ipn.isProcessed__c = true;
 				}

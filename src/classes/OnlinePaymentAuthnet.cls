@@ -1,4 +1,4 @@
-global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {   
+global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {    
 /*-----------------------------------------------------------------------------------------------
 * Written by Evan Callahan, copyright (c) 2010 Groundwire
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
@@ -253,8 +253,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			baseResult.responseText, isTest, false, baseResult.errorMessage, false);	
 
 		// set other ipn fields common api doesn't handle
-		ipn.Transaction_Type__c = (payment.action == null || payment.action == PaymentAction.PAY) ? 
-				'authCaptureTransaction' : 'authOnlyTransaction';
+		ipn.Transaction_Type__c = 'Authnet CreateTransactionRequest()';
 
 		result.dbSuccess = false;
 		if (result.success) {
@@ -461,8 +460,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			baseResult.responseText, isTest, false, baseResult.errorMessage, false);	
 
 		// set other ipn fields common api doesn't handle
-		ipn.Transaction_Type__c = (payment.action == null || payment.action == PaymentAction.PAY) ? 
-				'authCaptureTransaction' : 'authOnlyTransaction';
+		ipn.Transaction_Type__c = 'Authnet ARBCreateSubscriptionRequest()';
 			
 		result.dbSuccess = false;
 		if (result.success) {

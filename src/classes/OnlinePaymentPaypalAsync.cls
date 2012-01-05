@@ -53,7 +53,15 @@ global virtual class OnlinePaymentPaypalAsync implements Database.Batchable<SObj
 		plp.deleteOldNotifications();		
 	}
 
-// NOTE: No test code, because this class gets full test coverage
+// NOTE: No real test code, because this class gets most test coverage
 // from tests in PaymentListenerPaypal.cls
+    static testmethod void TestAll() {
+        OnlinePaymentPaypalAsync batch = new OnlinePaymentPaypalAsync('select id from gwop__Payment_Notification__c');
+        id batchinstanceid = database.executeBatch (batch, 10);
 
+	   Datetime sysTime = System.now().addSeconds(2);
+	   String chron_exp = '' + sysTime.second() + ' ' + sysTime.minute() + ' ' + sysTime.hour() + ' ' + sysTime.day() + ' ' + sysTime.month() + ' ? ' + sysTime.year();
+	   batch = new OnlinePaymentPaypalAsync();
+	   System.schedule('PayPal IPN Async Job ' + sysTime.getTime(), chron_exp, batch);
+    }
 }

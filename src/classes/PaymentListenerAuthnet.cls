@@ -1,4 +1,4 @@
-global virtual class PaymentListenerAuthnet { 
+global virtual class PaymentListenerAuthnet {
 /*-----------------------------------------------------------------------------------------------
 * Written by Evan Callahan, copyright (c) 2010 Groundwire
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
@@ -272,14 +272,12 @@ global virtual class PaymentListenerAuthnet {
             if (subscriptionId == null) {
                 // process single payment
                 if (opmt.processSinglePayment()) {
-                    if (opmt.opportunityId != null) {                
-                        ipn.opportunity__c = opmt.opportunityId;                    
-                        ipn.isProcessed__c = true;
-                    }
+                    ipn.opportunity__c = opmt.opportunityId;                    
+                    ipn.isProcessed__c = true;
                 }
             } else {    
                 // process recurring payment
-                if (opmt.processRecurringPayment() && opmt.opportunityId != null) {
+                if (opmt.processRecurringPayment()) {
                     ipn.opportunity__c = opmt.opportunityId;                    
                     ipn.isProcessed__c = true;
                 }
