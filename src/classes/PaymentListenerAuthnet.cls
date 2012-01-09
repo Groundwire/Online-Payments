@@ -207,8 +207,8 @@ global virtual class PaymentListenerAuthnet {
         string itemName = ipn.item_name__c;
         string paymentStatus = ipn.Payment_Status__c;
         
-        system.debug('params to authnet are:');
-        system.debug(params);
+        //system.debug('params to authnet are:');
+        //system.debug(params);
 
         // use try-catch so that we can log the notification even if the processing fails
 		Savepoint sp = Database.setSavepoint();
@@ -273,16 +273,14 @@ global virtual class PaymentListenerAuthnet {
             // now process each transaction type    
             if (subscriptionId == null) {
                 // process single payment
-                if (opmt.processSinglePayment()) {
-                    ipn.opportunity__c = opmt.opportunityId;                    
-                    ipn.isProcessed__c = true;
-                }
+                opmt.processSinglePayment();
+                ipn.opportunity__c = opmt.opportunityId;                    
+                ipn.isProcessed__c = true;
             } else {    
                 // process recurring payment
-                if (opmt.processRecurringPayment()) {
-                    ipn.opportunity__c = opmt.opportunityId;                    
-                    ipn.isProcessed__c = true;
-                }
+                opmt.processRecurringPayment();
+                ipn.opportunity__c = opmt.opportunityId;                    
+                ipn.isProcessed__c = true;
             }        
 
 			// save the match result
@@ -297,7 +295,10 @@ global virtual class PaymentListenerAuthnet {
 
         } catch (exception e) {
             system.debug(loggingLevel.error, e);
-			ipn.Processing_Result__c = e.getMessage() + '(line ' + e.getLineNumber() + ')\n' + '(stack trace: ' + e.getStackTraceString() + ')'; 
+			ipn.Processing_Result__c = e.getMessage();
+			ipn.errorLineNumber__c = e.getLineNumber();
+			ipn.errorStackTrace__c = e.getStackTraceString(); 
+			ipn.isProcessed__c = false;
 			Database.Rollback( sp );
         }       
     }

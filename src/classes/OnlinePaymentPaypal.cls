@@ -233,10 +233,9 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 		        opmt.payer = payer;
 		        opmt.payment = payment;
 				
-		        if (opmt.processSinglePayment()) {
-		            oppId = opmt.opportunityId;
-		            result.dbSuccess = true;                    
-		        }
+		        opmt.processSinglePayment();
+		        oppId = opmt.opportunityId;
+		        result.dbSuccess = true;                    
 			}
 		} catch (exception ex) {
 			result.errorMessage = ex.getMessage();
@@ -407,10 +406,9 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 		        opmt.payer = payer;
 		        opmt.payment = payment;
 				
-		        if (opmt.startRecurringPayments()) {
-		            oppId = opmt.opportunityId;                    
-					result.dbSuccess = true;
-		        }
+		        opmt.startRecurringPayments();
+		        oppId = opmt.opportunityId;                    
+				result.dbSuccess = true;		        
 			}
 		} catch (exception ex) {
 			result.errorMessage = ex.getMessage();

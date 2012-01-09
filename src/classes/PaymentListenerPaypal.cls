@@ -346,10 +346,9 @@ global virtual class PaymentListenerPaypal {
 				 || ipn.Transaction_Type__c == 'send_money') {		// Send Money tab on the PayPal website	
 				
 				// process this single payment
-				if (opmt.processSinglePayment()) {
-					ipn.opportunity__c = opmt.opportunityId;					
-					ipn.isProcessed__c = true;
-				}
+				opmt.processSinglePayment();
+				ipn.opportunity__c = opmt.opportunityId;					
+				ipn.isProcessed__c = true;
 		
 			} else if (ipn.Transaction_Type__c == 'subscr_signup'   		// Subscription started
 			 			|| ipn.Transaction_Type__c == 'subscr_modify'   	// Subscription modified
@@ -360,28 +359,25 @@ global virtual class PaymentListenerPaypal {
 					opmt.payment.occurrences = integer.valueOf(params.get('recur_times'));
 
 				// process this subscription/recurring payment profile
-				if (opmt.startRecurringPayments()) {
-					ipn.opportunity__c = opmt.opportunityId;					
-					ipn.isProcessed__c = true;
-				}
+				opmt.startRecurringPayments();
+				ipn.opportunity__c = opmt.opportunityId;					
+				ipn.isProcessed__c = true;
 
 			} else if (ipn.Transaction_Type__c == 'recurring_payment'   	// Recurring payment received
 						|| ipn.Transaction_Type__c == 'subscr_payment')	{	// Subscription payment received
 				
 				// process this recurring payment
-				if (opmt.processRecurringPayment()) {
-					ipn.opportunity__c = opmt.opportunityId;					
-					ipn.isProcessed__c = true;
-				}
+				opmt.processRecurringPayment();
+				ipn.opportunity__c = opmt.opportunityId;					
+				ipn.isProcessed__c = true;
 															
 			} else if (ipn.Transaction_Type__c == 'subscr_cancel'	   //Subscription canceled
 						|| ipn.Transaction_Type__c == 'subscr_eot') {  //Subscription expired
 
 				// process cancellation		
-				if (opmt.cancelRecurringPayments()) {											
-					ipn.opportunity__c = opmt.opportunityId;					
-					ipn.isProcessed__c = true;
-				}
+				opmt.cancelRecurringPayments();											
+				ipn.opportunity__c = opmt.opportunityId;					
+				ipn.isProcessed__c = true;
 						
 			//} else if (ipn.Transaction_Type__c == 'subscr_failed') {  //Subscription signup failed
 				// could log this person for followup, but probably a waste of time
@@ -410,9 +406,12 @@ global virtual class PaymentListenerPaypal {
 					null; 
 				 
 		} catch (exception e) {
-			system.debug(e);
-			ipn.Processing_Result__c = e.getMessage() + '(line ' + e.getLineNumber() + ')\n' + '(stack trace: ' + e.getStackTraceString() + ')'; 
-			Database.Rollback( sp );
+            system.debug(loggingLevel.error, e);
+			ipn.Processing_Result__c = e.getMessage();
+			ipn.errorLineNumber__c = e.getLineNumber();
+			ipn.errorStackTrace__c = e.getStackTraceString(); 
+			ipn.isProcessed__c = false;
+			Database.Rollback( sp );			
 		}				
 
 		// the ipn is updated by our batch caller if we are told not to.
@@ -420,6 +419,7 @@ global virtual class PaymentListenerPaypal {
 	}	
 	
 	// helper routine called by our batch, to periodically remove old ipn records.	
+    //@future Can't be future since called by batch method.
 	global static void deleteOldNotifications() { 
 		OnlinePaymentSettings__c opSettings = OnlinePaymentSettings__c.getInstance();
 		if (opSettings == null) opSettings = defaultSettings();

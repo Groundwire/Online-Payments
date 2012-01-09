@@ -58,7 +58,7 @@ global virtual class PaymentToSalesforce  {
 	* setPayer method
 	* tries to match payer data to an existing account or contact
 	* if it does not find a match, it creates a new contact (and/or account) for the opp
-	* returns true if there is a designated payer one way or another, false for failure;
+	* returns void throws an exception if not successful
 	*   also sets the payerMatchResult property to indicate what happened
 	*
 	* you can call this explicitly, but each of the other methods may want to call it
@@ -69,7 +69,7 @@ global virtual class PaymentToSalesforce  {
 	*         // create a new payment
 	*    }
 	-------------------------------------------------------------------------------------*/
-	global virtual boolean setPayer() { return true; }
+	global virtual void setPayer() {  }
 		// for an idea of how to implement this, here is a possible outline:
 		
 		// look for an existing opp or installment with the specified transaction Id and set the acct/con ids based on that
@@ -83,9 +83,9 @@ global virtual class PaymentToSalesforce  {
 	/*------------------------------------------------------------------------------------
 	* processSinglePayment method
 	* creates (or updates) an opportunity for an online payment
-	* returns true if the processing was successful
+	* returns void throws an exception if not successful
 	-------------------------------------------------------------------------------------*/
-	global virtual boolean processSinglePayment() { return true; }
+	global virtual void processSinglePayment() {  }
 		// make sure we have an opp or payer, or call setPayer
 		// if there is already an opp, update it
 		// otherwise, create a new opp
@@ -94,23 +94,23 @@ global virtual class PaymentToSalesforce  {
 	/*------------------------------------------------------------------------------------
 	* startRecurringPayments method
 	* creates (or updates) an opportunity for an online recurring payment or subscription
-	* returns true if the processing was successful
+	* returns void throws an exception if not successful
 	-------------------------------------------------------------------------------------*/	
-	global virtual boolean startRecurringPayments() { return true; }
+	global virtual void startRecurringPayments() {  }
 	
 	/*------------------------------------------------------------------------------------
 	* processRecurringPayment method
 	* creates (or updates) an opportunity for an online payment associated with recurring opp
-	* returns true if the processing was successful
+	* returns void throws an exception if not successful
 	-------------------------------------------------------------------------------------*/	
-	global virtual boolean processRecurringPayment() { return true; }
+	global virtual void processRecurringPayment() {  }
 	
 	/*------------------------------------------------------------------------------------
 	* cancelRecurringPayments method
 	* finds and marks the specified recurring payment opp(s) as closed or written off
-	* returns true if the processing was successful
+	* returns void throws an exception if not successful
 	-------------------------------------------------------------------------------------*/	
-	global virtual boolean cancelRecurringPayments() { return true; }
+	global virtual void cancelRecurringPayments() {  }
 	
 	static testmethod void TestAll() {
 		PaymentToSalesforce pay = new PaymentToSalesforce();
@@ -125,10 +125,10 @@ global virtual class PaymentToSalesforce  {
 		system.assert(pay.paymentOpp == null);
 		system.assert(pay.companyIsPayer == null);
 		system.assert(pay.payerMatchResult == null);
-		system.assertEquals(true, pay.setPayer());
-		system.assertEquals(true, pay.processSinglePayment());
-		system.assertEquals(true, pay.startRecurringPayments());
-		system.assertEquals(true, pay.processRecurringPayment());
-		system.assertEquals(true, pay.cancelRecurringPayments());
+		pay.setPayer();
+		pay.processSinglePayment();
+		pay.startRecurringPayments();
+		pay.processRecurringPayment();
+		pay.cancelRecurringPayments();
 	}
 }
