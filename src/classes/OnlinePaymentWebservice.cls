@@ -1,10 +1,11 @@
-global virtual class OnlinePaymentWebservice { 
-/*-----------------------------------------------------------------------------------------------
-* Written by Evan Callahan, copyright (c) 2010 Groundwire, 1402 3rd Avenue, Suite 1000, Seattle, WA 98101 
+/*******************************************************************************************************
+* @author Evan Callahan, David Habib
+* @date 1/9/2012
+* @description Use this class to insert online payments from a website into Salesforce.
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
-* Use this class to insert online payments from a website
------------------------------------------------------------------------------------------------*/	
+********************************************************************************************************/
 
+global virtual class OnlinePaymentWebservice { 
 
 	// instantiate the Groundwire online payments class
 	static PaymentToSalesforce gwop { 

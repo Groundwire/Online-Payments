@@ -1,7 +1,11 @@
+/*******************************************************************************************************
+* @author Evan Callahan, David Habib
+* @date 1/9/2012
+* @description batch apex class to process authnet payment notifications later (via scheduled apex)
+* This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
+********************************************************************************************************/
+
 global class OnlinePaymentAuthnetAsync implements Database.Batchable<SObject>, Database.Stateful, Schedulable { 
-// batch apex class to process authnet payment notifications later (via scheduled apex)
-// Written by Evan Callahan, copyright (c) 2011 Groundwire, 1402 3rd Avenue, Suite 1000, Seattle, WA 98101
-// This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
 
     global String query { get; set; }
 

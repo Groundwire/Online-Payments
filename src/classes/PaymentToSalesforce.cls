@@ -1,11 +1,12 @@
-global virtual class PaymentToSalesforce  { 
-/*-----------------------------------------------------------------------------------------------
-* Written by Evan Callahan, copyright (c) 2010 Groundwire
-* This program is released under the GNU Affero General global License, Version 3. http://www.gnu.org/licenses/
-* 
-* This interface is an attempt to support multiple payment processors in a generic way, so
+/*******************************************************************************************************
+* @author Evan Callahan, David Habib
+* @date 1/9/2012
+* @description This Class is an attempt to support multiple payment processors in a generic way, so
 * that we can share payment processing tools for different websites or merchant account providers.
------------------------------------------------------------------------------------------------*/	
+* This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
+********************************************************************************************************/
+
+global virtual class PaymentToSalesforce  { 
 
 	// method called when class is dynamically created by ClassFactory, when
 	// constructor and static initialization won't be done.

@@ -1,12 +1,14 @@
-global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment { 
-/*-----------------------------------------------------------------------------------------------
-* Written by Evan Callahan, copyright (c) 2010 Groundwire
+/*******************************************************************************************************
+* @author Evan Callahan, David Habib
+* @date 1/9/2012
+* @description Authnet class containing data structures and utilities for online payment processing.
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
------------------------------------------------------------------------------------------------*/
+********************************************************************************************************/
+
+global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment { 
 
 	/*
 	TODO: 
-	WRITE APEX TESTS
 	In testing, should check encoding - e.g. accented chars
 
 	FUTURE:
@@ -103,7 +105,11 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 				encoder.openGroup('order');
 				if (payment.invoice != null)
 					encoder.addElement('invoiceNumber', payment.invoice);
-				if (payment.memo != null)
+				if (payment.memo != null)				
+					// hack to test exception handling!!
+					//if (payment.memo == 'cause exception') {
+					//	throw (new TestException('you asked, we delivered: your exception in CreateTransactionRequest!'));
+					//}			
 					encoder.addElement('description', descrip);
 				encoder.closeGroup();
 			}
@@ -111,13 +117,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			// items
 			if (!payment.itemList.isEmpty()) {
 				encoder.openGroup('lineItems');
-				for (Item item : payment.itemList) {
-					
-					// hack to test exception handling!!
-					if (item.name == 'cause exception') {
-						throw (new TestException('you asked, we delivered: your exception!'));
-					}			
-					
+				for (Item item : payment.itemList) {					
 					encoder.openGroup('lineItem');
 					encoder.addElement('itemId', (item.code != null) ? item.code : '0');
 					encoder.addElement('name', (item.name != null && item.name != '') ? item.name : '[unknown item]');
@@ -300,217 +300,258 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 	}
 
 	global virtual OnlineTxnResult VoidTransaction( string txnId, boolean fLog) {
+		OnlineTxnResult result = new OnlineTxnResult(false, null);
+		try {
 
-		// build the URL
-		XMLEncoder encoder = getEncoder('createTransactionRequest');
-
-		// top section
-		encoder.openGroup('transactionRequest');
-		encoder.addElement('transactionType', 'voidTransaction');
-		encoder.addElement('refTransId', txnId);
-
-		// make the call
-		OnlineTxnResult result = callAuthnet( encoder.xml );
+			// build the URL
+			XMLEncoder encoder = getEncoder('createTransactionRequest');
+	
+			// top section
+			encoder.openGroup('transactionRequest');
+			encoder.addElement('transactionType', 'voidTransaction');
+			encoder.addElement('refTransId', txnId);
+	
+			// make the call
+			 result = callAuthnet( encoder.xml );
+		} catch (exception ex) {
+			result.success = false;
+			result.errorMessage = ex.getMessage();
+			result.errorStackTrace = ex.getStackTraceString();
+			result.errorLineNumber = ex.getLineNumber();	
+			// fall thru to log the ipn, and return the result object.		
+		}	
 		
 		// log the failure.
 		if (fLog) {
-			string notificationType = 'Apex Payment Callout';
 			PaymentData payment = new PaymentData(0);
 			payment.pmtProcessor = Processor.AUTHNET;
 			payment.action = PaymentAction.VOIDTXN;
 			payment.pmtStatus = result.success ? PaymentStatus.COMPLETED : null;
 			payment.txnId = txnId;
 			
-			Payment_Notification__c ipn = logNotification(null, payment, notificationType, payment.action, null, 
-				result.responseText, false, false, result.errorMessage, true);	
+			Payment_Notification__c ipn = logNotification(null, payment, 'Apex Payment Callout', payment.action, null, 
+				result.responseText, false, false, result.errorMessage, false);	
+			ipn.Transaction_Type__c = 'Authnet VoidTransaction()';
+			insert ipn;
 		}
 		return result;
 	}
 
-	global virtual PaymentProfileResult ARBCreateSubscriptionRequest( OnlinePayer payer, CreditCardData card, PaymentData payment, boolean preAuthorize ) {
-		// set vars for logging
-		string notificationType = 'Apex Payment Callout';
+	global virtual PaymentProfileResult ARBCreateSubscriptionRequest( OnlinePayer payer, CreditCardData card, 
+		PaymentData payment, boolean preAuthorize ) {
+			
+		// declare all variables before we do the try/catch, so we can access things afterwards.
+		XMLEncoder encoder;
+		OnlineTxnResult baseResult = new OnlineTxnResult(false, null);
+		PaymentProfileResult result = new PaymentProfileResult(); 
+		ID oppId;
 		boolean isTest = auth.sandbox; 
-		
-		// if the flag is set, first authorize the credit card and void
-		if (preAuthorize) {
-			PaymentAction saveAction = payment.action;
-			payment.action = PaymentAction.AUTHORIZE;
-			PaymentTxnResult authRequest = CreateTransactionRequest( payer, card, payment, false, false, false );
-			payment.action = saveAction;
-				
-			if (!authRequest.success) {
-				// log the failure.
-				Payment_Notification__c ipn = logNotification(payer, payment, notificationType, payment.action, null, 
-					authRequest.responseText, isTest, false, authRequest.errorMessage, false);	
-				insert ipn;
-				
-		 		return new PaymentProfileResult(
-					authRequest.success, authRequest.responseText, null, authRequest.errorMessage, authRequest.messages);
-			} else {
-				// void
-				OnlineTxnResult voidRequest = VoidTransaction( authRequest.txnId, false );
+
+		try {		
+			// if the flag is set, first authorize the credit card and void
+			if (preAuthorize) {
+				PaymentAction saveAction = payment.action;
+				payment.action = PaymentAction.AUTHORIZE;
+				PaymentTxnResult authRequest = CreateTransactionRequest( payer, card, payment, false, false, false );
+				payment.action = saveAction;
+					
+				if (!authRequest.success) {
+					// log the failure.
+					Payment_Notification__c ipn = logNotification(payer, payment, 'Apex Payment Callout', payment.action, null, 
+						authRequest.responseText, isTest, false, authRequest.errorMessage, false);	
+		            ipn.errorLineNumber__c = authRequest.errorLineNumber;
+		            ipn.errorStackTrace__c = authRequest.errorStackTrace;
+					ipn.Transaction_Type__c = 'Authnet ARBCreateSubscriptionRequest()';
+					insert ipn;
+					
+			 		result = new PaymentProfileResult(authRequest.success, authRequest.responseText, null, 
+			 			authRequest.errorMessage, authRequest.messages);
+					result.errorLineNumber = authRequest.errorLineNumber;
+					result.errorStackTrace = authRequest.errorStackTrace;
+					return result;
+				} else {
+					// void
+					OnlineTxnResult voidRequest = VoidTransaction( authRequest.txnId, false );
+				}
 			}
-		}
-
-		// build the URL
-		XMLEncoder encoder = getEncoder('ARBCreateSubscriptionRequest');
-
-		// top section
-		encoder.openGroup('subscription');
-		encoder.openGroup('paymentSchedule');
-		
-		encoder.openGroup('interval');		
-		if (payment.pmtPeriod == RecurringPeriod.YEAR) {
-			encoder.addElement('length', 12 * ((payment.frequency != null) ? payment.frequency : 1));
-			encoder.addElement('unit', 'months');
-		} else if (payment.pmtPeriod == RecurringPeriod.WEEK) {
-			encoder.addElement('length', 7 * ((payment.frequency != null) ? payment.frequency : 1));
-			encoder.addElement('unit', 'days');
-		} else if (payment.pmtPeriod == RecurringPeriod.DAY) {
-			encoder.addElement('length', (payment.frequency != null) ? payment.frequency : 1);
-			encoder.addElement('unit', 'days');
-		} else {
-			encoder.addElement('length', (payment.frequency != null) ? payment.frequency : 1);				
-			encoder.addElement('unit', 'months');
-		}
-		encoder.closeGroup();
-		
-		encoder.addElement('startDate', (payment.startDate != null && payment.startDate >= system.today()) ?
-			payment.startDate : system.today() );
-		encoder.addElement('totalOccurrences', (payment.occurrences != null && payment.occurrences != 0) ? 
-			payment.occurrences : 9999);
-		//encoder.addElement('trialOccurrences', );
-		encoder.closeGroup();
-		
-		// payment section
-		encoder.addElement('amount', payment.totalAmount);
-		//encoder.addElement('trialAmount', );
-		encoder.openGroup('payment');
-		if (card != null && card.acctNumber != null) {
-			encoder.openGroup('creditCard');
-			//encoder.addElement('track1',);
-			//encoder.addElement('track2',);
-			encoder.addElement('cardNumber',  card.acctNumber);
-			if (card.expMonth != null && card.expYear != null)
-				encoder.addElement('expirationDate', card.expMonth + ((card.expYear.length()==2) ? '20' : '') + card.expYear);
-			encoder.addElement('cardCode', card.cvvCode);
+	
+			// build the URL
+			encoder = getEncoder('ARBCreateSubscriptionRequest');
+	
+			// top section
+			encoder.openGroup('subscription');
+			encoder.openGroup('paymentSchedule');
+			
+			encoder.openGroup('interval');		
+			if (payment.pmtPeriod == RecurringPeriod.YEAR) {
+				encoder.addElement('length', 12 * ((payment.frequency != null) ? payment.frequency : 1));
+				encoder.addElement('unit', 'months');
+			} else if (payment.pmtPeriod == RecurringPeriod.WEEK) {
+				encoder.addElement('length', 7 * ((payment.frequency != null) ? payment.frequency : 1));
+				encoder.addElement('unit', 'days');
+			} else if (payment.pmtPeriod == RecurringPeriod.DAY) {
+				encoder.addElement('length', (payment.frequency != null) ? payment.frequency : 1);
+				encoder.addElement('unit', 'days');
+			} else {
+				encoder.addElement('length', (payment.frequency != null) ? payment.frequency : 1);				
+				encoder.addElement('unit', 'months');
+			}
 			encoder.closeGroup();
-		}
-		/* if (bank != null && bank.accountNumber != null) {
-			encoder.openGroup('bankAccount');
-			encoder.addElement('accountNumber', bank.acctNumber);
-			encoder.addElement('routingNumber', );
-			encoder.addElement('nameOnAccount', );
-			encoder.addElement('bankName', );
-			encoder.addElement('echeckType', );
+			
+			encoder.addElement('startDate', (payment.startDate != null && payment.startDate >= system.today()) ?
+				payment.startDate : system.today() );
+			encoder.addElement('totalOccurrences', (payment.occurrences != null && payment.occurrences != 0) ? 
+				payment.occurrences : 9999);
+			//encoder.addElement('trialOccurrences', );
 			encoder.closeGroup();
-		} */
-		encoder.closeGroup();
-
-		// order
-		if (payment.invoice != null || payment.memo != null) {
-			encoder.openGroup('order');
-			if (payment.invoice != null)
-				encoder.addElement('invoiceNumber', payment.invoice);
-			if (payment.memo != null)
-				encoder.addElement('description', payment.memo);
+			
+			// payment section
+			encoder.addElement('amount', payment.totalAmount);
+			//encoder.addElement('trialAmount', );
+			encoder.openGroup('payment');
+			if (card != null && card.acctNumber != null) {
+				encoder.openGroup('creditCard');
+				//encoder.addElement('track1',);
+				//encoder.addElement('track2',);
+				encoder.addElement('cardNumber',  card.acctNumber);
+				if (card.expMonth != null && card.expYear != null)
+					encoder.addElement('expirationDate', card.expMonth + ((card.expYear.length()==2) ? '20' : '') + card.expYear);
+				encoder.addElement('cardCode', card.cvvCode);
+				encoder.closeGroup();
+			}
+			/* if (bank != null && bank.accountNumber != null) {
+				encoder.openGroup('bankAccount');
+				encoder.addElement('accountNumber', bank.acctNumber);
+				encoder.addElement('routingNumber', );
+				encoder.addElement('nameOnAccount', );
+				encoder.addElement('bankName', );
+				encoder.addElement('echeckType', );
+				encoder.closeGroup();
+			} */
 			encoder.closeGroup();
-		}
-		
-		// customer
-		encoder.openGroup('customer');
-		//encoder.addElement('type', (payment.companyIsPayer) ? 'Business' : 'Individual');
-		//encoder.addElement('id',);
-		encoder.addElement('email', payer.email);
-		encoder.addElement('phoneNumber', (payer.shippingAddress == null || payer.shippingAddress.phone == null) ? payer.billingAddress.phone : payer.shippingAddress.phone);
-		//encoder.addElement('faxNumber', payer.fax);
-		encoder.closeGroup();
-		
-		encoder.openGroup('billTo');
-		encoder.addElement('firstName', payer.firstName);
-		encoder.addElement('lastName', payer.lastName);
-		encoder.addElement('company', payer.companyName);
-		encoder.addElement('address', payer.billingAddress.street);
-		encoder.addElement('city', payer.billingAddress.city);
-		encoder.addElement('state', payer.billingAddress.state);
-		encoder.addElement('zip', payer.billingAddress.zip);
-		encoder.addElement('country', payer.billingAddress.country);
-		encoder.closeGroup();
-		
-		if (payer.shippingAddress != null && payer.shippingAddress.street != null) {
-			encoder.openGroup('shipTo');
+	
+			// order
+			if (payment.invoice != null || payment.memo != null) {
+				encoder.openGroup('order');
+				if (payment.invoice != null)
+					encoder.addElement('invoiceNumber', payment.invoice);
+				if (payment.memo != null)
+					// hack to test exception handling!!
+					//if (payment.memo == 'cause exception') {
+					//	throw (new TestException('you asked, we delivered: your exception in ARBCreateSubscriptionRequest!'));
+					//}							
+					encoder.addElement('description', payment.memo);
+				encoder.closeGroup();
+			}
+			
+			// customer
+			encoder.openGroup('customer');
+			//encoder.addElement('type', (payment.companyIsPayer) ? 'Business' : 'Individual');
+			//encoder.addElement('id',);
+			encoder.addElement('email', payer.email);
+			encoder.addElement('phoneNumber', (payer.shippingAddress == null || payer.shippingAddress.phone == null) ? payer.billingAddress.phone : payer.shippingAddress.phone);
+			//encoder.addElement('faxNumber', payer.fax);
+			encoder.closeGroup();
+			
+			encoder.openGroup('billTo');
 			encoder.addElement('firstName', payer.firstName);
 			encoder.addElement('lastName', payer.lastName);
 			encoder.addElement('company', payer.companyName);
-			encoder.addElement('address', payer.shippingAddress.street);
-			encoder.addElement('city', payer.shippingAddress.city);
-			encoder.addElement('state', payer.shippingAddress.state);
-			encoder.addElement('zip', payer.shippingAddress.zip);
-			encoder.addElement('country', payer.shippingAddress.country);
+			encoder.addElement('address', payer.billingAddress.street);
+			encoder.addElement('city', payer.billingAddress.city);
+			encoder.addElement('state', payer.billingAddress.state);
+			encoder.addElement('zip', payer.billingAddress.zip);
+			encoder.addElement('country', payer.billingAddress.country);
 			encoder.closeGroup();
-		}
-
-		// make the call
-		OnlineTxnResult baseResult = callAuthnet( encoder.xml );
-
-		// get the result		
-		XMLDecoder decoder = new XMLDecoder( baseResult.responseText );
-		string subscriptionId = decoder.getElement('subscriptionId');
-		string transId = decoder.getElement('transId');
-		
- 		PaymentProfileResult result = new PaymentProfileResult(
-			baseResult.success, baseResult.responseText, subscriptionId, baseResult.errorMessage, baseResult.messages);
 			
-						
-		// put authnet data into payment object
-		payment.txnId = transId;	
-		payment.recurringTxnId = subscriptionId;
-
-		// set payment status to correct thing
-		if (result.success) {
-			payment.pmtStatus = (payment.action == OnlinePayment.PaymentAction.AUTHORIZE) ? 
-				 OnlinePayment.PaymentStatus.AUTHORIZED : OnlinePayment.PaymentStatus.COMPLETED;
-		} else {
-			payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
-		}		
-		
+			if (payer.shippingAddress != null && payer.shippingAddress.street != null) {
+				encoder.openGroup('shipTo');
+				encoder.addElement('firstName', payer.firstName);
+				encoder.addElement('lastName', payer.lastName);
+				encoder.addElement('company', payer.companyName);
+				encoder.addElement('address', payer.shippingAddress.street);
+				encoder.addElement('city', payer.shippingAddress.city);
+				encoder.addElement('state', payer.shippingAddress.state);
+				encoder.addElement('zip', payer.shippingAddress.zip);
+				encoder.addElement('country', payer.shippingAddress.country);
+				encoder.closeGroup();
+			}
+	
+			// make the call
+			baseResult = callAuthnet( encoder.xml );
+	
+			// get the result		
+			XMLDecoder decoder = new XMLDecoder( baseResult.responseText );
+			string subscriptionId = decoder.getElement('subscriptionId');
+			string transId = decoder.getElement('transId');
+			
+	 		result = new PaymentProfileResult(
+				baseResult.success, baseResult.responseText, subscriptionId, baseResult.errorMessage, baseResult.messages);			
+							
+			// put authnet data into payment object
+			payment.txnId = transId;	
+			payment.recurringTxnId = subscriptionId;
+	
+			// set payment status to correct thing
+			if (result.success) {
+				payment.pmtStatus = (payment.action == OnlinePayment.PaymentAction.AUTHORIZE) ? 
+					 OnlinePayment.PaymentStatus.AUTHORIZED : OnlinePayment.PaymentStatus.COMPLETED;
+			} else {
+				payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
+			}	
+			
+			if (result.success) {
+		        // use the generic payment processing class
+		    	ClassFactory f = new ClassFactory();
+		    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
+			    	                                              
+		        opmt.payer = payer;
+		        opmt.payment = payment;
+	
+		        if (opmt.startRecurringPayments()) {
+		            oppId = opmt.opportunityId;   
+		            result.dbSuccess = true;                 
+		        }
+			}
+		} catch (exception ex) {
+			result.errorMessage = ex.getMessage();
+			result.errorStackTrace = ex.getStackTraceString();
+			result.errorLineNumber = ex.getLineNumber();	
+			// fall thru to log the ipn, and return the result object.		
+		}	
+									                        
 		// create the log
-		Payment_Notification__c ipn = logNotification(payer, payment, notificationType, payment.action, strXmlScrub(encoder.xml), 
-			baseResult.responseText, isTest, false, baseResult.errorMessage, false);	
+		Payment_Notification__c ipn = logNotification(payer, payment, 'Apex Payment Callout', payment.action, 
+			encoder == null ? null : strXmlScrub(encoder.xml), 
+			baseResult.responseText, isTest, false, result.errorMessage, false);	
 
 		// set other ipn fields common api doesn't handle
 		ipn.Transaction_Type__c = 'Authnet ARBCreateSubscriptionRequest()';
-			
-		result.dbSuccess = false;
-		if (result.success) {
-	        // use the generic payment processing class
-	    	ClassFactory f = new ClassFactory();
-	    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
-		    	                                              
-	        opmt.payer = payer;
-	        opmt.payment = payment;
-			
-	        if (opmt.startRecurringPayments()) {
-	            ipn.isProcessed__c = true;
-	            ipn.opportunity__c = opmt.opportunityId;   
-	            result.dbSuccess = true;                 
-	        }
-		}
-		                        
-        // log the ipn record
-        insert ipn;
+        ipn.isProcessed__c = result.dbSuccess == null ? false : result.dbSuccess;  
+        ipn.opportunity__c = oppId;
+        ipn.errorLineNumber__c = result.errorLineNumber;
+        ipn.errorStackTrace__c = result.errorStackTrace;
+    	insert ipn;
 
 		return result;
 	}
 
 	global OnlineTxnResult getTransactionDetails( string txnId ) {
-
-		// build the xml
-		XMLEncoder encoder = getEncoder('getTransactionDetailsRequest');
-		encoder.addElement('transId', txnId); 
-
-		OnlineTxnResult result = callAuthnet( encoder.xml );
+		OnlineTxnResult result = new OnlineTxnResult(false, null);
+	
+		try {
+			// build the xml
+			XMLEncoder encoder = getEncoder('getTransactionDetailsRequest');
+			encoder.addElement('transId', txnId); 
+			result = callAuthnet( encoder.xml );		
+		} catch (exception ex) {
+			result.success = false;
+			result.errorMessage = ex.getMessage();
+			result.errorStackTrace = ex.getStackTraceString();
+			result.errorLineNumber = ex.getLineNumber();	
+			// fall thru and return the result object.		
+		}	
+		
 		return result;
 	}
 
@@ -540,6 +581,8 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 
 	global virtual class PaymentProfileResult extends OnlinePayment.PaymentProfileResult {		
 		global string xml { get; set; }
+		
+		global PaymentProfileResult() {}
 		
 		global PaymentProfileResult( boolean fSuccess, string sXml, string sRecurringTxnId, string sErrMsg, list<OnlineTxnMessage> sMsgs ) {
 			super( fSuccess, sXml, sRecurringTxnId, sErrMsg, sMsgs );

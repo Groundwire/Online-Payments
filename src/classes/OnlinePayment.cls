@@ -1,10 +1,11 @@
-global virtual class OnlinePayment {    
-/*-----------------------------------------------------------------------------------------------
-* Written by Evan Callahan, copyright (c) 2010 Groundwire
+/*******************************************************************************************************
+* @author Evan Callahan, David Habib
+* @date 1/9/2012
+* @description Base class containing data structures and utilities for online payment processing.
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
-* 
-* Base class containing data structures and utilities for online payment processing
------------------------------------------------------------------------------------------------*/   
+********************************************************************************************************/
+
+global virtual class OnlinePayment { 
  
     // store the auth once for all calls
     public APIAuthorization auth;       
@@ -294,7 +295,7 @@ global virtual class OnlinePayment {
         global string expYear { get; set; }
         global string cvvCode { get; set; }
     
-        global CreditCardData(string sCardType, string sAcctNumber, string sExpMonth, string sExpYear, string sCvvCode) {
+        global CreditCardData(string sCardType, string sAcctNumber, string sExpMonth, string sExpYear, string sCvvCode) {   
             cardType = sCardType;
             acctNumber = sAcctNumber;
             expMonth = sExpMonth;
@@ -343,9 +344,13 @@ global virtual class OnlinePayment {
         }   
     }
 
-    global virtual class PaymentProfileResult extends OnlineTxnResult {
+    global virtual class PaymentProfileResult extends OnlineTxnResult { 
         global string recurringTxnId { get; set; }
         
+        global PaymentProfileResult() { 
+            super( false, null );
+       	}
+
         global PaymentProfileResult( boolean fSuccess, string sResponse, string sRecurringTxnId, string sErrMsg, list<OnlineTxnMessage> sMsgs ) {
             super( fSuccess, sResponse );
             recurringTxnId = sRecurringTxnId;

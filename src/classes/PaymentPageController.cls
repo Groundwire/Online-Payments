@@ -1,8 +1,11 @@
-global with sharing virtual class PaymentPageController {
-/*-----------------------------------------------------------------------------------------------
-* Written by Evan Callahan, copyright (c) 2010 Groundwire
+/*******************************************************************************************************
+* @author Evan Callahan, David Habib
+* @date 1/9/2012
+* @description Page controller for the Payment Testing visualforce page.
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
------------------------------------------------------------------------------------------------*/
+********************************************************************************************************/
+
+global with sharing virtual class PaymentPageController {
 
 	// properties
 	global list<SelectOption> configOptions { get; private set; }
@@ -116,6 +119,7 @@ global with sharing virtual class PaymentPageController {
 		
 		paymentResult = null;
 		recurringResult = null;
+		
 		string processor = configSettingsMap.get(selectedConfig).processor__c;
 		payment.pmtProcessor = (processor == 'Paypal') ? 
 			OnlinePayment.Processor.PAYPAL : OnlinePayment.Processor.AUTHNET;
@@ -144,7 +148,7 @@ global with sharing virtual class PaymentPageController {
 				errorMsg = recurringResult.errorMessage;
 				success = recurringResult.success;
 			} else {
-				result = op.getTransactionDetails(payment, txnId );
+				result = op.getTransactionDetails( payment, txnId );
 				msgs = result.messages;
 				errorMsg = result.errorMessage;
 				success = result.success;

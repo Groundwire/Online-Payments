@@ -1,8 +1,11 @@
-global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {   
-/*-----------------------------------------------------------------------------------------------
-* Written by Evan Callahan, copyright (c) 2010 Groundwire
+/*******************************************************************************************************
+* @author Evan Callahan, David Habib
+* @date 1/9/2012
+* @description Paypal class containing data structures and utilities for online payment processing.
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
------------------------------------------------------------------------------------------------*/	
+********************************************************************************************************/
+
+global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {   
 
 	/*
 	TODO: 
@@ -31,8 +34,14 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 		endpoint = (auth.sandbox) ? SANDBOX_ENDPOINT : PRODUCTION_ENDPOINT;
  	} 
 
+	public class TestException extends Exception {}
+
 	global virtual class OnlineTxnResult extends OnlinePayment.OnlineTxnResult {
 		global map<string, string> params { get; set; }
+		
+		global OnlineTxnResult() {
+			super (false, null);
+		}
 		
 		global OnlineTxnResult( boolean fSuccess, string sResponseText, map<string, string> paramsMap ) {
 			super(fSuccess, sResponseText);
@@ -47,6 +56,10 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 		//global list<string> fmfFilterList { get; private set; }
 		global map<string, string> params { get; set; }
 		
+		global PaymentTxnResult() {
+			super();
+		}
+		
 		global PaymentTxnResult( boolean fSuccess, string sResponseText, map<string, string> paramsMap, string sTxnId, decimal dAmount, string sAvsResponse, string sCvvResponse, string sErrMsg, list<OnlineTxnMessage> sMsgs ) {
 			super( fSuccess, sResponseText, sTxnId, sAvsResponse, sCvvResponse, sErrMsg, sMsgs );
 			
@@ -59,6 +72,10 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 	global virtual class PaymentProfileResult extends OnlinePayment.PaymentProfileResult {		
 		global string status { get; set; }
 		global map<string, string> params { get; set; }
+		
+		global PaymentProfileResult() {
+			super();
+		}
 		
 		global PaymentProfileResult( boolean fSuccess, string sResponseText, map<string, string> paramsMap, string sRecurringTxnId, string sStatus, string sErrMsg, list<OnlineTxnMessage> sMsgs ) {
 			super( fSuccess, sResponseText, sRecurringTxnId, sErrMsg, sMsgs );
@@ -85,175 +102,35 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 
 	global virtual PaymentTxnResult DoDirectPayment( OnlinePayer payer, CreditCardData card, PaymentData payment ) {
 		
-		// build the URL
-		NVPEncoder encoder = getEncoder( endpoint, 'DoDirectPayment' );
-
-		// payer
-		encoder.addParam('EMAIL', payer.email);
-		encoder.addParam('FIRSTNAME', payer.firstName);
-		encoder.addParam('LASTNAME', payer.lastName);
-
-		// billing address
-		if (payer.billingAddress != null) { 
-			if (payer.billingAddress.street != null) { 
-				list<string> splitStreet = payer.billingAddress.street.split('\n', 2);
-				encoder.addParam('STREET', splitStreet[0]);
-				if (splitStreet.size() > 1)
-					encoder.addParam('STREET2', splitStreet[1]);
-			}
-			encoder.addParam('CITY', payer.billingAddress.city);
-			encoder.addParam('STATE', payer.billingAddress.state);
-			encoder.addParam('ZIP', payer.billingAddress.zip);
-			encoder.addParam('COUNTRYCODE', payer.billingAddress.country);  // ONLY 3 CHARS
-		}
+		// declare all variables before we do the try/catch, so we can access things afterwards.		
+		NVPEncoder encoder;
+		OnlineTxnResult baseResult = new OnlineTxnResult();
+		PaymentTxnResult result = new PaymentTxnResult(); 
+		ID oppId;
 		
-		// shipping address
-		if (payer.shippingAddress != null) {
-			if (payer.shippingAddress.street != null) { 
-				list<string> splitStreet = payer.shippingAddress.street.split('\n', 2);
-				encoder.addParam('SHIPTOSTREET', splitStreet[0]);
-				if (splitStreet.size() > 1)
-					encoder.addParam('SHIPTOSTREET2', splitStreet[1]);
-			}
-			encoder.addParam('SHIPTOCITY', payer.shippingAddress.city);
-			encoder.addParam('SHIPTOSTATE', payer.shippingAddress.state);
-			encoder.addParam('SHIPTOZIP', payer.shippingAddress.zip);
-			encoder.addParam('SHIPTOCOUNTRYCODE', payer.shippingAddress.country);
-		}
-		encoder.addParam('SHIPTOPHONENUM', (payer.shippingAddress == null || payer.shippingAddress.phone == null) ? payer.billingAddress.phone : payer.shippingAddress.phone);
-
-		// card
-		encoder.addParam('CREDITCARDTYPE', card.cardType);		
-		encoder.addParam('ACCT', card.acctNumber);		
-		if (card.expMonth != null && card.expYear != null) 
-			encoder.addParam('EXPDATE', card.expMonth + ((card.expYear.length()==2) ? '20' : '') + card.expYear);		
-		encoder.addParam('CVV2', card.cvvCode);		
-		
-		// payment
-		encoder.addParam('PAYMENTACTION', (payment.action == null || payment.action == PaymentAction.PAY) ? 'Sale' : 'Authorization');
-		if (payment.itemList != null && !payment.itemList.isEmpty()) {
-			decimal itemAmt = 0;
-			for (integer i = 0; i < payment.itemList.size(); i++) {
-				encoder.addParam('L_NAME' + string.valueOf(i), payment.itemList[i].name);
-				encoder.addParam('L_DESC' + string.valueOf(i), payment.itemList[i].description);
-				encoder.addParam('L_AMT' + string.valueOf(i), payment.itemList[i].amount);
-				encoder.addParam('L_NUMBER' + string.valueOf(i), payment.itemList[i].code);
-				encoder.addParam('L_QTY' + string.valueOf(i), payment.itemList[i].quantity);
-				encoder.addParam('L_TAXAMT' + string.valueOf(i), payment.itemList[i].tax);
-				if (payment.itemList[i].amount != null)
-					itemAmt += payment.itemList[i].amount; 
-			}
-			encoder.addParam('ITEMAMT', itemAmt);
-		}
-
-		encoder.addParam('AMT', payment.totalAmount);
-		if (payment.currencyCode != null)
-			encoder.addParam('CURRENCYCODE', payment.currencyCode);
-		if (payment.shipping != null)
-			encoder.addParam('SHIPPINGAMT', payment.shipping);
-		if (payment.insurance != null)
-			encoder.addParam('INSURANCEAMT', payment.insurance);
-		if (payment.shippingDiscount != null)
-			encoder.addParam('SHIPDISCAMT', payment.shippingDiscount);
-		if (payment.handling != null)
-			encoder.addParam('HANDLINGAMT', payment.handling);
-		if (payment.tax != null)
-			encoder.addParam('TAXAMT', payment.tax);
-		string descrip = 
-			(payment.memo != null) ? payment.memo : 
-			(payment.itemList != null && payment.itemList.size() == 1) ?
-			((payment.itemList[0].description != null) ? payment.itemList[0].description : 
-			payment.itemList[0].name) : null ;		
-		if (descrip != null)
-			encoder.addParam('DESC', descrip);
-		if (payment.custom != null)
-			encoder.addParam('CUSTOM', payment.custom);
-		if (payment.invoice != null)
-			encoder.addParam('INVNUM', payment.invoice);
-		//encoder.addParam('BUTTONSOURCE', );
-		//encoder.addParam('NOTIFYURL', );
-		//encoder.addParam('RECURRING', );
-
-		OnlineTxnResult baseResult;
-		baseResult = callPaypal( encoder.url );
-		string sAmt = baseResult.params.get('AMT');
-		decimal dAmt = (sAmt == null) ? null : 
-			decimal.valueOf(sAmt.replace(',','')).setScale(2);
-		PaymentTxnResult result = new PaymentTxnResult(
-			baseResult.success, baseResult.responseText, baseResult.params, 
-			baseResult.params.get('TRANSACTIONID'), dAmt,
-			baseResult.params.get('AVSCODE'), baseResult.params.get('CVV2MATCH'), 
-			baseResult.errorMessage, baseResult.messages );
-			
-		// put Paypal data into payment object
-		payment.txnId = result.txnId;	
-		string notificationType = 'Apex Payment Callout';
-		boolean isTest = auth.sandbox; 
-		
-		// set payment status to correct thing
-		if (result.success) {
-			payment.pmtStatus = (payment.action == OnlinePayment.PaymentAction.AUTHORIZE) ? 
-				OnlinePayment.PaymentStatus.AUTHORIZED: OnlinePayment.PaymentStatus.COMPLETED;
-		} else {
-			payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
-		}		
-		
-		// create the log
-		Payment_Notification__c ipn = logNotification(payer, payment, notificationType, payment.action, strUrlScrub(encoder.url), 
-			baseResult.responseText, isTest, false, baseResult.errorMessage, false);	
-
-		ipn.Transaction_Type__c = 'Paypal DoDirectPayment()';
-
-		result.dbSuccess = false;
-		if (result.success) {
-			// process the log to create opportunities.
-	        // use the generic payment processing class
-	    	ClassFactory f = new ClassFactory();
-	    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
-		    	                                              
-	        opmt.payer = payer;
-	        opmt.payment = payment;
-			
-	        if (opmt.processSinglePayment()) {
-	            ipn.isProcessed__c = true;
-	            ipn.opportunity__c = opmt.opportunityId;
-	            result.dbSuccess = true;                    
-	        }
-		}
-		                        
-        // log the ipn record
-        insert ipn;
-
-		return result;			
-	}
+		try {
 	
-	global virtual PaymentProfileResult CreateRecurringPaymentsProfile( OnlinePayer payer, CreditCardData card, PaymentData payment ) {
-		
-		// build the URL
-		NVPEncoder encoder = getEncoder( endpoint, 'CreateRecurringPaymentsProfile' );
-
-		// payer
-		encoder.addParam('EMAIL', payer.email);
-		encoder.addParam('FIRSTNAME', payer.firstName);
-		encoder.addParam('LASTNAME', payer.lastName);
-		encoder.addParam('BUSINESS', payer.companyName);
-		//encoder.addParam('SUBSCRIBERNAME', payer.firstName + ' ' + payer.lastName);
-		//encoder.addParam('SALUTATION', payer.firstName + ' ' + payer.lastName);
-		//encoder.addParam('MIDDLENAME', payer.firstName + ' ' + payer.lastName);
-		//encoder.addParam('SUFFIX', payer.firstName + ' ' + payer.lastName);
-
-		// billing address
-		if (payer.billingAddress != null) { 
-			if (payer.billingAddress.street != null) { 
-				list<string> splitStreet = payer.billingAddress.street.split('\n', 2);
-				encoder.addParam('STREET', splitStreet[0]);
-				if (splitStreet.size() > 1)
-					encoder.addParam('STREET2', splitStreet[1]);
+			// build the URL
+			encoder = getEncoder( endpoint, 'DoDirectPayment' );
+	
+			// payer
+			encoder.addParam('EMAIL', payer.email);
+			encoder.addParam('FIRSTNAME', payer.firstName);
+			encoder.addParam('LASTNAME', payer.lastName);
+	
+			// billing address
+			if (payer.billingAddress != null) { 
+				if (payer.billingAddress.street != null) { 
+					list<string> splitStreet = payer.billingAddress.street.split('\n', 2);
+					encoder.addParam('STREET', splitStreet[0]);
+					if (splitStreet.size() > 1)
+						encoder.addParam('STREET2', splitStreet[1]);
+				}
+				encoder.addParam('CITY', payer.billingAddress.city);
+				encoder.addParam('STATE', payer.billingAddress.state);
+				encoder.addParam('ZIP', payer.billingAddress.zip);
+				encoder.addParam('COUNTRYCODE', payer.billingAddress.country);  // ONLY 3 CHARS
 			}
-			encoder.addParam('CITY', payer.billingAddress.city);
-			encoder.addParam('STATE', payer.billingAddress.state);
-			encoder.addParam('ZIP', payer.billingAddress.zip);
-			encoder.addParam('COUNTRYCODE', payer.billingAddress.country);  // ONLY 3 CHARS
 			
 			// shipping address
 			if (payer.shippingAddress != null) {
@@ -269,139 +146,327 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 				encoder.addParam('SHIPTOCOUNTRYCODE', payer.shippingAddress.country);
 			}
 			encoder.addParam('SHIPTOPHONENUM', (payer.shippingAddress == null || payer.shippingAddress.phone == null) ? payer.billingAddress.phone : payer.shippingAddress.phone);
-		}
-		
-		// card
-		encoder.addParam('CREDITCARDTYPE', card.cardType);		
-		encoder.addParam('ACCT', card.acctNumber);		
-		if (card.expMonth != null && card.expYear != null) 
-			encoder.addParam('EXPDATE', card.expMonth + ((card.expYear.length()==2) ? '20' : '') + card.expYear);		
-		encoder.addParam('CVV2', card.cvvCode);		
-
-		// payment
-		encoder.addParam('AMT', payment.totalAmount);
-        encoder.addParam('PROFILESTARTDATE', (payment.startDate != null && payment.startDate > system.today()) ? 
-			dateTime.newInstance(payment.startDate, system.now().time()) : system.now().addminutes(1) );
-		encoder.addParam('BILLINGPERIOD', 
-			(payment.pmtPeriod == RecurringPeriod.DAY) ? 'Day' : 
-			(payment.pmtPeriod == RecurringPeriod.WEEK) ? 'Week' : 
-			(payment.pmtPeriod == RecurringPeriod.YEAR) ? 'Year' : 
-			'Month' );
-        encoder.addParam('BILLINGFREQUENCY', (payment.frequency != null) ? payment.frequency : 1);
-		encoder.addParam('DESC', DEFAULT_RECURRING_PAYMENT_DESCRIPTION);
-//			(payment.itemList == null || payment.itemList.size() != 1) ? DEFAULT_RECURRING_PAYMENT_DESCRIPTION : 
-	//		(payment.itemList[0].description != null) ? payment.itemList[0].description : 
-		//	(payment.itemList[0].name != null) ? payment.itemList[0].name : 
-			//DEFAULT_RECURRING_PAYMENT_DESCRIPTION );
-		if (payment.occurrences != null)
-			encoder.addParam('TOTALBILLINGCYCLES', payment.occurrences);
-		if (payment.currencyCode != null)
-			encoder.addParam('CURRENCYCODE', payment.currencyCode);
-		if (payment.shipping != null)
-			encoder.addParam('SHIPPINGAMT', payment.shipping);
-		if (payment.tax != null)
-			encoder.addParam('TAXAMT', payment.tax);
-		if (payment.custom != null)
-			encoder.addParam('CUSTOM', payment.custom);
-
-		// add order items
-		if (!payment.itemList.isEmpty()) {
-			integer i = 1;
-			for (Item item : payment.itemList) {
-				string s = string.valueOf(i);
-				encoder.addParam('L_PAYMENTREQUEST_n_NAME' + s, item.name );
-				encoder.addParam('L_PAYMENTREQUEST_n_NUMBER' + s, item.code );
-				encoder.addParam('L_PAYMENTREQUEST_n_DESCRIPTION' + s, item.description );
-				encoder.addParam('L_PAYMENTREQUEST_n_AMOUNT' + s, item.amount );
-				encoder.addParam('L_PAYMENTREQUEST_n_QTY' + s, item.quantity );
-				encoder.addParam('L_PAYMENTREQUEST_n_TAXAMT' + s, item.tax );
-			}
-		}	
-		
-		//encoder.addParam('L_PAYMENTREQUEST_n_DESCm', );
-		//encoder.addParam('L_PAYMENTREQUEST_n_AMTm', );
-		//encoder.addParam('L_PAYMENTREQUEST_n_NUMBERm', );
-		//encoder.addParam('L_PAYMENTREQUEST_n_QTYm', );
-		//encoder.addParam('L_PAYMENTREQUEST_n_TAXAMTm', );
-		
-		// other params we could support...
-		//encoder.addParam('BUTTONSOURCE', );
-		//encoder.addParam('NOTIFYURL', );
-		//encoder.addParam('MAXFAILEDPAYMENTS', );
-		//encoder.addParam('AUTOBILLOUTAMT', );
-		//encoder.addParam('PROFILEREFERENCE', );
-		//encoder.addParam('TRIALBILLINGPERIOD', );
-		//encoder.addParam('TRIALBILLINGFREQUENCY', );
-		//encoder.addParam('TRIALTOTALBILLINGCYCLES', );
-		//encoder.addParam('TRIALAMT', );
-		//encoder.addParam('INITAMT', );
-		//encoder.addParam('FAILEDINITAMTACTION', );
-
-		OnlineTxnResult baseResult = callPaypal( encoder.url );
-		PaymentProfileResult result = new PaymentProfileResult(
-			baseResult.success, baseResult.responseText, baseResult.params, 
-			baseResult.params.get('PROFILEID'), baseResult.params.get('PROFILESTATUS'), 
-			baseResult.errorMessage, baseResult.messages );
-
-		// put Paypal data into payment object
-		payment.recurringTxnId = result.recurringTxnId;
-		string notificationType = 'Apex Payment Callout';
-		boolean isTest = auth.sandbox; 
-		
-		// set payment status to correct thing
-		if (result.success) {
-			payment.pmtStatus = (payment.action == OnlinePayment.PaymentAction.AUTHORIZE) ? 
-				OnlinePayment.PaymentStatus.AUTHORIZED: OnlinePayment.PaymentStatus.COMPLETED;
-		} else {
-			payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
-		}		
-		
-		// create the log
-		Payment_Notification__c ipn = logNotification(payer, payment, notificationType, payment.action, strUrlScrub(encoder.url), 
-			baseResult.responseText, isTest, false, baseResult.errorMessage, false);	
-
-		ipn.Transaction_Type__c = 'Paypal CreateRecurringPaymentsProfile()';
-		
-		result.dbSuccess = false;
-		if (result.success) {
-			// process the log to create opportunities.
-	        // use the generic payment processing class
-	    	ClassFactory f = new ClassFactory();
-	    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
-		    	                                      
-	        opmt.payer = payer;
-	        opmt.payment = payment;
+	
+			// card
+			encoder.addParam('CREDITCARDTYPE', card.cardType);		
+			encoder.addParam('ACCT', card.acctNumber);		
+			if (card.expMonth != null && card.expYear != null) 
+				encoder.addParam('EXPDATE', card.expMonth + ((card.expYear.length()==2) ? '20' : '') + card.expYear);		
+			encoder.addParam('CVV2', card.cvvCode);		
 			
-	        if (opmt.startRecurringPayments()) {
-	            ipn.isProcessed__c = true;
-	            ipn.opportunity__c = opmt.opportunityId;                    
-				result.dbSuccess = true;
-	        }
-		}
+			// payment
+			encoder.addParam('PAYMENTACTION', (payment.action == null || payment.action == PaymentAction.PAY) ? 'Sale' : 'Authorization');
+			if (payment.itemList != null && !payment.itemList.isEmpty()) {
+				decimal itemAmt = 0;
+				for (integer i = 0; i < payment.itemList.size(); i++) {
+					encoder.addParam('L_NAME' + string.valueOf(i), payment.itemList[i].name);
+					encoder.addParam('L_DESC' + string.valueOf(i), payment.itemList[i].description);
+					encoder.addParam('L_AMT' + string.valueOf(i), payment.itemList[i].amount);
+					encoder.addParam('L_NUMBER' + string.valueOf(i), payment.itemList[i].code);
+					encoder.addParam('L_QTY' + string.valueOf(i), payment.itemList[i].quantity);
+					encoder.addParam('L_TAXAMT' + string.valueOf(i), payment.itemList[i].tax);
+					if (payment.itemList[i].amount != null)
+						itemAmt += payment.itemList[i].amount; 
+				}
+				encoder.addParam('ITEMAMT', itemAmt);
+			}
+	
+			encoder.addParam('AMT', payment.totalAmount);
+			if (payment.currencyCode != null)
+				encoder.addParam('CURRENCYCODE', payment.currencyCode);
+			if (payment.shipping != null)
+				encoder.addParam('SHIPPINGAMT', payment.shipping);
+			if (payment.insurance != null)
+				encoder.addParam('INSURANCEAMT', payment.insurance);
+			if (payment.shippingDiscount != null)
+				encoder.addParam('SHIPDISCAMT', payment.shippingDiscount);
+			if (payment.handling != null)
+				encoder.addParam('HANDLINGAMT', payment.handling);
+			if (payment.tax != null)
+				encoder.addParam('TAXAMT', payment.tax);
+			string descrip = 
+				(payment.memo != null) ? payment.memo : 
+				(payment.itemList != null && payment.itemList.size() == 1) ?
+				((payment.itemList[0].description != null) ? payment.itemList[0].description : 
+				payment.itemList[0].name) : null ;
+			// hack to test exception handling!!
+			//if (payment.memo == 'cause exception') {
+			//	throw (new TestException('you asked, we delivered: your exception in DoDirectPayment!'));
+			//}									
+			if (descrip != null)
+				encoder.addParam('DESC', descrip);
+			if (payment.custom != null)
+				encoder.addParam('CUSTOM', payment.custom);
+			if (payment.invoice != null)
+				encoder.addParam('INVNUM', payment.invoice);
+			//encoder.addParam('BUTTONSOURCE', );
+			//encoder.addParam('NOTIFYURL', );
+			//encoder.addParam('RECURRING', );
+	
+			baseResult = callPaypal( encoder.url );
+			string sAmt = baseResult.params.get('AMT');
+			decimal dAmt = (sAmt == null) ? null : 
+				decimal.valueOf(sAmt.replace(',','')).setScale(2);
+			result = new PaymentTxnResult(
+				baseResult.success, baseResult.responseText, baseResult.params, 
+				baseResult.params.get('TRANSACTIONID'), dAmt,
+				baseResult.params.get('AVSCODE'), baseResult.params.get('CVV2MATCH'), 
+				baseResult.errorMessage, baseResult.messages );
+				
+			// put Paypal data into payment object
+			payment.txnId = result.txnId;	
+			
+			// set payment status to correct thing
+			if (result.success) {
+				payment.pmtStatus = (payment.action == OnlinePayment.PaymentAction.AUTHORIZE) ? 
+					OnlinePayment.PaymentStatus.AUTHORIZED: OnlinePayment.PaymentStatus.COMPLETED;
+			} else {
+				payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
+			}		
+				
+			if (result.success) {
+				// process the log to create opportunities.
+		        // use the generic payment processing class
+		    	ClassFactory f = new ClassFactory();
+		    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
+			    	                                              
+		        opmt.payer = payer;
+		        opmt.payment = payment;
+				
+		        if (opmt.processSinglePayment()) {
+		            oppId = opmt.opportunityId;
+		            result.dbSuccess = true;                    
+		        }
+			}
+		} catch (exception ex) {
+			result.errorMessage = ex.getMessage();
+			result.errorStackTrace = ex.getStackTraceString();
+			result.errorLineNumber = ex.getLineNumber();	
+			// fall thru to log the ipn, and return the result object.		
+		}	
+				                        
+        // log the ipn record
+		boolean isTest = auth.sandbox; 
+		Payment_Notification__c ipn = logNotification(payer, payment, 'Apex Payment Callout', payment.action, 
+			encoder == null ? null : strUrlScrub(encoder.url), 
+			baseResult.responseText, isTest, false, result.errorMessage, false);	
+		ipn.Transaction_Type__c = 'Paypal DoDirectPayment()';
+        ipn.isProcessed__c = result.dbSuccess == null ? false : result.dbSuccess;  
+        ipn.opportunity__c = oppId;
+        ipn.errorLineNumber__c = result.errorLineNumber;
+        ipn.errorStackTrace__c = result.errorStackTrace;		
+        insert ipn;
+
+		return result;			
+	}
+	
+	global virtual PaymentProfileResult CreateRecurringPaymentsProfile( OnlinePayer payer, CreditCardData card, PaymentData payment ) {
+		
+		// declare all variables before we do the try/catch, so we can access things afterwards.		
+		NVPEncoder encoder;
+		OnlineTxnResult baseResult = new OnlineTxnResult();
+		PaymentProfileResult result = new PaymentProfileResult(); 
+		ID oppId;
+		
+		try {
+	
+			// build the URL
+			encoder = getEncoder( endpoint, 'CreateRecurringPaymentsProfile' );
+	
+			// payer
+			encoder.addParam('EMAIL', payer.email);
+			encoder.addParam('FIRSTNAME', payer.firstName);
+			encoder.addParam('LASTNAME', payer.lastName);
+			encoder.addParam('BUSINESS', payer.companyName);
+			//encoder.addParam('SUBSCRIBERNAME', payer.firstName + ' ' + payer.lastName);
+			//encoder.addParam('SALUTATION', payer.firstName + ' ' + payer.lastName);
+			//encoder.addParam('MIDDLENAME', payer.firstName + ' ' + payer.lastName);
+			//encoder.addParam('SUFFIX', payer.firstName + ' ' + payer.lastName);
+	
+			// billing address
+			if (payer.billingAddress != null) { 
+				if (payer.billingAddress.street != null) { 
+					list<string> splitStreet = payer.billingAddress.street.split('\n', 2);
+					encoder.addParam('STREET', splitStreet[0]);
+					if (splitStreet.size() > 1)
+						encoder.addParam('STREET2', splitStreet[1]);
+				}
+				encoder.addParam('CITY', payer.billingAddress.city);
+				encoder.addParam('STATE', payer.billingAddress.state);
+				encoder.addParam('ZIP', payer.billingAddress.zip);
+				encoder.addParam('COUNTRYCODE', payer.billingAddress.country);  // ONLY 3 CHARS
+				
+				// shipping address
+				if (payer.shippingAddress != null) {
+					if (payer.shippingAddress.street != null) { 
+						list<string> splitStreet = payer.shippingAddress.street.split('\n', 2);
+						encoder.addParam('SHIPTOSTREET', splitStreet[0]);
+						if (splitStreet.size() > 1)
+							encoder.addParam('SHIPTOSTREET2', splitStreet[1]);
+					}
+					encoder.addParam('SHIPTOCITY', payer.shippingAddress.city);
+					encoder.addParam('SHIPTOSTATE', payer.shippingAddress.state);
+					encoder.addParam('SHIPTOZIP', payer.shippingAddress.zip);
+					encoder.addParam('SHIPTOCOUNTRYCODE', payer.shippingAddress.country);
+				}
+				encoder.addParam('SHIPTOPHONENUM', (payer.shippingAddress == null || payer.shippingAddress.phone == null) ? payer.billingAddress.phone : payer.shippingAddress.phone);
+			}
+			
+			// card
+			encoder.addParam('CREDITCARDTYPE', card.cardType);		
+			encoder.addParam('ACCT', card.acctNumber);		
+			if (card.expMonth != null && card.expYear != null) 
+				encoder.addParam('EXPDATE', card.expMonth + ((card.expYear.length()==2) ? '20' : '') + card.expYear);		
+			encoder.addParam('CVV2', card.cvvCode);		
+	
+			// payment
+			encoder.addParam('AMT', payment.totalAmount);
+	        encoder.addParam('PROFILESTARTDATE', (payment.startDate != null && payment.startDate > system.today()) ? 
+				dateTime.newInstance(payment.startDate, system.now().time()) : system.now().addminutes(1) );
+			encoder.addParam('BILLINGPERIOD', 
+				(payment.pmtPeriod == RecurringPeriod.DAY) ? 'Day' : 
+				(payment.pmtPeriod == RecurringPeriod.WEEK) ? 'Week' : 
+				(payment.pmtPeriod == RecurringPeriod.YEAR) ? 'Year' : 
+				'Month' );
+	        encoder.addParam('BILLINGFREQUENCY', (payment.frequency != null) ? payment.frequency : 1);
+			string descrip = 
+				(payment.memo != null && payment.memo != '') ? payment.memo : DEFAULT_RECURRING_PAYMENT_DESCRIPTION;
+			// hack to test exception handling!!
+			//if (payment.memo == 'cause exception') {
+			//	throw (new TestException('you asked, we delivered: your exception in CreateRecurringPaymentsProfile!'));
+			//}			
+	        if (descrip != null) 
+				encoder.addParam('DESC', descrip);
+			if (payment.occurrences != null)
+				encoder.addParam('TOTALBILLINGCYCLES', payment.occurrences);
+			if (payment.currencyCode != null)
+				encoder.addParam('CURRENCYCODE', payment.currencyCode);
+			if (payment.shipping != null)
+				encoder.addParam('SHIPPINGAMT', payment.shipping);
+			if (payment.tax != null)
+				encoder.addParam('TAXAMT', payment.tax);
+			if (payment.custom != null)
+				encoder.addParam('CUSTOM', payment.custom);
+	
+			// add order items
+			if (!payment.itemList.isEmpty()) {
+				integer i = 1;
+				for (Item item : payment.itemList) {
+					string s = string.valueOf(i);
+					encoder.addParam('L_PAYMENTREQUEST_n_NAME' + s, item.name );
+					encoder.addParam('L_PAYMENTREQUEST_n_NUMBER' + s, item.code );
+					encoder.addParam('L_PAYMENTREQUEST_n_DESCRIPTION' + s, item.description );
+					encoder.addParam('L_PAYMENTREQUEST_n_AMOUNT' + s, item.amount );
+					encoder.addParam('L_PAYMENTREQUEST_n_QTY' + s, item.quantity );
+					encoder.addParam('L_PAYMENTREQUEST_n_TAXAMT' + s, item.tax );
+				}
+			}	
+			
+			//encoder.addParam('L_PAYMENTREQUEST_n_DESCm', );
+			//encoder.addParam('L_PAYMENTREQUEST_n_AMTm', );
+			//encoder.addParam('L_PAYMENTREQUEST_n_NUMBERm', );
+			//encoder.addParam('L_PAYMENTREQUEST_n_QTYm', );
+			//encoder.addParam('L_PAYMENTREQUEST_n_TAXAMTm', );
+			
+			// other params we could support...
+			//encoder.addParam('BUTTONSOURCE', );
+			//encoder.addParam('NOTIFYURL', );
+			//encoder.addParam('MAXFAILEDPAYMENTS', );
+			//encoder.addParam('AUTOBILLOUTAMT', );
+			//encoder.addParam('PROFILEREFERENCE', );
+			//encoder.addParam('TRIALBILLINGPERIOD', );
+			//encoder.addParam('TRIALBILLINGFREQUENCY', );
+			//encoder.addParam('TRIALTOTALBILLINGCYCLES', );
+			//encoder.addParam('TRIALAMT', );
+			//encoder.addParam('INITAMT', );
+			//encoder.addParam('FAILEDINITAMTACTION', );
+	
+			baseResult = callPaypal( encoder.url );
+			result = new PaymentProfileResult(
+				baseResult.success, baseResult.responseText, baseResult.params, 
+				baseResult.params.get('PROFILEID'), baseResult.params.get('PROFILESTATUS'), 
+				baseResult.errorMessage, baseResult.messages );
+	
+			// put Paypal data into payment object
+			payment.recurringTxnId = result.recurringTxnId;
+			
+			// set payment status to correct thing
+			if (result.success) {
+				payment.pmtStatus = (payment.action == OnlinePayment.PaymentAction.AUTHORIZE) ? 
+					OnlinePayment.PaymentStatus.AUTHORIZED: OnlinePayment.PaymentStatus.COMPLETED;
+			} else {
+				payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
+			}		
+			
+			if (result.success) {
+				// process the log to create opportunities.
+		        // use the generic payment processing class
+		    	ClassFactory f = new ClassFactory();
+		    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
+			    	                                      
+		        opmt.payer = payer;
+		        opmt.payment = payment;
+				
+		        if (opmt.startRecurringPayments()) {
+		            oppId = opmt.opportunityId;                    
+					result.dbSuccess = true;
+		        }
+			}
+		} catch (exception ex) {
+			result.errorMessage = ex.getMessage();
+			result.errorStackTrace = ex.getStackTraceString();
+			result.errorLineNumber = ex.getLineNumber();	
+			// fall thru to log the ipn, and return the result object.		
+		}	
 		                        
         // log the ipn record
+		boolean isTest = auth.sandbox; 
+		Payment_Notification__c ipn = logNotification(payer, payment, 'Apex Payment Callout', payment.action, 
+			encoder == null ? null : strUrlScrub(encoder.url), 
+			baseResult.responseText, isTest, false, result.errorMessage, false);	
+		ipn.Transaction_Type__c = 'Paypal CreateRecurringPaymentsProfile()';
+        ipn.isProcessed__c = result.dbSuccess == null ? false : result.dbSuccess;  
+        ipn.opportunity__c = oppId;
+        ipn.errorLineNumber__c = result.errorLineNumber;
+        ipn.errorStackTrace__c = result.errorStackTrace;		
         insert ipn;
 
 		return result;			
 	}
 	
 	global OnlineTxnResult getTransactionDetails( string sTxnId ) {
+		OnlineTxnResult result	= new OnlineTxnResult();
 		
-		// build the URL
-		NVPEncoder encoder = getEncoder( endpoint, 'GetTransactionDetails' );		
-		encoder.addParam('TRANSACTIONID', sTxnId);
-
-		OnlineTxnResult result = callPaypal( encoder.url );
+		try { 	
+			// build the URL
+			NVPEncoder encoder = getEncoder( endpoint, 'GetTransactionDetails' );		
+			encoder.addParam('TRANSACTIONID', sTxnId);
+			result = callPaypal( encoder.url );
+		} catch (exception ex) {
+			result.success = false;
+			result.errorMessage = ex.getMessage();
+			result.errorStackTrace = ex.getStackTraceString();
+			result.errorLineNumber = ex.getLineNumber();	
+			// fall thru and return the result object.		
+		}			
 		return result;
 	}
 	
 	global OnlineTxnResult getRecurringPaymentsProfileDetails( string recurringProfileId ) {
-
-		// build the URL
-		NVPEncoder encoder = getEncoder( endpoint, 'GetRecurringPaymentsProfileDetails');
-		encoder.addParam('PROFILEID', recurringProfileId);
-
-		OnlineTxnResult result = callPaypal( encoder.url );
+		OnlineTxnResult result	= new OnlineTxnResult();
+		
+		try { 	
+			// build the URL
+			NVPEncoder encoder = getEncoder( endpoint, 'GetRecurringPaymentsProfileDetails');
+			encoder.addParam('PROFILEID', recurringProfileId);
+			result = callPaypal( encoder.url );
+		} catch (exception ex) {
+			result.success = false;
+			result.errorMessage = ex.getMessage();
+			result.errorStackTrace = ex.getStackTraceString();
+			result.errorLineNumber = ex.getLineNumber();	
+			// fall thru and return the result object.		
+		}	
 		return result;
 	}
 	
@@ -513,7 +578,7 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 	}	
 	
 	global class NVPDecoder {
-		global string data { get; private set; }
+		global string data { get; private set; } 
 		global map<string, string> params { get; private set; }
 			
 		global NVPDecoder(string sData) {

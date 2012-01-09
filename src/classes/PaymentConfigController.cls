@@ -1,8 +1,11 @@
-public with sharing class PaymentConfigController { 
-/*-----------------------------------------------------------------------------------------------
-* Written by Evan Callahan, copyright (c) 2010 Groundwire
+/*******************************************************************************************************
+* @author Evan Callahan, David Habib
+* @date 1/9/2012
+* @description Page controller for the Payment Configuration visualforce page.
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
------------------------------------------------------------------------------------------------*/
+********************************************************************************************************/
+
+public with sharing class PaymentConfigController { 
 
 	public Payment_API_Config__c config { get; set; }
 	public list<SelectOption> configOptions { get; private set; }	

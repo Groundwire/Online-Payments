@@ -1,5 +1,12 @@
+/*******************************************************************************************************
+* @author Evan Callahan, David Habib
+* @date 1/9/2012
+* @description test class for Paypal payments.
+* This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
+********************************************************************************************************/
+
 @istest
-global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {  
+global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal { 
 
 	public static string testName;
 

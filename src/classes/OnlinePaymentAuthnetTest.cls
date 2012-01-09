@@ -1,5 +1,12 @@
+/*******************************************************************************************************
+* @author Evan Callahan, David Habib
+* @date 1/9/2012
+* @description test class for authnet payments.
+* This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
+********************************************************************************************************/
+
 @istest
-global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet {            
+global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet {     
 
     public static string testName;  
 
@@ -18,7 +25,7 @@ global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet 
         }
         return new HttpResponse();
     } 
-    public virtual override string getResponseBody(HttpResponse response) {
+    public virtual override string getResponseBody(HttpResponse response) { 
         system.debug('testName is: ' + testName);
         return 
             (testName == 'payment') ? '<?xml version="1.0" encoding="utf-8"?><createTransactionResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"><messages><resultCode>Ok</resultCode><message><code>I00001</code><text>Successful.</text></message></messages><transactionResponse><responseCode>1</responseCode><authCode>UFRNCF</authCode><avsResultCode>Y</avsResultCode><cvvResultCode>P</cvvResultCode><cavvResultCode>2</cavvResultCode><transId>2167035413</transId><refTransID /><transHash>B2D8232A87C233783EDCA9205423DC40</transHash><testRequest>0</testRequest><accountNumber>XXXX1491</accountNumber><accountType>Visa</accountType><messages><message><code>1</code><description>This transaction has been approved.</description></message></messages><userFields><userField><name>custom</name><value /></userField></userFields></transactionResponse></createTransactionResponse>' : 

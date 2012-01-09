@@ -1,8 +1,9 @@
-global virtual class PaymentListenerPaypal {
-/*-----------------------------------------------------------------------------------------------
-* Written by Evan Callahan, copyright (c) 2010 Groundwire
-* Modified by David Habib, copyright (c) 2011 Groundwire
-* This program is released under the GNU Affero General global License, Version 3. http://www.gnu.org/licenses/
+/*******************************************************************************************************
+* @author Evan Callahan, David Habib
+* @date 1/9/2012
+* @description class provides a "listener" page for Relay Response / Silent Post from Authorize.net.
+* 
+* When a notification comes in, it logs all the details in a custom object, and then sends them 
 * 
 * This class provides a "listener" page for Instant Payment Notification (IPN) posts from Paypal.
 * When a notification comes in, it logs all the details in a custom object, and then sends them 
@@ -14,9 +15,13 @@ global virtual class PaymentListenerPaypal {
 *  - Set permissions for the sites user to be able to see the page and process notifications
 *  - Provide custom settings (Develop | Custom Settings | Online Payment Settings | Manage)
 *
+* This program is released under the GNU Affero General global License, Version 3. http://www.gnu.org/licenses/
+*
 * TO DO:
 *  provide a mechanism for testing the listener configuration
 -----------------------------------------------------------------------------------------------*/	
+
+global virtual class PaymentListenerPaypal {
 
 	// settings object
 	global OnlinePaymentSettings__c opSettings; 
@@ -79,7 +84,7 @@ global virtual class PaymentListenerPaypal {
 	}
 
 	// method to initialize settings when they don't exist, or in tests
-	global OnlinePaymentSettings__c defaultSettings() {
+	global static OnlinePaymentSettings__c defaultSettings() {
 		OnlinePaymentSettings__c ops = new OnlinePaymentSettings__c();
 		ops.Process_Test_Payments__c = true;
 		ops.Delete_After_N_Months__c = 12;
@@ -415,7 +420,7 @@ global virtual class PaymentListenerPaypal {
 	}	
 	
 	// helper routine called by our batch, to periodically remove old ipn records.	
-	global virtual void deleteOldNotifications() { 
+	global static void deleteOldNotifications() { 
 		OnlinePaymentSettings__c opSettings = OnlinePaymentSettings__c.getInstance();
 		if (opSettings == null) opSettings = defaultSettings();
 			
@@ -459,9 +464,7 @@ global virtual class PaymentListenerPaypal {
 		PaymentListenerPaypal ppn;
 		
 		// for code coverage, test opening the page with no params 
-		ppn = new PaymentListenerPaypal();
-		ppn.processNotification();
-		system.assert(ppn.defaultSettings() <> null);
+		system.assert(PaymentListenerPaypal.defaultSettings() <> null);
 
 		// and with a bogus txn type 
 		ppn = new PaymentListenerPaypal();

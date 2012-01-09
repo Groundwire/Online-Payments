@@ -1,7 +1,11 @@
+/*******************************************************************************************************
+* @author Evan Callahan, David Habib
+* @date 1/9/2012
+* @description batch apex class to process Paypal payment notifications later (via scheduled apex)
+* This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
+********************************************************************************************************/
+
 global virtual class OnlinePaymentPaypalAsync implements Database.Batchable<SObject>, Schedulable { 
-// batch apex class to process paypal payment notifications later (via scheduled apex) 
-// Written by David Habib, copyright (c) 2011 Groundwire, 1402 3rd Avenue, Suite 1000, Seattle, WA 98101
-// This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
  
 	global String query { get; set; } 
 	
@@ -22,7 +26,7 @@ global virtual class OnlinePaymentPaypalAsync implements Database.Batchable<SObj
 		query = q; 
 	}
 
-	global database.Querylocator start(Database.BatchableContext bc) {
+	global database.Querylocator start(Database.BatchableContext bc) {  
 		//system.debug(LoggingLevel.INFO, 'start call on OnlinePaymentPaypalAsync');
 		return Database.getQueryLocator(query);		 
 	}
@@ -48,9 +52,8 @@ global virtual class OnlinePaymentPaypalAsync implements Database.Batchable<SObj
 	
 	global void finish(Database.BatchableContext bc) {
 		//system.debug(LoggingLevel.INFO, 'finish call on OnlinePaymentPaypalAsync');		
-		// clear out old notifications
-		PaymentListenerPaypal plp = new PaymentListenerPaypal();
-		plp.deleteOldNotifications();		
+		// clear out old notifications		
+		PaymentListenerPaypal.deleteOldNotifications();		
 	}
 
 // NOTE: No real test code, because this class gets most test coverage

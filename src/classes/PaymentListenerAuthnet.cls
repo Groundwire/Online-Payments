@@ -1,9 +1,8 @@
-global virtual class PaymentListenerAuthnet {
-/*-----------------------------------------------------------------------------------------------
-* Written by Evan Callahan, copyright (c) 2010 Groundwire
-* This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
+/*******************************************************************************************************
+* @author Evan Callahan, David Habib
+* @date 1/9/2012
+* @description class provides a "listener" page for Relay Response / Silent Post from Authorize.net.
 * 
-* This class provides a "listener" page for Relay Response / Silent Post from Authorize.net.
 * When a notification comes in, it logs all the details in a custom object, and then sends them 
 *   along for processing in the GW_OnlinePayment class.  If you want to customize how payments 
 *   are handled, that class is the place to make changes. 
@@ -25,10 +24,14 @@ global virtual class PaymentListenerAuthnet {
 * notifications all at one time (such as a webservice call, an auth_only, and a prior_auth_capture)
 * caused unexpected behavior.
 *
+* This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
+*
 * TO DO:
 *  provide a mechanism for testing the listener configuration
 *  call back to authnet for more information (such as subscription params)
------------------------------------------------------------------------------------------------*/   
+********************************************************************************************************/
+
+global virtual class PaymentListenerAuthnet {
 
     // settings object 
     public OnlinePaymentSettings__c opSettings;
