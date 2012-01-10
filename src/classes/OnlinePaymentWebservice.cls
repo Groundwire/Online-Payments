@@ -117,7 +117,8 @@ global virtual class OnlinePaymentWebservice {
 		Response resp = new Response();
 		try {
 			setProps( payment );
-			resp.success = gwop.setPayer();
+			gwop.setPayer();
+			resp.success = true;
 			getProps( payment );
 		} catch (exception e) {
 			resp.success = false;
