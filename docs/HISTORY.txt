@@ -1,0 +1,9 @@
+Changelog
+=========
+
+1.1 - released
+------------------
+
+* made getMessages method global to accommodate controller extension. 
+* added new metadata into version control for Payment Notification object, custom tabs and two custom settings objects
+* added new changelog file and changes to gitignore, as well as removing package.xml from version control
