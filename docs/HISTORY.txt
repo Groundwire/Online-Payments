@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.3 - not yet released
+----------------------
+
+* fixed test code and PaymentConfig controller to handle no configs existing. [davidhabib]
+
+
 1.2 - released
 --------------
 
