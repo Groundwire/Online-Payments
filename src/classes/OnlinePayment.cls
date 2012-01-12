@@ -450,6 +450,10 @@ global virtual class OnlinePayment {
     }
     
     static testmethod void TestAll() {
+    	
+		// don't assume there are any configurations.
+        OnlinePaymentAuthnetTest.createConfig();
+		
         OnlinePayment op = new OnlinePayment();
         op = new OnlinePayment(null);
         system.assert(op.auth == null);
@@ -471,9 +475,31 @@ global virtual class OnlinePayment {
         OnlineTxnMessage otm = new OnlineTxnMessage(null, null, null);
         PaymentOppResult por = new PaymentOppResult();
         
-        op.DoSinglePayment(payer, cc, pd2);
-        op.CreateRecurringPayment(payer, cc, pd2);
-        op.getTransactionDetails(pd2, 'txnId');
+		// now exercise some test transactions.
+        payer = new OnlinePayer('test@test.com', 'testy', 'mctest', 'testco', 
+            new AddressData('123 4th', 'Seattle', 'WA', '98101', 'USA', null), null, null);
+        payer.shippingAddress = new AddressData('123 4th', 'Seattle', 'WA', '98101', 'USA', null);
+
+        PaymentData payment = new PaymentData(123.45);
+        payment.memo = 'whoa';
+        payment.tax = 10;
+        payment.shipping = 20;
+        payment.itemList.add( new OnlinePayment.Item( 'boo', null, null, 1, 20.2, 0, null ));
+        payment.custom = 'a=b;c=d;'; // random custom string
+
+        CreditCardData card = new CreditCardData('Visa', '1234567890', '01', '2014', '123');
+
+        OnlinePaymentAuthnetTest.testName = 'payment';
+        otr = op.DoSinglePayment(payer, card, payment);
+        system.assertEquals( true, otr.success );
+        
+        OnlinePaymentAuthnetTest.testName = 'profile';
+        otr = op.CreateRecurringPayment(payer, card, payment);
+        system.assertEquals( true, otr.success );
+
+		otr = op.getTransactionDetails(payment, 'txnid');
+        system.assertEquals( true, otr.success );
+		
     }
     
 }

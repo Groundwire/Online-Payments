@@ -9,8 +9,16 @@ public with sharing class PaymentConfigController {
 
 	public Payment_API_Config__c config { get; set; }
 	public list<SelectOption> configOptions { get; private set; }	
-	public list<Payment_API_Config__c> configList { get; private set; }	
 	public string selection { get; set; }
+
+	public list<Payment_API_Config__c> configList { 
+		get {
+			if (configList == null)
+				configList = new list<Payment_API_Config__c>();
+			return configList;
+		} 
+		private set; 
+	}	
 	
 	protected map<string, Payment_API_Config__c> configSettingsMap;
 	protected string defaultConfig;
@@ -18,7 +26,6 @@ public with sharing class PaymentConfigController {
 	public PaymentConfigController() {
 		configSettingsMap = Payment_API_Config__c.getAll();
 		configList = configSettingsMap.values();
-		if (configList.isEmpty()) configList = null;
 		config = new Payment_API_Config__c();
 		config.processor__c = 'Paypal';
 	}
@@ -52,16 +59,19 @@ public with sharing class PaymentConfigController {
 			if (config.id == null) {
 				insert config;
 				configList.add(config);
+				clear();
 			} else { 
 				update config;
+				clear();
 			}
 		} catch (exception e) {
-			apexPages.addmessage(new ApexPages.Message(ApexPages.Severity.ERROR, e.getMessage()));				
+			apexPages.addmessage(new ApexPages.Message(ApexPages.Severity.ERROR, e.getMessage()));	
 		}		
 		return null;
 	}
 
 	public pageReference clear() {
+		selection = null;
 		config = new Payment_API_Config__c();
 		config.processor__c = 'Paypal';
 		return null;
@@ -69,25 +79,44 @@ public with sharing class PaymentConfigController {
 	
     static testMethod void testConfigPage () {
     	PaymentConfigController pcc = new PaymentConfigController();
-    	pcc.config.Processor__c = 'Paypal';
     	
-    	// set values for a new config
+    	system.assert(pcc.configList != null);
+    	integer cConfigs = pcc.configList.size();
+		system.assert(pcc.config != null);
+		    	
+    	// set values for a new config   
+    	pcc.config.Name = 'my test config';
+    	pcc.config.Processor__c = 'Paypal';
+    	pcc.config.Login_Id__c = 'my login';
+    	pcc.config.Password__c = 'my pwd';	
     	
     	// save it
     	pcc.save();
     	
     	// make sure it is there
+    	system.assertEquals(cConfigs + 1, pcc.configList.size());
     	
     	// clear the form
     	pcc.clear();
-    	pcc.selection = '';
+    	pcc.selection = 'my test config';
     	pcc.loadConfig();
     	
     	// make sure the data was loaded back in
+    	system.assertEquals('my test config', pcc.config.Name);
+    	
+    	// update the config.
+    	pcc.config.Name = 'my renamed test config';
+    	pcc.save();
+    	
+    	// make sure it was just added, not a new saved.
+    	pcc.loadConfig();
+    	system.assertEquals(cConfigs + 1, pcc.configList.size());    	
     	
     	// now delete
+    	pcc.selection = 'my renamed test config';
     	pcc.deleteConfig();
     	
     	// make sure it is gone
+    	system.assertEquals(cConfigs, pcc.configList.size());
     }
 }
