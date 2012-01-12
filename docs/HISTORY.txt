@@ -1,0 +1,15 @@
+Changelog
+=========
+
+1.2 - released
+--------------
+
+* lowered size of recurring IPN test to bring down SOQL statements, from 10 to 4.
+ [greenstork]
+
+1.1 - released
+------------------
+
+* made getMessages method global to accommodate controller extension. 
+* added new metadata into version control for Payment Notification object, custom tabs and two custom settings objects
+* added new changelog file and changes to gitignore, as well as removing package.xml from version control

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customSettingsType>List</customSettingsType>
+    <customSettingsVisibility>Protected</customSettingsVisibility>
+    <enableEnhancedLookup>false</enableEnhancedLookup>
+    <enableFeeds>false</enableFeeds>
+    <fields>
+        <fullName>Default_Connection__c</fullName>
+        <defaultValue>false</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>Check this box to use this connection by default when there are multiple connections available.</inlineHelpText>
+        <label>Default Connection</label>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>Login_Id__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>To obtain Paypal API Credentials, log in to www.paypal.com</inlineHelpText>
+        <label>API Login ID</label>
+        <length>100</length>
+        <required>true</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Password__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>To obtain Paypal API Credentials, log in to www.paypal.com</inlineHelpText>
+        <label>API Password</label>
+        <length>100</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Processor__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>Payment processor, such as Paypal or Authorize.net</inlineHelpText>
+        <label>Payment Processor</label>
+        <length>100</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Sandbox__c</fullName>
+        <defaultValue>false</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>Check this box for test accounts so they will log into the Sandbox URL for API access.  If this option is not set properly, your API login will fail.</inlineHelpText>
+        <label>Sandbox</label>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>Signature__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>To obtain Paypal API Credentials, log in to www.paypal.com</inlineHelpText>
+        <label>API Signature</label>
+        <length>100</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <label>Payment API Config</label>
+</CustomObject>
