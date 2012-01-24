@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.4 - released
+----------------------
+
+* Update JQuery static resource to v. 1.7.1 and changed page references to generic JQuery reference jquery.js rather than inclugin versioning so that we can upgrade without upgrading pages. [greenstork]
+
 1.3 - released
 ----------------------
 

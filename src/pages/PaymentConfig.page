@@ -9,7 +9,7 @@
 	label.invalid { border: 0px; float: none; color: red; padding-left: .5em; vertical-align: middle; font-style:italic; white-space: nowrap; }
  </style>
 
-	<apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery-1.6.2.min.js')}" />
+	<apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery.js')}" />
 	<apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery.validate.js')}" />
 
 	<script type="text/javascript">

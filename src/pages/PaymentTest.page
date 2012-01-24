@@ -1,5 +1,5 @@
 <apex:page controller="PaymentPageController" title="Online Payments from Groundwire" showHeader="true" sidebar="true" id="pg" >
-	<apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery-1.6.2.min.js')}" />
+	<apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery.js')}" />
 	<apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery.validate.js')}" />
 
 	<style type="text/css">
