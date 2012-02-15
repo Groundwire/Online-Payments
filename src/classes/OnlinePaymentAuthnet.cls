@@ -349,6 +349,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		try {		
 			// if the flag is set, first authorize the credit card and void
 			if (preAuthorize) {
+				Savepoint sp = Database.setSavepoint();
 				PaymentAction saveAction = payment.action;
 				payment.action = PaymentAction.AUTHORIZE;
 				PaymentTxnResult authRequest = CreateTransactionRequest( payer, card, payment, false, false, false );
@@ -371,7 +372,11 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 				} else {
 					// void
 					OnlineTxnResult voidRequest = VoidTransaction( authRequest.txnId, false );
+					//this rollback is to enable the callout to happen.  You can't make a callout when there are uncommitted
+					//database changes, which we get when attempting to preauthorize an ARB
+					Database.Rollback( sp );
 				}
+				
 			}
 	
 			// build the URL
