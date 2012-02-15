@@ -370,11 +370,11 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 					result.errorStackTrace = authRequest.errorStackTrace;
 					return result;
 				} else {
-					// void
-					OnlineTxnResult voidRequest = VoidTransaction( authRequest.txnId, false );
 					//this rollback is to enable the callout to happen.  You can't make a callout when there are uncommitted
 					//database changes, which we get when attempting to preauthorize an ARB
 					Database.Rollback( sp );
+					// void
+					OnlineTxnResult voidRequest = VoidTransaction( authRequest.txnId, false );
 				}
 				
 			}
