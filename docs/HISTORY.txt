@@ -1,6 +1,14 @@
 Changelog
 =========
 
+1.5 - released
+------------------
+
+* Added a savepoint and rollback. Salesforce will not allow a callout to happen when there are 
+	uncommitted changes to the database, which happens in preauthorization. A rollback following a 
+	successful preauthorization should prevent this error.
+	[greenstork]
+
 1.4 - released
 ----------------------
 
