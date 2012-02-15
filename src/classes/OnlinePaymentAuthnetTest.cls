@@ -14,7 +14,7 @@ global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet 
     global OnlinePaymentAuthnetTest( APIAuthorization authnetAuth ) { 
         super( authnetAuth );
     }  
-
+  
     public class AuthnetHTTPException extends Exception {}
     
     // override methods for calling authnet 
