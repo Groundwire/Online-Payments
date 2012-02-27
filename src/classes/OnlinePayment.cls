@@ -53,7 +53,7 @@ global virtual class OnlinePayment {
             if (Test.IsRunningTest()) {
                 OnlinePaymentAuthnetTest.testName = 'payment';                      
             }                                                   
-            paymentResult = authnet.CreateTransactionRequest( payer, card, payment, false, false, true );                   
+            paymentResult = authnet.CreateTransactionRequest( payer, card, payment, false, false, true );                    
         }
         return paymentResult;       
     }

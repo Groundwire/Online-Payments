@@ -6,7 +6,7 @@
 ********************************************************************************************************/
 
 global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment { 
-
+ 
 	/*
 	TODO: 
 	In testing, should check encoding - e.g. accented chars
@@ -50,7 +50,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 	public class TestException extends Exception {}
 
 	global virtual PaymentTxnResult CreateTransactionRequest( OnlinePayer payer, CreditCardData card, PaymentData payment, 
-		boolean testRequest, boolean emailCustomer, boolean fLog ) {
+		boolean testRequest, boolean emailCustomer, boolean fLogAndCreateOpps ) {
 		
 		// declare all variables before we do the try/catch, so we can access things afterwards.
 		XMLEncoder encoder;
@@ -262,7 +262,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 				payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
 			}		
 			
-			if (result.success) {
+			if (result.success && fLogAndCreateOpps) {
 				// process the log to create opportunities.
 		        // use the generic payment processing class
 		    	ClassFactory f = new ClassFactory();
@@ -282,7 +282,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		}	
 			                        
         // log the ipn record
-        if (fLog) {
+        if (fLogAndCreateOpps) {
 			boolean isTest = auth.sandbox || testRequest; 
 			Payment_Notification__c ipn = logNotification(payer, payment, 'Apex Payment Callout', payment.action, 
 				encoder == null ? null : strXmlScrub(encoder.xml), 
@@ -349,7 +349,6 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		try {		
 			// if the flag is set, first authorize the credit card and void
 			if (preAuthorize) {
-				Savepoint sp = Database.setSavepoint();
 				PaymentAction saveAction = payment.action;
 				payment.action = PaymentAction.AUTHORIZE;
 				PaymentTxnResult authRequest = CreateTransactionRequest( payer, card, payment, false, false, false );
@@ -370,9 +369,6 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 					result.errorStackTrace = authRequest.errorStackTrace;
 					return result;
 				} else {
-					//this rollback is to enable the callout to happen.  You can't make a callout when there are uncommitted
-					//database changes, which we get when attempting to preauthorize an ARB
-					Database.Rollback( sp );
 					// void
 					OnlineTxnResult voidRequest = VoidTransaction( authRequest.txnId, false );
 				}

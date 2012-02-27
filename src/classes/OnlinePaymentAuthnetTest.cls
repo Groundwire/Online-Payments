@@ -107,7 +107,7 @@ global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet 
         PaymentData payment = new PaymentData(123.45);
         CreditCardData card = new CreditCardData('Visa', 'DECLINE ME', '01', '2020', '123');
 
-        PaymentTxnResult result = opt.CreateTransactionRequest(payer, card, payment, true, false, true);
+        PaymentTxnResult result = opt.CreateTransactionRequest(payer, card, payment, true, false, true); 
         system.assertEquals( false, result.success );
         system.assertEquals( '0', result.txnId );
         system.assert( result.errorMessage.contains('declined'), result.errorMessage );
