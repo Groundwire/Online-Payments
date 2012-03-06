@@ -41,19 +41,17 @@ global virtual class OnlinePayment {
     global virtual PaymentTxnResult DoSinglePayment( OnlinePayer payer, CreditCardData card, PaymentData payment ) {
         PaymentTxnResult paymentResult;
         if (payment.pmtProcessor == Processor.PAYPAL) {         
-            OnlinePaymentPaypal ppal = Test.IsRunningTest() ? 
-                new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );
+            OnlinePaymentPaypal ppal; // = Test.IsRunningTest() ? new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );
             if (Test.IsRunningTest()) {
                 OnlinePaymentPaypalTest.testName = 'payment';                       
             }                           
             paymentResult = ppal.DoDirectPayment( payer, card, payment );           
         } else /* if (payment.pmtProcessor == Processor.AUTHNET) */ {           
-            OnlinePaymentAuthnet authnet = Test.IsRunningTest() ? 
-                new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );
+            OnlinePaymentAuthnet authnet; // = Test.IsRunningTest() ? new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );
             if (Test.IsRunningTest()) {
                 OnlinePaymentAuthnetTest.testName = 'payment';                      
             }                                                   
-            paymentResult = authnet.CreateTransactionRequest( payer, card, payment, false, false, true );                   
+            paymentResult = authnet.CreateTransactionRequest( payer, card, payment, false, false, true );                    
         }
         return paymentResult;       
     }
@@ -62,15 +60,13 @@ global virtual class OnlinePayment {
     global virtual PaymentProfileResult CreateRecurringPayment( OnlinePayer payer, CreditCardData card, PaymentData payment ) {
         PaymentProfileResult recurringResult;       
         if (payment.pmtProcessor == Processor.PAYPAL) {
-            OnlinePaymentPaypal ppal = Test.IsRunningTest() ? 
-                new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );
+            OnlinePaymentPaypal ppal; // = Test.IsRunningTest() ? new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );
             if (Test.IsRunningTest()) {
                 OnlinePaymentPaypalTest.testName = 'profile';                       
             }   
             recurringResult = ppal.CreateRecurringPaymentsProfile( payer, card, payment );
         } else /* if (payment.pmtProcessor == Processor.AUTHNET) */ {                       
-            OnlinePaymentAuthnet authnet = Test.IsRunningTest() ? 
-                new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );
+            OnlinePaymentAuthnet authnet; // = Test.IsRunningTest() ? new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );
             if (Test.IsRunningTest()) {
                 OnlinePaymentAuthnetTest.testName = 'profile';                      
             }                           
@@ -83,12 +79,10 @@ global virtual class OnlinePayment {
     global virtual OnlineTxnResult getTransactionDetails( PaymentData payment, string txnId ) {
         OnlineTxnResult result;
         if (payment.pmtProcessor == Processor.PAYPAL) {
-            OnlinePaymentPaypal ppal = Test.IsRunningTest() ? 
-                new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );              
+            OnlinePaymentPaypal ppal; // = Test.IsRunningTest() ? new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );              
             result = ppal.getTransactionDetails( txnId );   
         } else /* if (payment.pmtProcessor == Processor.AUTHNET) */ {                       
-            OnlinePaymentAuthnet authnet = Test.IsRunningTest() ? 
-                new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );                
+            OnlinePaymentAuthnet authnet; // = Test.IsRunningTest() ? new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );                
             result = authnet.getTransactionDetails( txnId );                        
         }
         return result;
@@ -191,7 +185,8 @@ global virtual class OnlinePayment {
     global enum PaymentAction { 
         PAY,
         AUTHORIZE,
-        VOIDTXN 
+        VOIDTXN,
+        REFUND 
     }
     
     // the return result from the processor     
@@ -332,7 +327,7 @@ global virtual class OnlinePayment {
         
         global PaymentTxnResult() {
             super( false, null );
-       	}
+        }
         
         global PaymentTxnResult( boolean fSuccess, string sResponse, string sTxnId, string sAvsResponse, string sCvvResponse, string sErrMsg, list<OnlineTxnMessage> sMsgs ) {
             super( fSuccess, sResponse );
@@ -349,7 +344,7 @@ global virtual class OnlinePayment {
         
         global PaymentProfileResult() { 
             super( false, null );
-       	}
+        }
 
         global PaymentProfileResult( boolean fSuccess, string sResponse, string sRecurringTxnId, string sErrMsg, list<OnlineTxnMessage> sMsgs ) {
             super( fSuccess, sResponse );
@@ -450,10 +445,10 @@ global virtual class OnlinePayment {
     }
     
     static testmethod void TestAll() {
-    	
-		// don't assume there are any configurations.
+        
+        // don't assume there are any configurations.
         OnlinePaymentAuthnetTest.createConfig();
-		
+        
         OnlinePayment op = new OnlinePayment();
         op = new OnlinePayment(null);
         system.assert(op.auth == null);
@@ -475,7 +470,7 @@ global virtual class OnlinePayment {
         OnlineTxnMessage otm = new OnlineTxnMessage(null, null, null);
         PaymentOppResult por = new PaymentOppResult();
         
-		// now exercise some test transactions.
+        // now exercise some test transactions.
         payer = new OnlinePayer('test@test.com', 'testy', 'mctest', 'testco', 
             new AddressData('123 4th', 'Seattle', 'WA', '98101', 'USA', null), null, null);
         payer.shippingAddress = new AddressData('123 4th', 'Seattle', 'WA', '98101', 'USA', null);
@@ -497,9 +492,9 @@ global virtual class OnlinePayment {
         otr = op.CreateRecurringPayment(payer, card, payment);
         system.assertEquals( true, otr.success );
 
-		otr = op.getTransactionDetails(payment, 'txnid');
+        otr = op.getTransactionDetails(payment, 'txnid');
         system.assertEquals( true, otr.success );
-		
+        
     }
     
 }

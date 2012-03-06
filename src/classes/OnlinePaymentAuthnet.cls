@@ -6,7 +6,7 @@
 ********************************************************************************************************/
 
 global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment { 
-
+ 
 	/*
 	TODO: 
 	In testing, should check encoding - e.g. accented chars
@@ -50,13 +50,13 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 	public class TestException extends Exception {}
 
 	global virtual PaymentTxnResult CreateTransactionRequest( OnlinePayer payer, CreditCardData card, PaymentData payment, 
-		boolean testRequest, boolean emailCustomer, boolean fLog ) {
+		boolean testRequest, boolean emailCustomer, boolean fLogAndCreateOpps ) {
 		
 		// declare all variables before we do the try/catch, so we can access things afterwards.
 		XMLEncoder encoder;
 		OnlineTxnResult baseResult = new OnlineTxnResult(false, null);
 		PaymentTxnResult result = new PaymentTxnResult(); 
-		ID oppId;
+		id oppId;
 		
 		try {
 			// build the URL
@@ -262,7 +262,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 				payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
 			}		
 			
-			if (result.success) {
+			if (result.success && fLogAndCreateOpps) {
 				// process the log to create opportunities.
 		        // use the generic payment processing class
 		    	ClassFactory f = new ClassFactory();
@@ -282,7 +282,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		}	
 			                        
         // log the ipn record
-        if (fLog) {
+        if (fLogAndCreateOpps) {
 			boolean isTest = auth.sandbox || testRequest; 
 			Payment_Notification__c ipn = logNotification(payer, payment, 'Apex Payment Callout', payment.action, 
 				encoder == null ? null : strXmlScrub(encoder.xml), 
@@ -300,10 +300,14 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 
 	global virtual OnlineTxnResult VoidTransaction( string txnId, boolean fLog) {
 		OnlineTxnResult result = new OnlineTxnResult(false, null);
+		XMLEncoder encoder;
+		PaymentData payment = new PaymentData(0);
+		id oppId;
+		
 		try {
 
 			// build the URL
-			XMLEncoder encoder = getEncoder('createTransactionRequest');
+			encoder = getEncoder('createTransactionRequest');
 	
 			// top section
 			encoder.openGroup('transactionRequest');
@@ -311,7 +315,25 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			encoder.addElement('refTransId', txnId);
 	
 			// make the call
-			 result = callAuthnet( encoder.xml );
+			result = callAuthnet( encoder.xml );
+
+			// send result to salesforce
+			if (result.success) {
+				
+				// it is a paradox, but with void, success means you FAILED
+				payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
+				payment.action = PaymentAction.VOIDTXN;
+
+				if (fLog) {
+				    ClassFactory f = new ClassFactory();			
+				    PaymentToSalesforce opmt = f.makePaymentToSalesforce();                                                 
+			        opmt.payment = payment;
+			        opmt.processSinglePayment();
+				
+		            oppId = opmt.opportunityId;
+		            result.dbSuccess = true;
+				}
+			}		
 		} catch (exception ex) {
 			result.success = false;
 			result.errorMessage = ex.getMessage();
@@ -322,15 +344,86 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		
 		// log the failure.
 		if (fLog) {
-			PaymentData payment = new PaymentData(0);
 			payment.pmtProcessor = Processor.AUTHNET;
-			payment.action = PaymentAction.VOIDTXN;
-			payment.pmtStatus = result.success ? PaymentStatus.COMPLETED : null;
 			payment.txnId = txnId;
 			
-			Payment_Notification__c ipn = logNotification(null, payment, 'Apex Payment Callout', payment.action, null, 
+			Payment_Notification__c ipn = logNotification(null, payment, 'Apex Payment Callout', payment.action, 
+				encoder == null ? null : strXmlScrub(encoder.xml), 
 				result.responseText, false, false, result.errorMessage, false);	
 			ipn.Transaction_Type__c = 'Authnet VoidTransaction()';
+            ipn.isProcessed__c = result.dbSuccess == null ? false : result.dbSuccess;
+            ipn.opportunity__c = oppId;              
+			insert ipn;
+		}
+		return result;
+	}
+
+	global virtual OnlineTxnResult RefundTransaction( PaymentData payment, boolean fLog) {
+		OnlineTxnResult result = new OnlineTxnResult(false, null);
+		XMLEncoder encoder;
+		string refundTxnId;
+		id oppId;
+
+		try {
+
+			// build the URL
+			encoder = getEncoder('createTransactionRequest');
+	
+			// top section
+			encoder.openGroup('transactionRequest');
+			encoder.addElement('transactionType', 'refundTransaction');
+			encoder.addElement('refTransId', payment.txnId);			// transaction id of payment to be refunded
+			encoder.addElement('cardNumber', payment.last4digits);		// last 4 digits of credit card are required
+			
+			if (payment.totalAmount != null)
+				encoder.addElement('amount', payment.totalAmount);		// amount is optional - use for partial refund
+	
+			// make the call
+			result = callAuthnet( encoder.xml );
+			
+			// retrieve the new txnId
+			if (result.success) {
+				payment.parentTxnId = payment.txnId;
+				
+				XMLDecoder decoder = new XMLDecoder( result.responseText );
+				if ( decoder.openGroup('transactionResponse') )
+					payment.txnId = decoder.getElement('transId');
+
+				payment.action = PaymentAction.REFUND;
+				payment.pmtStatus = PaymentStatus.REVERSED;
+					
+				// UNDONE: send result to salesforce
+				if (fLog) {
+			        // use the generic payment processing class
+				    ClassFactory f = new ClassFactory();
+				
+				    PaymentToSalesforce opmt = f.makePaymentToSalesforce();                                                 
+			        opmt.payment = payment;
+			        opmt.processSinglePayment();
+				
+		            oppId = opmt.opportunityId;   
+		            result.dbSuccess = true;
+				}
+			} else {
+				payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
+			}		
+		} catch (exception ex) {
+			result.success = false;
+			result.errorMessage = ex.getMessage();
+			result.errorStackTrace = ex.getStackTraceString();
+			result.errorLineNumber = ex.getLineNumber();	
+			// fall thru to log the ipn, and return the result object.		
+		}	
+		
+		// log the result
+		if (fLog) {
+			payment.pmtProcessor = Processor.AUTHNET;			
+			Payment_Notification__c ipn = logNotification(null, payment, 'Apex Payment Callout', payment.action, 
+				encoder == null ? null : strXmlScrub(encoder.xml), 
+				result.responseText, false, false, result.errorMessage, false);	
+			ipn.Transaction_Type__c = 'Authnet RefundTransaction()';
+            ipn.isProcessed__c = result.dbSuccess == null ? false : result.dbSuccess;  
+            ipn.opportunity__c = oppId;
 			insert ipn;
 		}
 		return result;
@@ -349,7 +442,6 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		try {		
 			// if the flag is set, first authorize the credit card and void
 			if (preAuthorize) {
-				Savepoint sp = Database.setSavepoint();
 				PaymentAction saveAction = payment.action;
 				payment.action = PaymentAction.AUTHORIZE;
 				PaymentTxnResult authRequest = CreateTransactionRequest( payer, card, payment, false, false, false );
@@ -372,9 +464,6 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 				} else {
 					// void
 					OnlineTxnResult voidRequest = VoidTransaction( authRequest.txnId, false );
-					//this rollback is to enable the callout to happen.  You can't make a callout when there are uncommitted
-					//database changes, which we get when attempting to preauthorize an ARB
-					Database.Rollback( sp );
 				}
 				
 			}

@@ -432,6 +432,121 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 		return result;			
 	}
 	
+	global virtual OnlineTxnResult DoVoid( string txnId ) {
+		// declare all variables before we do the try/catch, so we can access things afterwards.		
+		NVPEncoder encoder;
+		OnlineTxnResult result = new OnlineTxnResult();
+		PaymentData payment = new PaymentData(0);
+		ID oppId;
+		
+		try {
+	
+			// build the URL and do it
+			encoder = getEncoder( endpoint, 'DoVoid' );
+			encoder.addParam('AUTHORIZATIONID', txnId);	
+			result = callPaypal( encoder.url );
+
+			// send result to salesforce
+			if (result.success) {
+				
+				// it is a paradox, but with void, success means you FAILED
+				payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
+				payment.action = PaymentAction.VOIDTXN;
+
+			    ClassFactory f = new ClassFactory();			
+			    PaymentToSalesforce opmt = f.makePaymentToSalesforce();                                                 
+		        opmt.payment = payment;
+		        opmt.processSinglePayment();
+			
+	            oppId = opmt.opportunityId;
+	            result.dbSuccess = true;
+			}		
+				
+		} catch (exception ex) {
+			result.errorMessage = ex.getMessage();
+			result.errorStackTrace = ex.getStackTraceString();
+			result.errorLineNumber = ex.getLineNumber();	
+			// fall thru to log the ipn, and return the result object.		
+		}	
+				                        
+        // log the ipn record
+		boolean isTest = auth.sandbox; 
+		payment.pmtProcessor = Processor.PAYPAL;
+		Payment_Notification__c ipn = logNotification(null, payment, 'Apex Payment Callout', payment.action, 
+			encoder == null ? null : strUrlScrub(encoder.url), 
+			result.responseText, isTest, false, result.errorMessage, false);	
+		ipn.Transaction_Type__c = 'Paypal DoVoid()';
+        ipn.isProcessed__c = result.dbSuccess == null ? false : result.dbSuccess;  
+        ipn.opportunity__c = oppId;
+        ipn.errorLineNumber__c = result.errorLineNumber;
+        ipn.errorStackTrace__c = result.errorStackTrace;		
+        insert ipn;
+
+		return result;			
+	}
+
+	global virtual OnlineTxnResult RefundTransaction( PaymentData payment ) {
+		// declare all variables before we do the try/catch, so we can access things afterwards.		
+		NVPEncoder encoder;
+		OnlineTxnResult result = new OnlineTxnResult();
+		ID oppId;
+		
+		try {
+	
+			// build the URL
+			encoder = getEncoder( endpoint, 'RefundTransaction' );
+
+			// fill in refund params	
+			encoder.addParam('TRANSACTIONID', payment.txnId);
+			if (payment.totalAmount != null) {
+				encoder.addParam('REFUNDTYPE', 'Partial');
+				encoder.addParam('AMT', payment.totalAmount);
+				encoder.addParam('CURRENCYCODE', payment.currencyCode);
+			}
+			if (payment.memo != null) 
+				encoder.addParam('NOTE', payment.memo);
+	
+			result = callPaypal( encoder.url );
+				
+			// put Paypal data into payment object
+			if (result.success) {
+				payment.pmtStatus = PaymentStatus.REVERSED;
+				payment.action = PaymentAction.REFUND; 
+				payment.parentTxnId = payment.txnId;
+				payment.txnId = result.params.get('REFUNDTRANSACTIONID');
+
+				// send result to salesforce
+			    ClassFactory f = new ClassFactory();
+			    PaymentToSalesforce opmt = f.makePaymentToSalesforce();                                                 
+		        opmt.payment = payment;
+		        opmt.processSinglePayment();
+	            oppId = opmt.opportunityId;   
+	            result.dbSuccess = true;
+			}		
+				
+		} catch (exception ex) {
+			result.errorMessage = ex.getMessage();
+			result.errorStackTrace = ex.getStackTraceString();
+			result.errorLineNumber = ex.getLineNumber();	
+			// fall thru to log the ipn, and return the result object.		
+		}	
+				                        
+        // log the ipn record
+		boolean isTest = auth.sandbox; 
+		payment.pmtProcessor = Processor.PAYPAL;
+		Payment_Notification__c ipn = logNotification(null, payment, 'Apex Payment Callout', payment.action, 
+			encoder == null ? null : strUrlScrub(encoder.url), 
+			result.responseText, isTest, false, result.errorMessage, false);	
+		ipn.Transaction_Type__c = 'Paypal RefundTransaction()';
+        ipn.isProcessed__c = result.dbSuccess == null ? false : result.dbSuccess;  
+        ipn.opportunity__c = oppId;
+        ipn.errorLineNumber__c = result.errorLineNumber;
+        ipn.errorStackTrace__c = result.errorStackTrace;		
+        insert ipn;
+
+		return result;			
+	}
+
 	global OnlineTxnResult getTransactionDetails( string sTxnId ) {
 		OnlineTxnResult result	= new OnlineTxnResult();
 		

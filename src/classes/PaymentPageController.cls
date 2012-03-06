@@ -53,8 +53,8 @@ global with sharing virtual class PaymentPageController {
             expYears.add(new selectOption( string.valueOf(system.today().year() + i), string.valueOf(system.today().year() + i) ) );
 
         payer = new OnlinePayment.OnlinePayer();
-		card = new OnlinePayment.CreditCardData('Visa', null, null, null, null);
-		payment = new OnlinePayment.PaymentData( null, null, null, 1 );                        
+        card = new OnlinePayment.CreditCardData('Visa', null, null, null, null);
+        payment = new OnlinePayment.PaymentData( null, null, null, 1 );                        
     } 
     
     // boolean property that sets whatToDo to paylater (can be used to drive a checkbox)
@@ -92,7 +92,7 @@ global with sharing virtual class PaymentPageController {
             invalid = 
                 (payment.totalAmount == null) ? 'Please provide an amount.' : 
                 (payment.totalAmount < 0) ? 'Amount cannot be negative.' : 
-                (card.cvvCode != null && card.cvvCode.length() != 3) ? 'CVV code must be three digits.' : 
+                (card.cvvCode != null && card.cvvCode.length() > 4) ? 'CVV code must be three or four digits.' : 
                 (card.acctNumber == null) ? 'Please provide a credit card number.' : 
                 (card.acctNumber.length() < 12 || card.acctNumber.length() > 19) ? 'Card must be between 12 and 19 digits.' :
                 (payer.firstname == null) ? 'Please provide a first name.' : 
@@ -197,7 +197,7 @@ global with sharing virtual class PaymentPageController {
         config.name = 'config for testing';
         insert config;
 
-		// setup dummy data
+        // setup dummy data
         PaymentPageController ppc = new PaymentPageController();
         ppc.payer.firstName = 'Testy';
         ppc.payer.lastName = 'Tester';

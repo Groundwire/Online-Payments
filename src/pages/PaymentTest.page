@@ -55,9 +55,10 @@
 		    j$('[name$=":xyr"]').val('2016');
 		    j$('[name$=":cvv"]').val('111');
 		}
-		
+
 		j$().ready(function() {
 			j$("#overlay").hide();
+			showTheRightStuff();
 		
 			validator = j$("form.validate").validate( {
 				errorClass: "invalid"
@@ -67,20 +68,11 @@
 				min: 1,
 				max: 999
 			});
-			
+
 			j$(".actionRadio").change(function() {
-				if( j$(this).find("input:checked").val() == 'paylater' ) {
-					j$("#recurrence").show();
-					j$("#infoId").hide();
-				} else if( j$(this).find("input:checked").val() == 'getdetails' ) {
-					j$("#recurrence").hide();
-					j$("#infoId").show();
-				} else {
-					j$("#recurrence").hide();
-					j$("#infoId").hide();
-				}
+				showTheRightStuff();
 			});
-	
+
 			j$("form.validate").submit( function(){
 				if (validator.form()) {
 					j$("#overlay").show();
@@ -90,6 +82,24 @@
 				}
 			});
 		});
+		
+		function showTheRightStuff() {
+			if( j$(this).find("input:checked").val() == 'paylater' ) {
+				j$("#infoId").hide();
+				j$("#recurrence").show();
+				j$("#infoAmount").show();
+				j$("#infoEverythingElse").show();
+			} else if( j$(this).find("input:checked").val() == 'paynow' ) {
+				j$("#infoId").hide();
+				j$("#recurrence").hide();
+				j$("#infoAmount").show();
+				j$("#infoEverythingElse").show();
+			} else {
+				j$("#infoId").show();
+				j$("#infoAmount").show();
+				j$("#infoEverythingElse").show();
+			}
+		}
 	</script>
 
   <apex:form styleclass="validate" >
@@ -118,14 +128,6 @@
 	         </apex:selectRadio>	         
 	      </apex:pageBlockSectionItem>
 	     </apex:pageBlockSection>
-	     <div id="infoId" style="display:none;" >
-	     <apex:pageBlockSection columns="1" collapsible="false" >
-    	    	<apex:pageBlockSectionItem >
-	            	<apex:outputLabel value="Transaction Id" for="tid" />
-	                <apex:inputText value="{!txnId}" id="tid" />
-	            </apex:pageBlockSectionItem>
-	      </apex:pageBlockSection>
-	   </div>
 	     <apex:pageBlockSection columns="2" collapsible="false" >
 	     	<apex:pageBlockSectionItem >
 	      	<apex:outputLabel value="Payment Processor" />
@@ -137,6 +139,17 @@
 	            	<apex:outputLabel value="<<<" styleclass="helptext" />
 	                <apex:outputText value="List includes all active payment processor settings you have created. If you leave this control off the page, it will use the processor marked as Default." styleclass="helptext" />
 	            </apex:pageBlockSectionItem>
+	      </apex:pageBlockSection>
+	     <div id="infoId" style="display:none;" >
+	     <apex:pageBlockSection columns="1" collapsible="false" >
+    	    	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Transaction Id" for="tid" />
+	                <apex:inputText value="{!txnId}" id="tid" />
+	            </apex:pageBlockSectionItem>
+	      </apex:pageBlockSection>
+	   </div>
+	   <div id="infoAmount">
+	     <apex:pageBlockSection columns="2" collapsible="false" >
             	<apex:pageBlockSectionItem >
 	            	<apex:outputLabel value="Amount" for="amt" />
 	                <apex:inputText value="{!amountText}" id="amt" styleclass="required number" />
@@ -145,6 +158,10 @@
 	            	<apex:outputLabel value="<<<" styleclass="helptext" />
 	                <apex:outputText value="Amount is required." styleclass="helptext" />
 	            </apex:pageBlockSectionItem>
+	     </apex:pageBlockSection>
+	   </div>
+	   <div id="infoEverythingElse">
+	     <apex:pageBlockSection columns="2" collapsible="false" title="Optional Detail">
             	<apex:pageBlockSectionItem >
 	            	<apex:outputLabel value="Item Name / Type" for="itemname" />
 	                <apex:inputText value="{!itemname}" id="itemname" styleclass="wide" />
@@ -264,7 +281,7 @@
 	                <apex:inputText value="{!card.cvvCode}" id="cvv" styleclass="narrow positive" />
 	            </apex:pageBlockSectionItem>
             </apex:pageBlockSection>
-
+		</div>
        </apex:pageBlock>
 
 		<apex:outputPanel id="results">
