@@ -82,26 +82,32 @@ global with sharing virtual class PaymentPageController {
         
         // Do some basic validation in case they don't have javascript (and in order to avoid )
         string invalid;
-        try {
-            payment.totalAmount = decimal.valueOf(amountText.replaceAll('$', '').replaceAll(',', ''));
-        } catch(exception ex) {
-            invalid = 'Amount must be numeric.';
-        }
-        if (invalid == null) {
-            if (card.acctNumber != null) card.acctNumber = card.acctNumber.replaceAll(' ', '').replaceAll('-', '');
-            invalid = 
-                (payment.totalAmount == null) ? 'Please provide an amount.' : 
-                (payment.totalAmount < 0) ? 'Amount cannot be negative.' : 
-                (card.cvvCode != null && card.cvvCode.length() > 4) ? 'CVV code must be three or four digits.' : 
-                (card.acctNumber == null) ? 'Please provide a credit card number.' : 
-                (card.acctNumber.length() < 12 || card.acctNumber.length() > 19) ? 'Card must be between 12 and 19 digits.' :
-                (payer.firstname == null) ? 'Please provide a first name.' : 
-                (payer.lastname == null) ? 'Please provide a last name.' : 
-                (payer.billingaddress.street == null || 
-                    payer.billingaddress.city == null || 
-                    payer.billingaddress.state == null || 
-                    payer.billingaddress.zip == null) ? 'Please provide a complete address.' : 
-                null;
+        if (whatToDo == 'paynow' || whatToDo == 'paylater' || whatToDo == 'auth') {
+	        try {
+	            payment.totalAmount = decimal.valueOf(amountText.replaceAll('$', '').replaceAll(',', ''));
+	        } catch(exception ex) {
+	            invalid = 'Amount must be numeric.';
+	        }
+	        if (invalid == null) {
+	            if (card.acctNumber != null) card.acctNumber = card.acctNumber.replaceAll(' ', '').replaceAll('-', '');
+	            invalid = 
+	                (payment.totalAmount == null) ? 'Please provide an amount.' : 
+	                (payment.totalAmount < 0) ? 'Amount cannot be negative.' : 
+	                (card.cvvCode != null && card.cvvCode.length() > 4) ? 'CVV code must be three or four digits.' : 
+	                (card.acctNumber == null) ? 'Please provide a credit card number.' : 
+	                (card.acctNumber.length() < 12 || card.acctNumber.length() > 19) ? 'Card must be between 12 and 19 digits.' :
+	                (payer.firstname == null) ? 'Please provide a first name.' : 
+	                (payer.lastname == null) ? 'Please provide a last name.' : 
+	                (payer.billingaddress.street == null || 
+	                    payer.billingaddress.city == null || 
+	                    payer.billingaddress.state == null || 
+	                    payer.billingaddress.zip == null) ? 'Please provide a complete address.' : 
+	                null;
+	        }
+        } else {
+        	if (txnId == null) {
+        		invalid = 'Please provide a transaction ID.';	
+        	}
         }
         if (selectedConfig == null) {
             invalid = 'Please select a payment processor configuration.';
@@ -126,7 +132,8 @@ global with sharing virtual class PaymentPageController {
             OnlinePayment op = new OnlinePayment(auth);
             list<OnlinePayment.OnlineTxnMessage> msgs;
             string errorMsg;
-            if (whatToDo == 'paynow') {
+            if (whatToDo == 'paynow' || whatToDo == 'auth') {
+            	payment.action = (whatToDo == 'paynow') ? OnlinePayment.PaymentAction.PAY : OnlinePayment.PaymentAction.AUTHORIZE;
                 paymentResult = op.DoSinglePayment( payer, card, payment);                  
                 msgs = paymentResult.messages;
                 errorMsg = paymentResult.errorMessage;
@@ -141,8 +148,20 @@ global with sharing virtual class PaymentPageController {
                 msgs = recurringResult.messages;
                 errorMsg = recurringResult.errorMessage;
                 success = recurringResult.success;
-            } else {
+            } else if (whatToDo == 'getdetails') {
                 result = op.getTransactionDetails( payment, txnId );
+                msgs = result.messages;
+                errorMsg = result.errorMessage;
+                success = result.success;
+            } else if (whatToDo == 'void') {
+            	payment.txnId = txnId;
+                result = op.voidPayment( payment );
+                msgs = result.messages;
+                errorMsg = result.errorMessage;
+                success = result.success;
+            } else {
+            	payment.txnId = txnId;
+                result = op.refundPayment( payment );
                 msgs = result.messages;
                 errorMsg = result.errorMessage;
                 success = result.success;

@@ -207,7 +207,7 @@ global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {
         OnlinePaymentPaypalTest.createConfig();
         OnlinePaymentPaypalTest opt = new OnlinePaymentPaypalTest( null );
         
-        OnlinePayment.OnlineTxnResult result = opt.DoVoid('my txnid');
+        OnlineTxnResult result = opt.DoVoid('my txnid');
         system.assertEquals( true, result.success );
 
         list<Payment_Notification__c> listPn = [select Id, Payer_Email__c, Transaction_Id__c, Recurring_Transaction_Id__c, IsProcessed__c, IsTest__c, Payment_Status__c 
@@ -224,7 +224,7 @@ global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {
         PaymentData payment = new PaymentData(null);
         payment.txnId = 'my txnId';
         
-        OnlinePayment.OnlineTxnResult result = opt.RefundTransaction(payment);
+        OnlineTxnResult result = opt.RefundTransaction(payment);
         system.assertEquals( true, result.success );
 
         list<Payment_Notification__c> listPn = [select Id, Payer_Email__c, Transaction_Id__c, Recurring_Transaction_Id__c, IsProcessed__c, IsTest__c, Payment_Status__c 

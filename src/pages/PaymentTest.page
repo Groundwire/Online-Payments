@@ -58,7 +58,6 @@
 
 		j$().ready(function() {
 			j$("#overlay").hide();
-			showTheRightStuff();
 		
 			validator = j$("form.validate").validate( {
 				errorClass: "invalid"
@@ -69,10 +68,21 @@
 				max: 999
 			});
 
-			j$(".actionRadio").change(function() {
-				showTheRightStuff();
-			});
-
+            j$(".actionRadio").change(function() {
+            	var ch = j$(this).find("input:checked").val();
+	            if( ch == 'paylater' || ch == 'paynow' || ch == 'auth' ) {
+	                j$("#idSection").hide();
+	                j$(".otherSections").show();
+	                if( ch == 'paylater' )
+	                	j$("#recurrenceSection").show();
+	                else
+	                	j$("#recurrenceSection").hide();
+	            } else {
+	                j$("#idSection").show();
+	                j$(".otherSections").hide();
+	            }
+            });
+ 
 			j$("form.validate").submit( function(){
 				if (validator.form()) {
 					j$("#overlay").show();
@@ -83,23 +93,6 @@
 			});
 		});
 		
-		function showTheRightStuff() {
-			if( j$(this).find("input:checked").val() == 'paylater' ) {
-				j$("#infoId").hide();
-				j$("#recurrence").show();
-				j$("#infoAmount").show();
-				j$("#infoEverythingElse").show();
-			} else if( j$(this).find("input:checked").val() == 'paynow' ) {
-				j$("#infoId").hide();
-				j$("#recurrence").hide();
-				j$("#infoAmount").show();
-				j$("#infoEverythingElse").show();
-			} else {
-				j$("#infoId").show();
-				j$("#infoAmount").show();
-				j$("#infoEverythingElse").show();
-			}
-		}
 	</script>
 
   <apex:form styleclass="validate" >
@@ -118,13 +111,16 @@
 			</div>
 		</div>
 
-	     <apex:pageBlockSection title="Transaction" columns="1" collapsible="false" >
+	     <apex:pageBlockSection title="Transaction Type" columns="1" collapsible="false" >
 	     	<apex:pageBlockSectionItem >
 	      	<apex:outputLabel value="Operation" />
 	          <apex:selectRadio value="{!whatToDo}" styleclass="spaceRight actionRadio" >
 	          <apex:selectOption itemvalue="paynow" itemlabel="Make Payment" />
-	          <apex:selectOption itemvalue="paylater" itemlabel="Create Recurring Payment Profile" />
-	          <apex:selectOption itemvalue="getdetails" itemlabel="Get Transaction Details" />
+	          <apex:selectOption itemvalue="auth" itemlabel="Authorize Only" />
+	          <apex:selectOption itemvalue="paylater" itemlabel="Create Recurring Profile" />
+	          <apex:selectOption itemvalue="refund" itemlabel="Refund" />
+	          <apex:selectOption itemvalue="void" itemlabel="Void" />
+	          <apex:selectOption itemvalue="getdetails" itemlabel="Get Transaction Info" />
 	         </apex:selectRadio>	         
 	      </apex:pageBlockSectionItem>
 	     </apex:pageBlockSection>
@@ -140,16 +136,28 @@
 	                <apex:outputText value="List includes all active payment processor settings you have created. If you leave this control off the page, it will use the processor marked as Default." styleclass="helptext" />
 	            </apex:pageBlockSectionItem>
 	      </apex:pageBlockSection>
-	     <div id="infoId" style="display:none;" >
-	     <apex:pageBlockSection columns="1" collapsible="false" >
+	      <div id="idSection"  style="display:none;" >
+	     <apex:pageBlockSection title="Transaction Detail" columns="2" collapsible="false" >
     	    	<apex:pageBlockSectionItem >
 	            	<apex:outputLabel value="Transaction Id" for="tid" />
-	                <apex:inputText value="{!txnId}" id="tid" />
+	                <apex:inputText value="{!txnId}" id="tid" styleclass="required" />
 	            </apex:pageBlockSectionItem>
-	      </apex:pageBlockSection>
-	   </div>
-	   <div id="infoAmount">
-	     <apex:pageBlockSection columns="2" collapsible="false" >
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="<<<" styleclass="helptext" />
+	                <apex:outputText value="Id of previous transaction is required for voids, refunds, or retrieving info." styleclass="helptext" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Amount" for="amt" />
+	                <apex:inputText value="{!amountText}" id="amt" styleclass="number" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="<<<" styleclass="helptext" />
+	                <apex:outputText value="Amount is optional (use for partial refunds)." styleclass="helptext" />
+	            </apex:pageBlockSectionItem>
+    	  </apex:pageBlockSection>
+    	  </div>
+    	  <div class="otherSections">
+	     <apex:pageBlockSection title="Transaction Detail" columns="2" collapsible="false" >
             	<apex:pageBlockSectionItem >
 	            	<apex:outputLabel value="Amount" for="amt" />
 	                <apex:inputText value="{!amountText}" id="amt" styleclass="required number" />
@@ -158,10 +166,6 @@
 	            	<apex:outputLabel value="<<<" styleclass="helptext" />
 	                <apex:outputText value="Amount is required." styleclass="helptext" />
 	            </apex:pageBlockSectionItem>
-	     </apex:pageBlockSection>
-	   </div>
-	   <div id="infoEverythingElse">
-	     <apex:pageBlockSection columns="2" collapsible="false" title="Optional Detail">
             	<apex:pageBlockSectionItem >
 	            	<apex:outputLabel value="Item Name / Type" for="itemname" />
 	                <apex:inputText value="{!itemname}" id="itemname" styleclass="wide" />
@@ -187,8 +191,9 @@
 	                <apex:outputText value="Submits custom field data to the processor. If you provide a valid campaign Id, the opportunity gets added to that campaign. Or, provide JSON data to set custom fields on opportunity, contact, or account." styleclass="helptext" />
 	            </apex:pageBlockSectionItem>
     	  </apex:pageBlockSection>
-    	  <div id="recurrence" style="display:none;" >
-	     <apex:pageBlockSection title="Recurrence" columns="1" collapsible="false" >
+    	  </div>
+    	  <div class="otherSections" id="recurrenceSection"  style="display:none;" >
+	     <apex:pageBlockSection title="Recurrence" columns="2" collapsible="false" >
             	<apex:pageBlockSectionItem >
 	            	<apex:outputLabel value="Every" for="every" />
 	            	<apex:outputPanel >
@@ -202,11 +207,16 @@
 	                </apex:outputPanel>
 	            </apex:pageBlockSectionItem>
             	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="<<<" styleclass="helptext" />
+	                <apex:outputText value="Recurrence options apply only to recurring profiles." styleclass="helptext" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
 	            	<apex:outputLabel value="Total Ocurrences" for="occ" />
 	                <apex:inputText value="{!payment.occurrences}" id="occ" styleclass="positive" />
 	            </apex:pageBlockSectionItem>
     	  </apex:pageBlockSection>
     	  </div>
+    	  <div class="otherSections">
             <apex:pageBlockSection title="Payer" columns="2" collapsible="false" >
             	<apex:pageBlockSectionItem >
 	            	<apex:outputLabel value="First Name" for="fname" />
@@ -249,7 +259,8 @@
 			         </apex:selectList>
 	            </apex:pageBlockSectionItem>
             </apex:pageBlockSection>
-
+            </div>
+    	  <div class="otherSections">
             <apex:pageBlockSection title="Credit Card" columns="1" collapsible="false" >
             	<apex:pageBlockSectionItem >
 	            	<apex:outputLabel value="Card Type" for="ctype" />
@@ -281,7 +292,7 @@
 	                <apex:inputText value="{!card.cvvCode}" id="cvv" styleclass="narrow positive" />
 	            </apex:pageBlockSectionItem>
             </apex:pageBlockSection>
-		</div>
+            </div>
        </apex:pageBlock>
 
 		<apex:outputPanel id="results">

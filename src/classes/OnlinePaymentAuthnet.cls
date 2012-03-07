@@ -298,7 +298,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		return result;
 	}
 
-	global virtual OnlineTxnResult VoidTransaction( string txnId, boolean fLog) {
+	global virtual OnlineTxnResult VoidTransaction( string txnId, boolean fLog ) {
 		OnlineTxnResult result = new OnlineTxnResult(false, null);
 		XMLEncoder encoder;
 		PaymentData payment = new PaymentData(0);
@@ -358,7 +358,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		return result;
 	}
 
-	global virtual OnlineTxnResult RefundTransaction( PaymentData payment, boolean fLog) {
+	global virtual OnlineTxnResult RefundTransaction( PaymentData payment) {
 		OnlineTxnResult result = new OnlineTxnResult(false, null);
 		XMLEncoder encoder;
 		string refundTxnId;
@@ -392,18 +392,15 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 				payment.action = PaymentAction.REFUND;
 				payment.pmtStatus = PaymentStatus.REVERSED;
 					
-				// UNDONE: send result to salesforce
-				if (fLog) {
-			        // use the generic payment processing class
-				    ClassFactory f = new ClassFactory();
-				
-				    PaymentToSalesforce opmt = f.makePaymentToSalesforce();                                                 
-			        opmt.payment = payment;
-			        opmt.processSinglePayment();
-				
-		            oppId = opmt.opportunityId;   
-		            result.dbSuccess = true;
-				}
+				// send result to salesforce
+			    ClassFactory f = new ClassFactory();
+			
+			    PaymentToSalesforce opmt = f.makePaymentToSalesforce();                                                 
+		        opmt.payment = payment;
+		        opmt.processSinglePayment();
+			
+	            oppId = opmt.opportunityId;   
+	            result.dbSuccess = true;
 			} else {
 				payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
 			}		
@@ -416,16 +413,14 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		}	
 		
 		// log the result
-		if (fLog) {
-			payment.pmtProcessor = Processor.AUTHNET;			
-			Payment_Notification__c ipn = logNotification(null, payment, 'Apex Payment Callout', payment.action, 
-				encoder == null ? null : strXmlScrub(encoder.xml), 
-				result.responseText, false, false, result.errorMessage, false);	
-			ipn.Transaction_Type__c = 'Authnet RefundTransaction()';
-            ipn.isProcessed__c = result.dbSuccess == null ? false : result.dbSuccess;  
-            ipn.opportunity__c = oppId;
-			insert ipn;
-		}
+		payment.pmtProcessor = Processor.AUTHNET;			
+		Payment_Notification__c ipn = logNotification(null, payment, 'Apex Payment Callout', payment.action, 
+			encoder == null ? null : strXmlScrub(encoder.xml), 
+			result.responseText, false, false, result.errorMessage, false);	
+		ipn.Transaction_Type__c = 'Authnet RefundTransaction()';
+        ipn.isProcessed__c = result.dbSuccess == null ? false : result.dbSuccess;  
+        ipn.opportunity__c = oppId;
+		insert ipn;
 		return result;
 	}
 

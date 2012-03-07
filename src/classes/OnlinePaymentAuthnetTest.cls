@@ -209,7 +209,7 @@ global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet 
         payment.txnId = 'my txnId';
         payment.last4digits = '4321';
         
-        OnlinePayment.OnlineTxnResult result = opt.RefundTransaction(payment, true);
+        OnlineTxnResult result = opt.RefundTransaction(payment);
         system.assertEquals( true, result.success );
 
         list<Payment_Notification__c> listPn = [select Id, Payer_Email__c, Transaction_Id__c, Recurring_Transaction_Id__c, IsProcessed__c, IsTest__c, Payment_Status__c 
