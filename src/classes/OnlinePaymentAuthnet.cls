@@ -372,6 +372,9 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			// top section
 			encoder.openGroup('transactionRequest');
 			encoder.addElement('transactionType', 'refundTransaction');
+
+			// TODO: FIX ME: I think we need this or something like it but it wont save
+			//encoder.openGroup('payment');
 			encoder.addElement('refTransId', payment.txnId);			// transaction id of payment to be refunded
 			encoder.addElement('cardNumber', payment.last4digits);		// last 4 digits of credit card are required
 			
