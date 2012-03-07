@@ -358,7 +358,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		return result;
 	}
 
-	global virtual OnlineTxnResult RefundTransaction( PaymentData payment) {
+	global virtual OnlineTxnResult RefundTransaction( PaymentData payment, boolean testRequest, boolean emailCustomer ) {
 		OnlineTxnResult result = new OnlineTxnResult(false, null);
 		XMLEncoder encoder;
 		string refundTxnId;
@@ -373,14 +373,27 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			encoder.openGroup('transactionRequest');
 			encoder.addElement('transactionType', 'refundTransaction');
 
-			// TODO: FIX ME: I think we need this or something like it but it wont save
-			//encoder.openGroup('payment');
-			encoder.addElement('refTransId', payment.txnId);			// transaction id of payment to be refunded
-			encoder.addElement('cardNumber', payment.last4digits);		// last 4 digits of credit card are required
-			
 			if (payment.totalAmount != null)
 				encoder.addElement('amount', payment.totalAmount);		// amount is optional - use for partial refund
 	
+			encoder.openGroup('payment');
+			encoder.openGroup('creditCard');
+			encoder.addElement('cardNumber', payment.last4digits);		// last 4 digits of credit card are required
+			encoder.closeGroup();
+			encoder.closeGroup();
+			encoder.addElement('refTransId', payment.txnId);			// transaction id of payment to be refunded
+
+			encoder.openGroup('transactionSettings');
+			encoder.openGroup('setting');
+			encoder.addElement('settingName', 'testRequest');
+			encoder.addElement('settingValue', (testRequest) ? 'true' : 'false');
+			encoder.closeGroup();
+			encoder.openGroup('setting');
+			encoder.addElement('settingName', 'emailCustomer');
+			encoder.addElement('settingValue', (emailCustomer) ? 'true' : 'false');
+			encoder.closeGroup();
+			encoder.closeGroup();
+			
 			// make the call
 			result = callAuthnet( encoder.xml );
 			

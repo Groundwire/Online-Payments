@@ -33,8 +33,8 @@ global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet 
             (testName == 'paymentCardError') ? '<?xml version="1.0" encoding="utf-8"?><createTransactionResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"><messages><resultCode>Ok</resultCode><message><code>I00001</code><text>Successful.</text></message></messages><transactionResponse><responseCode>2</responseCode><authCode>000000</authCode><avsResultCode>P</avsResultCode><cvvResultCode /><cavvResultCode /><transId>0</transId><refTransID /><transHash>656EB54834A0E1D823551B8551D0E0F0</transHash><testRequest>1</testRequest><accountNumber /><accountType /><errors><error><errorCode>2</errorCode><errorText>This transaction has been declined.</errorText></error></errors></transactionResponse></createTransactionResponse>' :
             (testName == 'profile') ? '<?xml version="1.0" encoding="utf-8"?><ARBCreateSubscriptionResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"><messages><resultCode>Ok</resultCode><message><code>I00001</code><text>Successful.</text></message></messages><subscriptionId>1231571</subscriptionId></ARBCreateSubscriptionResponse>' : 
             (testName == 'profileError') ? '<?xml version="1.0" encoding="utf-8"?><ErrorResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"><messages><resultCode>Error</resultCode><message><code>E00003</code><text>The \'AnetApi/xml/v1/schema/AnetApiSchema.xsd:length\' element is invalid - The value \'-4\' is invalid according to its datatype \'Short\' - The MinInclusive constraint failed.</text></message></messages></ErrorResponse>' :
-            (testName == 'void') ? '<?xml version="1.0" encoding="utf-8"?><createTransactionResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"><messages><resultCode>Ok</resultCode><message><code>I00001</code><text>Successful.</text></message></messages><transactionResponse><responseCode>1</responseCode><authCode>UFRNCF</authCode><avsResultCode>Y</avsResultCode><cvvResultCode>P</cvvResultCode><cavvResultCode>2</cavvResultCode><transId>2167035413</transId><refTransID /><transHash>B2D8232A87C233783EDCA9205423DC40</transHash><testRequest>0</testRequest><accountNumber>XXXX1491</accountNumber><accountType>Visa</accountType><messages><message><code>1</code><description>This transaction has been approved.</description></message></messages><userFields><userField><name>custom</name><value /></userField></userFields></transactionResponse></createTransactionResponse>' : 
-            (testName == 'refund') ? '<?xml version="1.0" encoding="utf-8"?><createTransactionResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"><messages><resultCode>Ok</resultCode><message><code>I00001</code><text>Successful.</text></message></messages><transactionResponse><responseCode>1</responseCode><authCode>UFRNCF</authCode><avsResultCode>Y</avsResultCode><cvvResultCode>P</cvvResultCode><cavvResultCode>2</cavvResultCode><transId>2167035413</transId><refTransID /><transHash>B2D8232A87C233783EDCA9205423DC40</transHash><testRequest>0</testRequest><accountNumber>XXXX1491</accountNumber><accountType>Visa</accountType><messages><message><code>1</code><description>This transaction has been approved.</description></message></messages><userFields><userField><name>custom</name><value /></userField></userFields></transactionResponse></createTransactionResponse>' : 
+            (testName == 'void') ? '<?xml version="1.0" encoding="utf-8"?><createTransactionResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"><messages><resultCode>Ok</resultCode><message><code>I00001</code><text>Successful.</text></message></messages><transactionResponse><responseCode>1</responseCode><authCode>Z7Y3QU</authCode><avsResultCode>P</avsResultCode><cvvResultCode /><cavvResultCode /><transId>2169633434</transId><refTransID>2169633434</refTransID><transHash>4AF3058C6A1FA601A40D84EDF2114552</transHash><testRequest>0</testRequest><accountNumber>XXXX1111</accountNumber><accountType>Visa</accountType><messages><message><code>1</code><description>This transaction has been approved.</description></message></messages></transactionResponse></createTransactionResponse>' : 
+            (testName == 'refund') ? '<?xml version="1.0" encoding="utf-8"?><createTransactionResponse xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="AnetApi/xml/v1/schema/AnetApiSchema.xsd"><messages><resultCode>Ok</resultCode><message><code>I00001</code><text>Successful.</text></message></messages><transactionResponse><responseCode>1</responseCode><authCode>Z7Y3QU</authCode><avsResultCode>P</avsResultCode><cvvResultCode /><cavvResultCode /><transId>2169633434</transId><refTransID>2169633434</refTransID><transHash>4AF3058C6A1FA601A40D84EDF2114552</transHash><testRequest>0</testRequest><accountNumber>XXXX1111</accountNumber><accountType>Visa</accountType><messages><message><code>1</code><description>This transaction has been approved.</description></message></messages></transactionResponse></createTransactionResponse>' : 
             (testName == 'txnInfo') ? '' :
             'bogusResponse';
     }   
@@ -93,8 +93,7 @@ global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet 
             from Payment_Notification__c where Payer_Email__c ='paymentError@test.com'];
         system.assertEquals(1, listPn.size());
         system.assertEquals('Failed', listPn[0].Payment_Status__c);
-        // can't assume PaymentToSalesforce hooked up
-        //system.assertEquals(false, listPn[0].IsProcessed__c);  
+        system.assertEquals(false, listPn[0].IsProcessed__c);  
         system.assertEquals(true, listPn[0].IsTest__c);
         
     }
@@ -118,8 +117,7 @@ global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet 
             from Payment_Notification__c where Payer_Email__c =: 'paymentCardError@test.com'];
         system.assertEquals(1, listPn.size());
         system.assertEquals('Failed', listPn[0].Payment_Status__c);
-        // can't assume PaymentToSalesforce hooked up
-        //system.assertEquals(false, listPn[0].IsProcessed__c);  
+        system.assertEquals(false, listPn[0].IsProcessed__c);  
         system.assertEquals(true, listPn[0].IsTest__c);
         
     }
@@ -144,8 +142,7 @@ global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet 
         list<Payment_Notification__c> listPn = [select Id, Transaction_Id__c, Recurring_Transaction_Id__c, IsProcessed__c, IsTest__c 
             from Payment_Notification__c where Recurring_Transaction_Id__c =: result.recurringTxnId];
         system.assertEquals(1, listPn.size());
-        // can't assume PaymentToSalesforce hooked up
-        //system.assertEquals(true, listPn[0].IsProcessed__c);
+        system.assertEquals(true, listPn[0].IsProcessed__c);
         system.assertEquals(true, listPn[0].IsTest__c);  
 
         /*
@@ -198,7 +195,7 @@ global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet 
             from Payment_Notification__c where Transaction_Id__c =: 'my txnid'];
         system.debug(listPn);
         system.assertEquals(1, listPn.size());
-        system.assertEquals(false, listPn[0].IsProcessed__c); 
+        system.assertEquals(true, listPn[0].IsProcessed__c); 
     }
     
     static testmethod void testRefundTransaction() {
@@ -209,14 +206,14 @@ global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet 
         payment.txnId = 'my txnId';
         payment.last4digits = '4321';
         
-        OnlineTxnResult result = opt.RefundTransaction(payment);
+        OnlineTxnResult result = opt.RefundTransaction(payment, true, false);
         system.assertEquals( true, result.success );
 
         list<Payment_Notification__c> listPn = [select Id, Payer_Email__c, Transaction_Id__c, Recurring_Transaction_Id__c, IsProcessed__c, IsTest__c, Payment_Status__c 
             from Payment_Notification__c where Transaction_Id__c =: 'my txnid'];
         system.debug(listPn);
         system.assertEquals(1, listPn.size());
-        system.assertEquals(false, listPn[0].IsProcessed__c); 
+        system.assertEquals(true, listPn[0].IsProcessed__c); 
     }
     
     static testmethod void testHTTPError() {

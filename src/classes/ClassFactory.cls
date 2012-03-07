@@ -33,10 +33,29 @@ public with sharing class ClassFactory {
 		pts.initialize();
 		return pts;
     }
+    
+    public OnlinePaymentPaypal makeOPPaypal( OnlinePayment.APIAuthorization auth, string testName ) {
+        if (Test.IsRunningTest()) {
+            OnlinePaymentPaypalTest.testName = testName;         
+            return new OnlinePaymentPaypalTest( auth );              
+        } else {
+            return new OnlinePaymentPaypal( auth );                      	
+        }   
+    }
         
+    public OnlinePaymentAuthnet makeOPAuthnet( OnlinePayment.APIAuthorization auth, string testName ) {
+        if (Test.IsRunningTest()) {
+            OnlinePaymentAuthnetTest.testName = testName;         
+            return new OnlinePaymentAuthnetTest( auth );              
+        } else {
+            return new OnlinePaymentAuthnet( auth );                      	
+        }   
+    }
+
     static testMethod void test_makePaymentToSalesforce() {
     	ClassFactory f = new ClassFactory();
     	PaymentToSalesforce p2s = f.makePaymentToSalesforce();
     	System.assertNotEquals(p2s, null);
     } 
+    
 }

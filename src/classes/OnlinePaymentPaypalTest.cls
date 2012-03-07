@@ -63,8 +63,7 @@ global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {
 		list<Payment_Notification__c> listPn = [select Id, Transaction_Id__c, IsProcessed__c, IsTest__c 
 			from Payment_Notification__c where Transaction_Id__c =: result.txnId];
 		system.assertEquals(1, listPn.size());
-		// can't assume PaymentToSalesforce hooked up
-		//system.assertEquals(true, listPn[0].IsProcessed__c);
+		system.assertEquals(true, listPn[0].IsProcessed__c);
 		system.assertEquals(true, listPn[0].IsTest__c);
 		
 		/*
@@ -116,8 +115,7 @@ global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {
 			from Payment_Notification__c where Payer_Email__c ='paymentError@test.com'];
 		system.assertEquals(1, listPn.size());
 		system.assertEquals('Failed', listPn[0].Payment_Status__c);
-		// can't assume PaymentToSalesforce hooked up
-		//system.assertEquals(false, listPn[0].IsProcessed__c);  
+		system.assertEquals(false, listPn[0].IsProcessed__c);  
 		system.assertEquals(true, listPn[0].IsTest__c);		
 	}
 
@@ -139,8 +137,7 @@ global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {
 		list<Payment_Notification__c> listPn = [select Id, Transaction_Id__c, Recurring_Transaction_Id__c, IsProcessed__c, IsTest__c 
 			from Payment_Notification__c where Recurring_Transaction_Id__c =: result.recurringTxnId];
 		system.assertEquals(1, listPn.size());
-		// can't assume PaymentToSalesforce hooked up
-		//system.assertEquals(true, listPn[0].IsProcessed__c);
+		system.assertEquals(true, listPn[0].IsProcessed__c);
 		system.assertEquals(true, listPn[0].IsTest__c);  
 
 		/*
@@ -173,8 +170,7 @@ global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {
 		system.debug(listPn);
 		system.assertEquals(1, listPn.size());
 		system.assertEquals('Failed', listPn[0].Payment_Status__c);
-		// can't assume PaymentToSalesforce hooked up
-		//system.assertEquals(false, listPn[0].IsProcessed__c); 
+		system.assertEquals(false, listPn[0].IsProcessed__c); 
 		system.assertEquals(true, listPn[0].IsTest__c); 		
 	}
 	
@@ -214,7 +210,7 @@ global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {
             from Payment_Notification__c where Transaction_Id__c =: 'my txnid'];
         system.debug(listPn);
         system.assertEquals(1, listPn.size());
-        system.assertEquals(false, listPn[0].IsProcessed__c); 
+        system.assertEquals(true, listPn[0].IsProcessed__c); 
     }
     
     static testmethod void testRefundTransaction() {
@@ -231,7 +227,7 @@ global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {
             from Payment_Notification__c where Transaction_Id__c =: 'my txnid'];
         system.debug(listPn);
         system.assertEquals(1, listPn.size());
-        system.assertEquals(false, listPn[0].IsProcessed__c); 
+        system.assertEquals(true, listPn[0].IsProcessed__c); 
     }
 
 	static testmethod void testTxnInfo() {

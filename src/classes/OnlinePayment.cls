@@ -40,17 +40,12 @@ global virtual class OnlinePayment {
     // process a single transaction payment
     global virtual PaymentTxnResult DoSinglePayment( OnlinePayer payer, CreditCardData card, PaymentData payment ) {
         PaymentTxnResult paymentResult;
-        if (payment.pmtProcessor == Processor.PAYPAL) {         
-            OnlinePaymentPaypal ppal = Test.IsRunningTest() ? new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );
-            if (Test.IsRunningTest()) {
-                OnlinePaymentPaypalTest.testName = 'payment';                       
-            }                           
+		ClassFactory f = new ClassFactory();
+        if (payment.pmtProcessor == Processor.PAYPAL) {
+            OnlinePaymentPaypal ppal = f.makeOPPaypal(auth, 'payment'); 
             paymentResult = ppal.DoDirectPayment( payer, card, payment );           
-        } else /* if (payment.pmtProcessor == Processor.AUTHNET) */ {           
-            OnlinePaymentAuthnet authnet = Test.IsRunningTest() ? new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );
-            if (Test.IsRunningTest()) {
-                OnlinePaymentAuthnetTest.testName = 'payment';                      
-            }                                                   
+        } else /* if (payment.pmtProcessor == Processor.AUTHNET) */ {                       
+            OnlinePaymentAuthnet authnet = f.makeOPAuthnet(auth, 'payment');
             paymentResult = authnet.CreateTransactionRequest( payer, card, payment, false, false, true );                    
         }
         return paymentResult;       
@@ -59,17 +54,12 @@ global virtual class OnlinePayment {
     // process a recurring transaction payment
     global virtual PaymentProfileResult CreateRecurringPayment( OnlinePayer payer, CreditCardData card, PaymentData payment ) {
         PaymentProfileResult recurringResult;       
+		ClassFactory f = new ClassFactory();
         if (payment.pmtProcessor == Processor.PAYPAL) {
-            OnlinePaymentPaypal ppal = Test.IsRunningTest() ? new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );
-            if (Test.IsRunningTest()) {
-                OnlinePaymentPaypalTest.testName = 'profile';                       
-            }   
+            OnlinePaymentPaypal ppal = f.makeOPPaypal(auth, 'profile'); 
             recurringResult = ppal.CreateRecurringPaymentsProfile( payer, card, payment );
         } else /* if (payment.pmtProcessor == Processor.AUTHNET) */ {                       
-            OnlinePaymentAuthnet authnet = Test.IsRunningTest() ? new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );
-            if (Test.IsRunningTest()) {
-                OnlinePaymentAuthnetTest.testName = 'profile';                      
-            }                           
+            OnlinePaymentAuthnet authnet = f.makeOPAuthnet(auth, 'profile');
             recurringResult = authnet.ARBCreateSubscriptionRequest( payer, card, payment, true );                   
         }
         return recurringResult;
@@ -78,11 +68,12 @@ global virtual class OnlinePayment {
     // get results from the transaction
     global virtual OnlineTxnResult getTransactionDetails( PaymentData payment, string txnId ) {
         OnlineTxnResult result;
+		ClassFactory f = new ClassFactory();
         if (payment.pmtProcessor == Processor.PAYPAL) {
-            OnlinePaymentPaypal ppal = Test.IsRunningTest() ? new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );              
+            OnlinePaymentPaypal ppal = f.makeOPPaypal(auth, 'txnInfo'); 
             result = ppal.getTransactionDetails( txnId );   
         } else /* if (payment.pmtProcessor == Processor.AUTHNET) */ {                       
-            OnlinePaymentAuthnet authnet = Test.IsRunningTest() ? new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );                
+            OnlinePaymentAuthnet authnet = f.makeOPAuthnet(auth, 'txnInfo');
             result = authnet.getTransactionDetails( txnId );                        
         }
         return result;
@@ -91,11 +82,12 @@ global virtual class OnlinePayment {
     // get results from the transaction
     global virtual OnlineTxnResult voidPayment( PaymentData payment ) {
         OnlineTxnResult result;
+		ClassFactory f = new ClassFactory();
         if (payment.pmtProcessor == Processor.PAYPAL) {
-            OnlinePaymentPaypal ppal = Test.IsRunningTest() ? new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );              
+            OnlinePaymentPaypal ppal = f.makeOPPaypal(auth, 'void'); 
             result = ppal.doVoid( payment.txnId );   
         } else /* if (payment.pmtProcessor == Processor.AUTHNET) */ {                       
-            OnlinePaymentAuthnet authnet = Test.IsRunningTest() ? new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );                
+            OnlinePaymentAuthnet authnet = f.makeOPAuthnet(auth, 'void');
             result = authnet.VoidTransaction( payment.txnId, true );                        
         }
         return result;
@@ -103,12 +95,13 @@ global virtual class OnlinePayment {
 
     global virtual OnlineTxnResult refundPayment( PaymentData payment ) {
         OnlineTxnResult result;
+		ClassFactory f = new ClassFactory();
         if (payment.pmtProcessor == Processor.PAYPAL) {
-            OnlinePaymentPaypal ppal = Test.IsRunningTest() ? new OnlinePaymentPaypalTest( auth ) : new OnlinePaymentPaypal( auth );              
+            OnlinePaymentPaypal ppal = f.makeOPPaypal(auth, 'refund'); 
             result = ppal.RefundTransaction( payment );   
         } else /* if (payment.pmtProcessor == Processor.AUTHNET) */ {                       
-            OnlinePaymentAuthnet authnet = Test.IsRunningTest() ? new OnlinePaymentAuthnetTest( auth ) : new OnlinePaymentAuthnet( auth );                
-            result = authnet.RefundTransaction( payment );                        
+            OnlinePaymentAuthnet authnet = f.makeOPAuthnet(auth, 'refund');
+            result = authnet.RefundTransaction( payment, false, false );                        
         }
         return result;
     }
