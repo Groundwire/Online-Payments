@@ -6,7 +6,6 @@
 ********************************************************************************************************/
 
 global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment { 
- 
 	/*
 	TODO: 
 	In testing, should check encoding - e.g. accented chars
@@ -77,7 +76,8 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 				//encoder.addElement('track2',);
 				encoder.addElement('cardNumber',  card.acctNumber);
 				if (card.expMonth != null && card.expYear != null)
-					encoder.addElement('expirationDate', card.expMonth + ((card.expYear.length()==2) ? '20' : '') + card.expYear);
+					encoder.addElement('expirationDate', ((card.expMonth.length()==1) ? '0' : '') + card.expMonth + 
+						((card.expYear.length()==2) ? '20' : '') + card.expYear);
 				encoder.addElement('cardCode', card.cvvCode);
 				encoder.closeGroup();
 			}
@@ -254,7 +254,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			// put authnet data into payment object
 			payment.txnId = transId;	
 			
-			// set payment status to correct state
+			// set payment status to correct state 
 			if (result.success) {
 				payment.pmtStatus = (payment.action == OnlinePayment.PaymentAction.AUTHORIZE) ? 
 					OnlinePayment.PaymentStatus.AUTHORIZED : OnlinePayment.PaymentStatus.COMPLETED;
@@ -263,13 +263,14 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			}		
 			
 			if (result.success && fLogAndCreateOpps) {
+		        payment.setCardData(card.acctNumber, card.expMonth, card.expYear);	
+				
 				// process the log to create opportunities.
-		        // use the generic payment processing class
 		    	ClassFactory f = new ClassFactory();
 		    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
 		        opmt.payer = payer;
 		        opmt.payment = payment;
-				
+		        
 		        opmt.processSinglePayment();
 				oppId = opmt.opportunityId;
 		        result.dbSuccess = true;                    
@@ -358,14 +359,13 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		return result;
 	}
 
-	global virtual OnlineTxnResult RefundTransaction( PaymentData payment, boolean testRequest, boolean emailCustomer ) {
+	global virtual OnlineTxnResult RefundTransaction( PaymentData payment, CreditCardData card, boolean testRequest, boolean emailCustomer ) {
 		OnlineTxnResult result = new OnlineTxnResult(false, null);
 		XMLEncoder encoder;
 		string refundTxnId;
 		id oppId;
 
 		try {
-
 			// build the URL
 			encoder = getEncoder('createTransactionRequest');
 	
@@ -375,10 +375,12 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 
 			if (payment.totalAmount != null)
 				encoder.addElement('amount', payment.totalAmount);		// amount is optional - use for partial refund
-	
 			encoder.openGroup('payment');
 			encoder.openGroup('creditCard');
-			encoder.addElement('cardNumber', payment.last4digits);		// last 4 digits of credit card are required
+			encoder.addElement('cardNumber', card.acctNumber);			// last 4 digits of credit card are required
+			if (card.expMonth != null && card.expYear != null)			// expiration date is required
+				encoder.addElement('expirationDate', ((card.expMonth.length()==1) ? '0' : '') + card.expMonth + 
+					((card.expYear.length()==2) ? '20' : '') + card.expYear);
 			encoder.closeGroup();
 			encoder.closeGroup();
 			encoder.addElement('refTransId', payment.txnId);			// transaction id of payment to be refunded
@@ -392,7 +394,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			encoder.addElement('settingName', 'emailCustomer');
 			encoder.addElement('settingValue', (emailCustomer) ? 'true' : 'false');
 			encoder.closeGroup();
-			encoder.closeGroup();
+			encoder.closeGroup(); 
 			
 			// make the call
 			result = callAuthnet( encoder.xml );
@@ -459,7 +461,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 				payment.action = saveAction;
 					
 				if (!authRequest.success) {
-					// log the failure.
+					// log the result
 					Payment_Notification__c ipn = logNotification(payer, payment, 'Apex Payment Callout', payment.action, null, 
 						authRequest.responseText, isTest, false, authRequest.errorMessage, false);	
 		            ipn.errorLineNumber__c = authRequest.errorLineNumber;
@@ -519,7 +521,8 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 				//encoder.addElement('track2',);
 				encoder.addElement('cardNumber',  card.acctNumber);
 				if (card.expMonth != null && card.expYear != null)
-					encoder.addElement('expirationDate', card.expMonth + ((card.expYear.length()==2) ? '20' : '') + card.expYear);
+					encoder.addElement('expirationDate', ((card.expMonth.length()==1) ? '0' : '') + card.expMonth + 
+						((card.expYear.length()==2) ? '20' : '') + card.expYear);
 				encoder.addElement('cardCode', card.cvvCode);
 				encoder.closeGroup();
 			}
@@ -605,13 +608,13 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			}	
 			
 			if (result.success) {
-		        // use the generic payment processing class
+		        payment.setCardData(card.acctNumber, card.expMonth, card.expYear);	
+		        	
+		        // use the generic payment processing class to log the transaction in Salesforce
 		    	ClassFactory f = new ClassFactory();
 		    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
-			    	                                              
 		        opmt.payer = payer;
 		        opmt.payment = payment;
-	
 		        opmt.startRecurringPayments();
 	            oppId = opmt.opportunityId;   
 	            result.dbSuccess = true;                 

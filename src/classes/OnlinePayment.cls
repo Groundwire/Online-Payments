@@ -4,12 +4,12 @@
 * @description Base class containing data structures and utilities for online payment processing.
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
 ********************************************************************************************************/
-
-global virtual class OnlinePayment {  
  
+global virtual class OnlinePayment {  
+
     // store the auth once for all calls
     public APIAuthorization auth;       
-    protected string endpoint;
+    protected string endpoint;  
     
     // need a custom exception class so we can throw an error back
     global class OnlinePaymentException extends Exception {}
@@ -64,7 +64,7 @@ global virtual class OnlinePayment {
         }
         return recurringResult;
     }
-    
+   
     // get results from the transaction
     global virtual OnlineTxnResult getTransactionDetails( PaymentData payment, string txnId ) {
         OnlineTxnResult result;
@@ -93,7 +93,7 @@ global virtual class OnlinePayment {
         return result;
     }       
 
-    global virtual OnlineTxnResult refundPayment( PaymentData payment ) {
+    global virtual OnlineTxnResult refundPayment( PaymentData payment, CreditCardData card ) {
         OnlineTxnResult result;
 		ClassFactory f = new ClassFactory();
         if (payment.pmtProcessor == Processor.PAYPAL) {
@@ -101,7 +101,7 @@ global virtual class OnlinePayment {
             result = ppal.RefundTransaction( payment );   
         } else /* if (payment.pmtProcessor == Processor.AUTHNET) */ {                       
             OnlinePaymentAuthnet authnet = f.makeOPAuthnet(auth, 'refund');
-            result = authnet.RefundTransaction( payment, false, false );                        
+            result = authnet.RefundTransaction( payment, card, false, false );                        
         }
         return result;
     }
@@ -247,6 +247,7 @@ global virtual class OnlinePayment {
         global string txnId { get; set; }
         global string parentTxnId { get; set; }   // for refund or reversal
         global string last4digits { get; set; }
+        global date cardExpiration { get; set; }  // last day of valid month
         global string currencyCode { get; set; }
         global decimal exchangeRate { get; set; }
         global decimal totalAmount { get; set; }
@@ -297,6 +298,16 @@ global virtual class OnlinePayment {
             startDate = start;
             pmtPeriod = period;
             frequency = freq;
+        } 
+        
+        // utility method to register card data you collect 
+        public virtual void setCardData(string cardNumber, string expMonth, string expYear) {
+       		try {
+		       	string cnum = cardNumber.trim();
+		        last4digits = ((cnum.length() < 5) ? cnum : (cnum.substring(cnum.length() - 4)));  
+		        cardExpiration = 
+		    		Date.newInstance(integer.valueOf(expYear), integer.valueOf(expMonth), 1).addMonths(1).addDays(-1);
+		    } catch (exception e) { }
         }
     } 
 

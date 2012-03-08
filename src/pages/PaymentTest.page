@@ -58,6 +58,19 @@
 
 		j$().ready(function() {
 			j$("#overlay").hide();
+            
+           	var ch = j$(".actionRadio").find("input:checked").val();
+            if( ch == 'paylater' || ch == 'paynow' || ch == 'auth' ) {
+                j$("#idSection").hide();
+                j$(".otherSections").show();
+                if( ch == 'paylater' )
+                	j$("#recurrenceSection").show();
+                else
+                	j$("#recurrenceSection").hide();
+            } else {
+                j$("#idSection").show();
+                j$(".otherSections").hide();
+            }
 		
 			validator = j$("form.validate").validate( {
 				errorClass: "invalid"
@@ -144,15 +157,37 @@
 	            </apex:pageBlockSectionItem>
             	<apex:pageBlockSectionItem >
 	            	<apex:outputLabel value="<<<" styleclass="helptext" />
-	                <apex:outputText value="Id of previous transaction is required for voids, refunds, or retrieving info." styleclass="helptext" />
+	                <apex:outputText value="Id of previous transaction is required for voids, refunds, or retrieving transaction information." styleclass="helptext" />
 	            </apex:pageBlockSectionItem>
             	<apex:pageBlockSectionItem >
-	            	<apex:outputLabel value="Amount" for="amt" />
-	                <apex:inputText value="{!amountText}" id="amt" styleclass="number" />
+	            	<apex:outputLabel value="Last 4 Digits of Credit Card" for="amt" />
+	                <apex:inputText value="{!card2.acctNumber}" id="acct" styleclass="number" />
 	            </apex:pageBlockSectionItem>
             	<apex:pageBlockSectionItem >
 	            	<apex:outputLabel value="<<<" styleclass="helptext" />
-	                <apex:outputText value="Amount is optional (use for partial refunds)." styleclass="helptext" />
+	                <apex:outputText value="For Authnet refunds, the last 4 digits of the credit card, expiration date, and amount are required. They are not required for Paypal, and are not required to void an unsettled transaction." styleclass="helptext" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Expiration Month" for="xmo" />
+	                <apex:selectList value="{!card2.expMonth}" id="xmo" size="1" >
+			          <apex:selectOptions value="{!expMonths}" />
+			         </apex:selectList>
+	            </apex:pageBlockSectionItem> 
+	            <apex:outputPanel />
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Expiration Year" for="xyr" />
+	                <apex:selectList value="{!card2.expYear}" id="xyr" size="1" >
+			          <apex:selectOptions value="{!expYears}" />
+			         </apex:selectList>
+	            </apex:pageBlockSectionItem>
+	            <apex:outputPanel />
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Refund Amount" for="amt" />
+	                <apex:inputText value="{!amountText2}" id="amt" styleclass="number" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="<<<" styleclass="helptext" />
+	                <apex:outputText value="For Authnet refunds, amount is required, and can be up to the full amount of the original payment. For Paypal, provide an amount only for a partial refund (leave blank for full refund)." styleclass="helptext" />
 	            </apex:pageBlockSectionItem>
     	  </apex:pageBlockSection>
     	  </div>

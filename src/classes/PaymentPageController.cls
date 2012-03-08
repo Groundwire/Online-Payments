@@ -21,7 +21,10 @@ global with sharing virtual class PaymentPageController {
     global string itemName { get; set; }
     global string pmtPeriod { get; set; }
     global string amountText { get; set; }
+
     global string txnId { get; set; }
+    global string amountText2 { get; set; }
+    global OnlinePayment.CreditCardData card2 { get; set; } 
     
     // results
     global OnlinePayment.OnlineTxnResult result { get; set; }
@@ -43,7 +46,7 @@ global with sharing virtual class PaymentPageController {
             if (pac.default_connection__c == true)
                 selectedConfig = pac.name;
         }
-        
+       
         whatToDo = 'paynow';
         expMonths = new list<selectOption>();
         for (integer i = 1; i <= 12; i++)
@@ -54,6 +57,7 @@ global with sharing virtual class PaymentPageController {
 
         payer = new OnlinePayment.OnlinePayer();
         card = new OnlinePayment.CreditCardData('Visa', null, null, null, null);
+        card2 = new OnlinePayment.CreditCardData('Visa', null, null, null, null);
         payment = new OnlinePayment.PaymentData( null, null, null, 1 );                        
     } 
     
@@ -108,6 +112,13 @@ global with sharing virtual class PaymentPageController {
         	if (txnId == null) {
         		invalid = 'Please provide a transaction ID.';	
         	}
+        	if (amountText2 != null && amountText2.trim() != '') {
+		        try {
+		            payment.totalAmount = decimal.valueOf(amountText2.replaceAll('$', '').replaceAll(',', ''));
+		        } catch(exception ex) {
+		            invalid = 'Amount must be numeric.';
+		        }
+        	}
         }
         if (selectedConfig == null) {
             invalid = 'Please select a payment processor configuration.';
@@ -161,7 +172,7 @@ global with sharing virtual class PaymentPageController {
                 success = result.success;
             } else {
             	payment.txnId = txnId;
-                result = op.refundPayment( payment );
+                result = op.refundPayment( payment, card2 );
                 msgs = result.messages;
                 errorMsg = result.errorMessage;
                 success = result.success;

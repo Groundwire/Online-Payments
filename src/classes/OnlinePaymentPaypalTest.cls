@@ -27,15 +27,15 @@ global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {
 	}
 	
 	public virtual override string getResponseBody(HttpResponse response) {
-		return 
+		return
 			(testName == 'payment') ? 'TIMESTAMP=2011%2d12%2d01T06%3a35%3a40Z&CORRELATIONID=ca81b861b0ea7&ACK=Success&VERSION=52%2e0&BUILD=2278658&AMT=4%2e00&CURRENCYCODE=USD&AVSCODE=X&CVV2MATCH=M&TRANSACTIONID=0CN71292R76361617' : 
 			(testName == 'paymentSuccessWithMsgs') ? 'TIMESTAMP=2011%2d12%2d01T06%3a43%3a06Z&CORRELATIONID=8ec74676e347e&ACK=SuccessWithWarning&VERSION=52%2e0&BUILD=2278658&L_ERRORCODE0=10571&L_SHORTMESSAGE0=Transaction%20approved%20but%20with%20invalid%20CSC%20format%2e&L_LONGMESSAGE0=This%20transaction%20was%20approved%2e%20However%2c%20the%20Card%20Security%20Code%20provided%20had%20too%20few%2c%20too%20many%2c%20or%20invalid%20character%20types%20but%2c%20as%20per%20your%20account%20option%20settings%2c%20was%20not%20required%20in%20the%20approval%20process%2e&L_SEVERITYCODE0=Warning&L_ERRORPARAMID0=ProcessorResponse&L_ERRORPARAMVALUE0=0000&AMT=4%2e00&CURRENCYCODE=USD&AVSCODE=X&CVV2MATCH=M&TRANSACTIONID=0SE796323M271542R' :
 			(testName == 'paymentError') ? 'TIMESTAMP=2011%2d12%2d01T06%3a44%3a57Z&CORRELATIONID=191ff5fcc7a40&ACK=Failure&VERSION=52%2e0&BUILD=2278658&L_ERRORCODE0=10527&L_SHORTMESSAGE0=Invalid%20Data&L_LONGMESSAGE0=This%20transaction%20cannot%20be%20processed%2e%20Please%20enter%20a%20valid%20credit%20card%20number%20and%20type%2e&L_SEVERITYCODE0=Error&AMT=44444444%2e00&CURRENCYCODE=USD' : 
 			(testName == 'profile') ? 'PROFILEID=I%2d090EDNL6MBX7&TIMESTAMP=2011%2d12%2d01T06%3a57%3a42Z&CORRELATIONID=bc6bd1e768230&ACK=Success&VERSION=52%2e0&BUILD=2230381' : 
 			(testName == 'profileError') ? 'TIMESTAMP=2011%2d12%2d01T06%3a59%3a26Z&CORRELATIONID=1607c6526576b&ACK=Failure&VERSION=52%2e0&BUILD=2230381&L_ERRORCODE0=10527&L_ERRORCODE1=10508&L_SHORTMESSAGE0=Invalid%20Data&L_SHORTMESSAGE1=Invalid%20Data&L_LONGMESSAGE0=This%20transaction%20cannot%20be%20processed%2e%20Please%20enter%20a%20valid%20credit%20card%20number%20and%20type%2e&L_LONGMESSAGE1=This%20transaction%20cannot%20be%20processed%2e%20Please%20enter%20a%20valid%20credit%20card%20expiration%20date%2e&L_SEVERITYCODE0=Error&L_SEVERITYCODE1=Error' :
 			(testName == 'txnInfo') ? 'RECEIVERBUSINESS=evan_1321380845_biz%40groundwire%2eorg&RECEIVEREMAIL=evan_1321380845_biz%40groundwire%2eorg&RECEIVERID=YR3Q3TY96D39S&EMAIL=evan%40whidbey%2enet&PAYERID=9GXNDH46DNXGJ&PAYERSTATUS=unverified&COUNTRYCODE=US&ADDRESSOWNER=PayPal&ADDRESSSTATUS=None&SALESTAX=0%2e00&TIMESTAMP=2011%2d12%2d07T02%3a15%3a59Z&CORRELATIONID=a87e39587c21a&ACK=Success&VERSION=52%2e0&BUILD=2230381&FIRSTNAME=Evan&LASTNAME=Callahan&TRANSACTIONID=7SP70939JG4709620&RECEIPTID=4308%2d6629%2d8129%2d9983&TRANSACTIONTYPE=webaccept&PAYMENTTYPE=instant&ORDERTIME=2011%2d12%2d07T02%3a15%3a45Z&AMT=3%2e00&FEEAMT=0%2e39&TAXAMT=0%2e00&CURRENCYCODE=USD&PAYMENTSTATUS=Completed&PENDINGREASON=None&REASONCODE=None&L_QTY0=1&L_TAXAMT0=0%2e00&L_CURRENCYCODE0=USD' :
-			(testName == 'void') ? 'TIMESTAMP=2011%2d12%2d01T06%3a35%3a40Z&CORRELATIONID=ca81b861b0ea7&ACK=Success&VERSION=52%2e0&BUILD=2278658&AMT=4%2e00&CURRENCYCODE=USD&TRANSACTIONID=0CN71292R76361617' : 
-			(testName == 'refund') ? 'TIMESTAMP=2011%2d12%2d01T06%3a35%3a40Z&CORRELATIONID=ca81b861b0ea7&ACK=Success&VERSION=52%2e0&BUILD=2278658&AMT=4%2e00&CURRENCYCODE=USD&TRANSACTIONID=0CN71292R76361617' : 
+			(testName == 'void') ? 'TIMESTAMP=2011%2d12%2d01T06%3a35%3a40Z&CORRELATIONID=ca81b861b0ea7&ACK=Success&VERSION=52%2e0&BUILD=2278658&AMT=4%2e00&CURRENCYCODE=USD&AUTHORIZATIONID=0CN71292R76361617' : 
+			(testName == 'refund') ? 'TIMESTAMP=2011%2d12%2d01T06%3a35%3a40Z&CORRELATIONID=ca81b861b0ea7&ACK=Success&VERSION=52%2e0&BUILD=2278658&TOTALREFUNDEDAMT=4%2e00&CURRENCYCODE=USD&REFUNDTRANSACTIONID=0CN71292R76361617' : 
 			'bogusResponse';
 	}	
 	
@@ -203,28 +203,28 @@ global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {
         OnlinePaymentPaypalTest.createConfig();
         OnlinePaymentPaypalTest opt = new OnlinePaymentPaypalTest( null );
         
-        OnlineTxnResult result = opt.DoVoid('my txnid');
+        OnlineTxnResult result = opt.DoVoid('0CN71292R76361617');
         system.assertEquals( true, result.success );
 
         list<Payment_Notification__c> listPn = [select Id, Payer_Email__c, Transaction_Id__c, Recurring_Transaction_Id__c, IsProcessed__c, IsTest__c, Payment_Status__c 
-            from Payment_Notification__c where Transaction_Id__c =: 'my txnid'];
+            from Payment_Notification__c where Transaction_Id__c = '0CN71292R76361617'];
         system.debug(listPn);
         system.assertEquals(1, listPn.size());
         system.assertEquals(true, listPn[0].IsProcessed__c); 
     }
     
-    static testmethod void testRefundTransaction() {
+    static testmethod void testRefundTransaction() {  
         OnlinePaymentPaypalTest.testName = 'refund';
         OnlinePaymentPaypalTest.createConfig();
         OnlinePaymentPaypalTest opt = new OnlinePaymentPaypalTest( null );
         PaymentData payment = new PaymentData(null);
-        payment.txnId = 'my txnId';
+        payment.txnId = 'old TxnId';
         
         OnlineTxnResult result = opt.RefundTransaction(payment);
         system.assertEquals( true, result.success );
 
         list<Payment_Notification__c> listPn = [select Id, Payer_Email__c, Transaction_Id__c, Recurring_Transaction_Id__c, IsProcessed__c, IsTest__c, Payment_Status__c 
-            from Payment_Notification__c where Transaction_Id__c =: 'my txnid'];
+            from Payment_Notification__c where Transaction_Id__c =: '0CN71292R76361617'];
         system.debug(listPn);
         system.assertEquals(1, listPn.size());
         system.assertEquals(true, listPn[0].IsProcessed__c); 

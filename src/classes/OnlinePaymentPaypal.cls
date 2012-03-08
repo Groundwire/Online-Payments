@@ -11,9 +11,9 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 	TODO: 
 	In testing, should check encoding - e.g. accented chars
  
-	FUTURE: 
+	FUTURE:  
 	  - Support paying with a Paypal account (via Express Checkout)
-	  - Support Fraud Management Filters 
+	  - Support Fraud Management Filters
 	  - More methods from API (e.g. update and cancel calls)
 	*/
 
@@ -225,11 +225,12 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 			}		
 				
 			if (result.success) {
+		        payment.setCardData(card.acctNumber, card.expMonth, card.expYear);	
+
 				// process the log to create opportunities.
 		        // use the generic payment processing class
 		    	ClassFactory f = new ClassFactory();
 		    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
-			    	                                              
 		        opmt.payer = payer;
 		        opmt.payment = payment;
 				
@@ -398,11 +399,12 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 			}		
 			
 			if (result.success) {
+		        payment.setCardData(card.acctNumber, card.expMonth, card.expYear);	
+
 				// process the log to create opportunities.
 		        // use the generic payment processing class
 		    	ClassFactory f = new ClassFactory();
-		    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();
-			    	                                      
+		    	PaymentToSalesforce opmt = f.makePaymentToSalesforce();			    	                                      
 		        opmt.payer = payer;
 		        opmt.payment = payment;
 				
@@ -452,6 +454,7 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 				// it is a paradox, but with void, success means you FAILED
 				payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
 				payment.action = PaymentAction.VOIDTXN;
+				payment.txnId = result.params.get('AUTHORIZATIONID');	
 
 			    ClassFactory f = new ClassFactory();			
 			    PaymentToSalesforce opmt = f.makePaymentToSalesforce();                                                 
@@ -512,7 +515,7 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 			if (result.success) {
 				payment.pmtStatus = PaymentStatus.REVERSED;
 				payment.action = PaymentAction.REFUND; 
-				payment.parentTxnId = payment.txnId;
+				payment.parentTxnId = payment.txnId; 
 				payment.txnId = result.params.get('REFUNDTRANSACTIONID');
 
 				// send result to salesforce

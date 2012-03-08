@@ -6,7 +6,7 @@
 ********************************************************************************************************/
 
 public with sharing class ClassFactory { 
-
+ 
     public PaymentToSalesforce makePaymentToSalesforce() {
 		//system.debug('makePaymentToSalesforce DJH');
         string strClass;
@@ -30,7 +30,7 @@ public with sharing class ClassFactory {
     	Type paramType = Type.forName(strNamespace, strClass); 
 		PaymentToSalesforce pts = (PaymentToSalesforce)parser.readValueAs(paramType);
 		// constructor and static members will not have been initialized.  force it.
-		pts.initialize();
+		pts.initialize(); 
 		return pts;
     }
     
@@ -48,7 +48,7 @@ public with sharing class ClassFactory {
             OnlinePaymentAuthnetTest.testName = testName;         
             return new OnlinePaymentAuthnetTest( auth );              
         } else {
-            return new OnlinePaymentAuthnet( auth );                      	
+            return new OnlinePaymentAuthnet( auth );
         }   
     }
 
