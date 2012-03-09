@@ -25,6 +25,9 @@ global with sharing virtual class PaymentPageController {
     global string txnId { get; set; }
     global string amountText2 { get; set; }
     global OnlinePayment.CreditCardData card2 { get; set; } 
+
+	// for use on a custom page, such as a refund page
+    global string transactionName { get; set; }
     
     // results
     global OnlinePayment.OnlineTxnResult result { get; set; }
@@ -46,8 +49,8 @@ global with sharing virtual class PaymentPageController {
             if (pac.default_connection__c == true)
                 selectedConfig = pac.name;
         }
-       
-        whatToDo = 'paynow';
+
+		// set up expiration picklists
         expMonths = new list<selectOption>();
         for (integer i = 1; i <= 12; i++)
             expMonths.add(new selectOption( string.valueOf(i), string.valueOf(i) ));
@@ -55,19 +58,40 @@ global with sharing virtual class PaymentPageController {
         for (integer i = 0; i < 8; i++)
             expYears.add(new selectOption( string.valueOf(system.today().year() + i), string.valueOf(system.today().year() + i) ) );
 
+		// initialize objects
         payer = new OnlinePayment.OnlinePayer();
         card = new OnlinePayment.CreditCardData('Visa', null, null, null, null);
         card2 = new OnlinePayment.CreditCardData('Visa', null, null, null, null);
-        payment = new OnlinePayment.PaymentData( null, null, null, 1 );                        
+        payment = new OnlinePayment.PaymentData( null, null, null, 1 );
+
+		// look for page parameters passed in querystring
+		if (ApexPages.currentPage() != null) {
+			map<string,string> params = ApexPages.currentPage().getParameters();
+			
+			// UNDONE: make sure nulls don't goof us up
+			whatToDo = params.get('action');  
+			txnId = params.get('txnid');
+			transactionName = params.get('title');
+			amountText = params.get('amount');
+			amountText2 = params.get('amount');
+			card.acctNumber = params.get('cc');
+			card.expMonth = params.get('month');
+			card.expYear = params.get('year');
+			card2.acctNumber = params.get('cc');
+			card2.expMonth = params.get('month');
+			card2.expYear = params.get('year');
+		}                        			
+		if (whatToDo == null) whatToDo = 'paynow';
+		
+		// UNDONE: need to consider that paypal might not want an amount for full refunds
     } 
     
     // boolean property that sets whatToDo to paylater (can be used to drive a checkbox)
     global boolean payLater { get;
         set {
-            if (value) { whatToDo = 'paylater'; }
+            whatToDo = (value) ? 'paylater' : 'paynow';
         }
     }
-    
     
     protected OnlinePayment.APIAuthorization getAuth( string configName ) {
         OnlinePayment.APIAuthorization auth;
@@ -267,5 +291,7 @@ global with sharing virtual class PaymentPageController {
         system.assert(ppc.success == true);
         system.assert(ppc.recurringResult != null);
     }
-    
+ 
+// UNDONE: need a test for setting params - and leaving some blank - esp the refund case
+			   
 }
