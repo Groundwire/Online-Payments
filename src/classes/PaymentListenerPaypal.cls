@@ -40,46 +40,50 @@ global virtual class PaymentListenerPaypal {
 		opSettings = OnlinePaymentSettings__c.getInstance();
 		if (opSettings == null) opSettings = defaultSettings();
 
-		// grab all the stuff paypal sent us
- 		params = ApexPages.currentPage().getParameters();
+		// the page can be called as a page by paypal IPN, or by the scheduled "Async" class
+		if (ApexPages.currentPage() != null) {
 
-		// make sure this really is a post from Paypal
-		if (params.containsKey('txn_type')) {
-
-			// read all post params from PayPal system and add 'cmd' parameter
-			String str = '?cmd=_notify-validate';
-			for ( string paramName : params.keySet() ) {
-				str += '&' + paramName + '=' + EncodingUtil.urlEncode(params.get(paramName), 'UTF-8');			
+			// grab all the stuff paypal sent us
+	 		params = ApexPages.currentPage().getParameters();
+	
+			// make sure this really is a post from Paypal
+			if (params.containsKey('txn_type')) {
+	
+				// read all post params from PayPal system and add 'cmd' parameter
+				String str = '?cmd=_notify-validate';
+				for ( string paramName : params.keySet() ) {
+					str += '&' + paramName + '=' + EncodingUtil.urlEncode(params.get(paramName), 'UTF-8');			
+				}
+				
+				// choose the right endpoint to post to
+				string endpt = (params.get('test_ipn')=='1') ? 
+					'https://www.sandbox.paypal.com/cgi-bin/webscr' : 
+					'https://www.paypal.com/cgi-bin/webscr'; 
+				
+				// post back to PayPal system to validate
+				system.debug(logginglevel.INFO, 'Verifying IPN with Paypal...');
+				HttpRequest req = new HttpRequest(); 
+				req.setEndpoint(endpt + str);
+				req.setMethod('POST');
+				req.setHeader('Content-Type','application/x-www-form-urlencoded');
+				Http http = new Http(); 
+				HttpResponse resp = execute(req);
+				ipnVerified = ( getResponseBody(resp) == 'VERIFIED' );
+				
+				//system.debug(logginglevel.INFO, 
+				//	((ipnVerified) ? '' : ('Request: ' + req.getEndpoint() + '\n')) + 
+				//	'Response: ' + resp.toString());
+				
+				// look for allowed paypal email names
+				if (opSettings.Paypal_Receiver_Email__c != null && opSettings.Paypal_Receiver_Email__c != '') {
+					receiverSet = new set<string>(opSettings.Paypal_Receiver_Email__c.split(';'));
+				}		
+			} else {
+				system.debug(logginglevel.INFO, 'Page request did not include txn_type parameter.');
+				apexpages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, 
+					'This page receives and responds to payment notification posts from Paypal. ' +
+					'To use it, set your Paypal IPN address to the global URL of this page.'));
 			}
-			
-			// choose the right endpoint to post to
-			string endpt = (params.get('test_ipn')=='1') ? 
-				'https://www.sandbox.paypal.com/cgi-bin/webscr' : 
-				'https://www.paypal.com/cgi-bin/webscr'; 
-			
-			// post back to PayPal system to validate
-			system.debug(logginglevel.INFO, 'Verifying IPN with Paypal...');
-			HttpRequest req = new HttpRequest(); 
-			req.setEndpoint(endpt + str);
-			req.setMethod('POST');
-			req.setHeader('Content-Type','application/x-www-form-urlencoded');
-			Http http = new Http(); 
-			HttpResponse resp = execute(req);
-			ipnVerified = ( getResponseBody(resp) == 'VERIFIED' );
-			
-			//system.debug(logginglevel.INFO, 
-			//	((ipnVerified) ? '' : ('Request: ' + req.getEndpoint() + '\n')) + 
-			//	'Response: ' + resp.toString());
-			
-			// look for allowed paypal email names
-			if (opSettings.Paypal_Receiver_Email__c != null && opSettings.Paypal_Receiver_Email__c != '') {
-				receiverSet = new set<string>(opSettings.Paypal_Receiver_Email__c.split(';'));
-			}		
-		} else {
-			system.debug(logginglevel.INFO, 'Page request did not include txn_type parameter.');
-			apexpages.addMessage(new ApexPages.Message(ApexPages.Severity.ERROR, 
-				'This page receives and responds to payment notification posts from Paypal. ' +
-				'To use it, set your Paypal IPN address to the global URL of this page.'));
 		}
 	}
 
