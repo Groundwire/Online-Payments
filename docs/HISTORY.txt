@@ -1,6 +1,12 @@
 Changelog
 =========
 
+1.10 - released
+------------------
+
+* Incorporates basic API support for refunds.  Still need a refund VF page.
+	[evan]
+
 1.5 - released
 ------------------
 
