@@ -1,0 +1,144 @@
+<!--
+--  Visualforce page for refunds and voids - you can call this page and pass in a transaction id
+--  and other parameters in order to prefill the options.
+--
+--  Sample URL:
+--    /apex/PaymentRefund?action=refund&title=MyPaymentName&txnid=1234&amount=123&cc=4321&month=2&year=2014
+-->
+<apex:page controller="PaymentPageController" title="Refund Payment" showHeader="true" sidebar="true" id="pg" >
+	<apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery.js')}" />
+	<apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery.validate.js')}" />
+
+	<style type="text/css">
+	 	table.spaceRight label { margin-right:10px; }
+		.narrow { width:60px; }
+		.wide { width:240px; }
+		.helptext { font-size: 95%; }
+		.wrapper { 
+			width: 600px;
+			white-space: pre-wrap;
+			white-space: -moz-pre-wrap;
+			word-wrap: break-word;
+		}
+		input.invalid { border: 2px solid red; }
+		label.invalid { border: 0px; float: none; color: red; padding-left: .5em; vertical-align: middle; font-style:italic; white-space: nowrap; }
+		#overlay {
+		   position: fixed;
+		    top: 150px;
+		    left: 300px;
+		    right: 250px;
+		    bottom: 150px;
+		    background-color: #ddd;
+		    opacity: .8;
+		    filter: alpha(opacity=80);
+		    z-index:0;
+		    border: 3px solid #666;
+		    -moz-border-radius: 25px;
+			border-radius: 25px;
+		}
+		.pleaseWait {
+			margin-top:200px;
+			vertical-align:middle;
+			font-size: 1.8em;
+			line-height: 2.5em;
+		}
+	 </style>
+
+	<script type="text/javascript">
+		var j$ = jQuery.noConflict(); 
+	
+		var validator;
+		
+		j$().ready(function() {
+			j$("#overlay").hide();
+            
+           	var ch = j$(".actionRadio").find("input:checked").val();
+            if( ch == 'refund' )
+	            j$("#amtSection").show();
+	        else
+	            j$("#amtSection").hide();
+		
+			validator = j$("form.validate").validate( {
+				errorClass: "invalid"
+			} );
+
+            j$(".actionRadio").change(function() {
+	           	var ch = j$(".actionRadio").find("input:checked").val();
+	            if( ch == 'refund' )
+		            j$("#amtSection").show();
+		        else
+		            j$("#amtSection").hide();
+            });
+ 
+			j$("form.validate").submit( function(){
+				if (validator.form()) {
+					j$("#overlay").show();
+					return true;
+				} else {
+					return false;
+				}
+			});
+		});
+		
+	</script>
+
+  <apex:form styleclass="validate" >
+  <apex:sectionheader title="Online Payments from Groundwire" subtitle="Refund Payment" />
+        <apex:pageBlock >
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Submit" action="{!submitToPaymentProcessor}" styleclass="submitbtn" />
+            </apex:pageBlockButtons>
+            
+  		<apex:pageMessages id="errMsgs" />
+
+		<div id="overlay" style="display:none;" >
+			<div align="center" class="pleaseWait">Please wait while your payment is processed...<br/>
+			<img id="processing" src="{!URLFOR($Resource.OnlinePaymentResources, 'spinner.gif')}" />
+			</div>
+		</div>
+
+	     <apex:pageBlockSection columns="1" collapsible="false" >
+	     	<apex:pageBlockSectionItem rendered="{!NOT(ISNULL(transactionName))}">
+	      	<apex:outputLabel value="Payment to Refund" />
+	          <apex:outputText value="{!transactionName}" />
+	      </apex:pageBlockSectionItem>
+	   	<apex:pageBlockSectionItem >
+	      	<apex:outputLabel value="Operation" />
+	          <apex:selectRadio value="{!whatToDo}" layout="pageDirection" styleclass="spaceRight actionRadio" >
+	          <apex:selectOption itemvalue="void" itemlabel="Void (for unsettled transactions only)" />
+	          <apex:selectOption itemvalue="refund" itemlabel="Refund" />
+	         </apex:selectRadio>	         
+	      </apex:pageBlockSectionItem>	      
+   	    	<apex:pageBlockSectionItem rendered="{!ISNULL(txnId)}" >
+            	<apex:outputLabel value="Transaction Id" for="tid" />
+                <apex:inputText value="{!txnId}" id="tid" styleclass="required" />
+            </apex:pageBlockSectionItem>
+	     </apex:pageBlockSection>
+	     
+	      <div id="amtSection" style="display:none;" >
+	     <apex:pageBlockSection columns="1" collapsible="false" >
+            	<apex:pageBlockSectionItem rendered="{!NOT(defaultIsPaypal)}" >
+	            	<apex:outputLabel value="Last 4 Digits of Credit Card" for="amt" />
+	                <apex:inputText value="{!card2.acctNumber}" id="acct" styleclass="number" />
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem rendered="{!NOT(defaultIsPaypal)}" >
+	            	<apex:outputLabel value="Expiration Month" for="xmo" />
+	                <apex:selectList value="{!card2.expMonth}" id="xmo" size="1" >
+			          <apex:selectOptions value="{!expMonths}" />
+			         </apex:selectList>
+	            </apex:pageBlockSectionItem> 
+            	<apex:pageBlockSectionItem rendered="{!NOT(defaultIsPaypal)}" >
+	            	<apex:outputLabel value="Expiration Year" for="xyr" />
+	                <apex:selectList value="{!card2.expYear}" id="xyr" size="1" >
+			          <apex:selectOptions value="{!expYears}" />
+			         </apex:selectList>
+	            </apex:pageBlockSectionItem>
+            	<apex:pageBlockSectionItem >
+	            	<apex:outputLabel value="Refund Amount" for="amt" />
+	                <apex:inputText value="{!amountText2}" id="amt" styleclass="number" />
+	            </apex:pageBlockSectionItem>
+    	  </apex:pageBlockSection>
+    	  </div>
+       </apex:pageBlock>
+</apex:form>
+</apex:page>

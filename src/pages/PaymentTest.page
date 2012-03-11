@@ -1,3 +1,6 @@
+<!--
+--  Visualforce page for testing online payments
+-->
 <apex:page controller="PaymentPageController" title="Online Payments from Groundwire" showHeader="true" sidebar="true" id="pg" >
 	<apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery.js')}" />
 	<apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery.validate.js')}" />
