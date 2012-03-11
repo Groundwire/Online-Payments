@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.11 - released
+------------------
+
+* Includes new visualforce page for refunds. The page allows passing params to prefill options.
+
 1.10 - released
 ------------------
 
