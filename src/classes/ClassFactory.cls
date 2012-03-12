@@ -6,7 +6,7 @@
 ********************************************************************************************************/
 
 public with sharing class ClassFactory { 
- 
+
     public PaymentToSalesforce makePaymentToSalesforce() {
 		//system.debug('makePaymentToSalesforce DJH');
         string strClass;

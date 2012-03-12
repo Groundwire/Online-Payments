@@ -1,9 +1,13 @@
 <!--
---  Visualforce page for refunds and voids - you can call this page and pass in a transaction id
---  and other parameters in order to prefill the options.
---
---  Sample URL:
---    /apex/PaymentRefund?action=refund&title=MyPaymentName&txnid=1234&amount=123&cc=4321&month=2&year=2014
+// Written by Evan Callahan, copyright (c) 2012 Groundwire, 1402 3rd Avenue, Suite 1000, Seattle, WA 98101
+// This program is free software; you can redistribute it and/or modify it under the terms of the 
+// GNU General Public License version 3 as published by the Free Software Foundation. http://www.gnu.org/licenses/gpl.html
+//
+//  Visualforce page for refunds and voids - you can call this page and pass in a transaction id
+//  and other parameters in order to prefill the options.
+//
+//  Sample URL:
+//    /apex/PaymentRefund?action=refund&title=MyPaymentName&txnid=1234&amount=123&cc=4321&month=2&year=2014
 -->
 <apex:page controller="PaymentPageController" title="Refund Payment" showHeader="true" sidebar="true" id="pg" >
 	<apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery.js')}" />

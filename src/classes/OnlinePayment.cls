@@ -4,7 +4,7 @@
 * @description Base class containing data structures and utilities for online payment processing.
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
 ********************************************************************************************************/
- 
+  
 global virtual class OnlinePayment {  
 
     // store the auth once for all calls

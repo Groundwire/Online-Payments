@@ -1,5 +1,9 @@
 <!--
---  Visualforce page for testing online payments
+// Written by Evan Callahan and David Habib, copyright (c) 2012 Groundwire, 1402 3rd Avenue, Suite 1000, Seattle, WA 98101
+// This program is free software; you can redistribute it and/or modify it under the terms of the 
+// GNU General Public License version 3 as published by the Free Software Foundation. http://www.gnu.org/licenses/gpl.html
+//
+// Visualforce page for testing online payments
 -->
 <apex:page controller="PaymentPageController" title="Online Payments from Groundwire" showHeader="true" sidebar="true" id="pg" >
 	<apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery.js')}" />
@@ -53,9 +57,15 @@
 		    j$('[name$=":st"]').val('WA');
 		    j$('[name$=":zip"]').val('98101');
 		    j$('[name$=":email"]').val('test@example.com');
-		    j$('[name$=":acct"]').val('4111111111111111');
-		    j$('[name$=":xmo"]').val('1');
-		    j$('[name$=":xyr"]').val('2016');
+		    if (j$('[name$=":acct"]').val() == '4111111111111111') {
+		    	j$('[name$=":acct"]').val('4481582492971491');
+			    j$('[name$=":xmo"]').val('11');
+			    j$('[name$=":xyr"]').val('2016');
+		    } else {
+		    	j$('[name$=":acct"]').val('4111111111111111');
+			    j$('[name$=":xmo"]').val('1');
+			    j$('[name$=":xyr"]').val('2016');
+		    }
 		    j$('[name$=":cvv"]').val('111');
 		}
 

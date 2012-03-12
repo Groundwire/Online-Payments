@@ -202,14 +202,19 @@ global with sharing virtual class PaymentPageController {
                 msgs = result.messages;
                 errorMsg = result.errorMessage;
                 success = result.success;
-            } else {  // refund
-            	// UNDONE: need test paypal, they might not want an amount for full refunds
-            	//   if not, we need to null the amount if it is the full amount
+            } else if (whatToDo == 'refund') {
             	payment.txnId = txnId;
+            	
+            	// for paypal, full refunds should not include the amount
+            	if (payment.pmtProcessor == OnlinePayment.Processor.PAYPAL && payment.totalAmount == maxAmount)
+            		payment.totalAmount = null;
+            		 
                 result = op.refundPayment( payment, card2 );
                 msgs = result.messages;
                 errorMsg = result.errorMessage;
                 success = result.success;
+            } else {
+            	system.assert(false, 'No payment action was specified.');
             }
             
             // display result

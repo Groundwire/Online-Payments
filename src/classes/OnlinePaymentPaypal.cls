@@ -501,7 +501,7 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 
 			// fill in refund params	
 			encoder.addParam('TRANSACTIONID', payment.txnId);
-			if (payment.totalAmount != null) {
+			if (payment.totalAmount != null) { 
 				encoder.addParam('REFUNDTYPE', 'Partial');
 				encoder.addParam('AMT', payment.totalAmount);
 				encoder.addParam('CURRENCYCODE', payment.currencyCode);
