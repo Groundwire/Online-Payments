@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.12 - released
+------------------
+
+* Fixes to refund feature.
+
 1.11 - released
 ------------------
 
@@ -15,8 +20,8 @@ Changelog
 1.5 - released
 ------------------
 
-* Added a savepoint and rollback. Salesforce will not allow a callout to happen when there are 
-	uncommitted changes to the database, which happens in preauthorization. A rollback following a 
+* Added a savepoint and rollback. Salesforce will not allow a callout to happen when there are
+	uncommitted changes to the database, which happens in preauthorization. A rollback following a
 	successful preauthorization should prevent this error.
 	[greenstork]
 
@@ -40,6 +45,6 @@ Changelog
 1.1 - released
 ------------------
 
-* made getMessages method global to accommodate controller extension. 
+* made getMessages method global to accommodate controller extension.
 * added new metadata into version control for Payment Notification object, custom tabs and two custom settings objects
 * added new changelog file and changes to gitignore, as well as removing package.xml from version control
