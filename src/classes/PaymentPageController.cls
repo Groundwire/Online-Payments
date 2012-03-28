@@ -37,7 +37,7 @@ global with sharing virtual class PaymentPageController {
     global OnlinePayment.PaymentProfileResult recurringResult { get; set; }
     global string errText { get; private set; }
 
-    protected map<string, Payment_API_Config__c> configSettingsMap;
+    private map<string, Payment_API_Config__c> configSettingsMap;
 
     // constructor
     global PaymentPageController() {
