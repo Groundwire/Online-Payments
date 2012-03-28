@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.13 - released
+------------------
+
+* Changed visibility of settings instantiation in PaymentPageController from protected to private to avoid Insufficient Privileges error on extension
+
 1.12 - released
 ------------------
 
