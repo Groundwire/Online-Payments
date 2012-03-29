@@ -5,7 +5,7 @@
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
 ********************************************************************************************************/
 
-global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
+global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment { 
 
 	/*
 	TODO: 
@@ -195,7 +195,7 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 			//}									
 			if (descrip != null)
 				encoder.addParam('DESC', descrip);
-			if (payment.custom != null)
+			if (payment.custom != null && payment.custom.length() <= 127)
 				encoder.addParam('CUSTOM', payment.custom);
 			if (payment.invoice != null)
 				encoder.addParam('INVNUM', payment.invoice);
