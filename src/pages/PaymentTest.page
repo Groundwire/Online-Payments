@@ -49,23 +49,33 @@
 	
 		var validator;
 		
-		var prefill = function () {
+		var prefillAuthNet = function () {
 		    j$('[name$=":fname"]').val('Test');
 		    j$('[name$=":lname"]').val('User');
 		    j$('[name$=":street"]').val('1402 3rd Ave');
 		    j$('[name$=":city"]').val('Seattle');
+		    j$('[name$=":amt"]').val('1');
 		    j$('[name$=":st"]').val('WA');
 		    j$('[name$=":zip"]').val('98101');
 		    j$('[name$=":email"]').val('test@example.com');
-		    if (j$('[name$=":acct"]').val() == '4111111111111111') {
-		    	j$('[name$=":acct"]').val('4481582492971491');
-			    j$('[name$=":xmo"]').val('11');
-			    j$('[name$=":xyr"]').val('2016');
-		    } else {
-		    	j$('[name$=":acct"]').val('4111111111111111');
-			    j$('[name$=":xmo"]').val('1');
-			    j$('[name$=":xyr"]').val('2016');
-		    }
+		    j$('[name$=":acct"]').val('4111111111111111');
+			j$('[name$=":xmo"]').val('1');
+			j$('[name$=":xyr"]').val('2016');
+		    j$('[name$=":cvv"]').val('111');
+		}
+		
+		var prefillPayPal = function () {
+		    j$('[name$=":fname"]').val('Test');
+		    j$('[name$=":lname"]').val('User');
+		    j$('[name$=":street"]').val('1402 3rd Ave');
+		    j$('[name$=":amt"]').val('1');
+		    j$('[name$=":city"]').val('Seattle');
+		    j$('[name$=":st"]').val('WA');
+		    j$('[name$=":zip"]').val('98101');
+		    j$('[name$=":email"]').val('test@example.com');
+		    j$('[name$=":acct"]').val('4481582492971491');
+			j$('[name$=":xmo"]').val('11');
+			j$('[name$=":xyr"]').val('2016');
 		    j$('[name$=":cvv"]').val('111');
 		}
 
@@ -125,7 +135,8 @@
   <apex:sectionheader title="Online Payments from Groundwire" subtitle="Online Transaction Test Page" />
         <apex:pageBlock >
             <apex:pageBlockButtons >
-                <button onclick="prefill();">Prefill</button>
+                <apex:commandbutton value="Prefill PayPal" onclick="prefillPayPal();" />
+                <apex:commandbutton value="Prefill Authorize.Net" onclick="prefillAuthNet();" />
                 <apex:commandButton value="Submit" action="{!submitToPaymentProcessor}" styleclass="submitbtn" />
             </apex:pageBlockButtons>
             

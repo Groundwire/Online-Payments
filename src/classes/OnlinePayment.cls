@@ -5,7 +5,7 @@
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
 ********************************************************************************************************/
   
-global virtual class OnlinePayment {  
+global virtual class OnlinePayment {
 
     // store the auth once for all calls
     public APIAuthorization auth;       
