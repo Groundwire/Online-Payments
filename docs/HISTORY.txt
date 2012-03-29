@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.13 (all beta versions)
+-------------------------
+
+* added new sObject Payment_Processor__c to hold API settings for PayPal and AuthNet since protected settings weren't allowing us to extend and see these settings from classes outside the managed package [greenstork]
+
 1.13 - released
 ------------------
 
