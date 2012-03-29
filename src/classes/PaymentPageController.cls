@@ -42,47 +42,52 @@ global with sharing virtual class PaymentPageController {
     // constructor
     global PaymentPageController() {
         apiConfig = new PaymentApiConfig();
-        defaultIsPaypal = ( apiConfig.defaultProcessor.payment_processor__c == 'Paypal' );
+        defaultIsPaypal = ( apiConfig.defaultProcessor.payment_processor__c == 'PayPal' );
         
         configOptions = new list<selectOption>();
         for (string s : apiConfig.processorMap.keyset()) 
             configOptions.add(new selectOption( s, s ));
-        selectedConfig = apiConfig.defaultProcessor.name;
-        		
-		// set up expiration picklists
-        expMonths = new list<selectOption>();
-        for (integer i = 1; i <= 12; i++)
-            expMonths.add(new selectOption( string.valueOf(i), string.valueOf(i) ));
-        expYears = new list<selectOption>();
-        for (integer i = 0; i < 8; i++)
-            expYears.add(new selectOption( string.valueOf(system.today().year() + i), string.valueOf(system.today().year() + i) ) );
-
-		// initialize objects
-        payer = new OnlinePayment.OnlinePayer();
-        card = new OnlinePayment.CreditCardData('Visa', null, null, null, null);
-        card2 = new OnlinePayment.CreditCardData('Visa', null, null, null, null);
-        payment = new OnlinePayment.PaymentData( null, null, null, 1 );
-
-		// look for page parameters passed in querystring
-		if (ApexPages.currentPage() != null) {
-			map<string,string> params = ApexPages.currentPage().getParameters();
-			
-			whatToDo = params.get('action');  
-			txnId = params.get('txnid');
-			transactionName = params.get('title');
-			amountText = params.get('amount');
-			amountText2 = params.get('amount');
-			card.acctNumber = params.get('cc');
-			card.expMonth = params.get('month');
-			card.expYear = params.get('year');
-			card2.acctNumber = params.get('cc');
-			card2.expMonth = params.get('month');
-			card2.expYear = params.get('year');
-	        try {
-	            maxAmount = decimal.valueOf(amountText2.replaceAll('$', '').replaceAll(',', ''));
-	        } catch(exception ex) { }
-		}                        			
-		if (whatToDo == null) whatToDo = 'paynow';		
+            
+        if (configOptions.isEmpty()) {
+        	apexPages.addmessage(new ApexPages.Message(ApexPages.Severity.ERROR, 'There are no valid payment configurations.'));
+        } else {
+	        selectedConfig = apiConfig.defaultProcessor.name;
+	        		
+			// set up expiration picklists
+	        expMonths = new list<selectOption>();
+	        for (integer i = 1; i <= 12; i++)
+	            expMonths.add(new selectOption( string.valueOf(i), string.valueOf(i) ));
+	        expYears = new list<selectOption>();
+	        for (integer i = 0; i < 8; i++)
+	            expYears.add(new selectOption( string.valueOf(system.today().year() + i), string.valueOf(system.today().year() + i) ) );
+	
+			// initialize objects
+	        payer = new OnlinePayment.OnlinePayer();
+	        card = new OnlinePayment.CreditCardData('Visa', null, null, null, null);
+	        card2 = new OnlinePayment.CreditCardData('Visa', null, null, null, null);
+	        payment = new OnlinePayment.PaymentData( null, null, null, 1 );
+	
+			// look for page parameters passed in querystring
+			if (ApexPages.currentPage() != null) {
+				map<string,string> params = ApexPages.currentPage().getParameters();
+				
+				whatToDo = params.get('action');  
+				txnId = params.get('txnid');
+				transactionName = params.get('title');
+				amountText = params.get('amount');
+				amountText2 = params.get('amount');
+				card.acctNumber = params.get('cc');
+				card.expMonth = params.get('month');
+				card.expYear = params.get('year');
+				card2.acctNumber = params.get('cc');
+				card2.expMonth = params.get('month');
+				card2.expYear = params.get('year');
+		        try {
+		            maxAmount = decimal.valueOf(amountText2.replaceAll('$', '').replaceAll(',', ''));
+		        } catch(exception ex) { }
+			}                        			
+			if (whatToDo == null) whatToDo = 'paynow';		
+        }
     } 
     
     // boolean property that sets whatToDo to paylater (can be used to drive a checkbox)
@@ -146,7 +151,7 @@ global with sharing virtual class PaymentPageController {
         paymentResult = null;
         recurringResult = null;
         
-        payment.pmtProcessor = (apiConfig.getProcessor( selectedConfig ) == 'Paypal') ? 
+        payment.pmtProcessor = (apiConfig.getProcessor( selectedConfig ) == 'PayPal') ? 
             OnlinePayment.Processor.PAYPAL : OnlinePayment.Processor.AUTHNET;
         
         //call the method to build the itemlist
@@ -240,6 +245,13 @@ global with sharing virtual class PaymentPageController {
     }
     
     static testMethod void testPPC() {
+        // ensure we have a config to test against.
+        Payment_Processor__c config = new Payment_Processor__c();
+        config.payment_processor__c = 'PayPal';
+        config.Default_Connection__c = true;
+        config.API_username__c = 'my login id';
+        config.name = 'config for testing';
+        insert config;
 
         // setup dummy data
         PaymentPageController ppc = new PaymentPageController();
@@ -260,6 +272,13 @@ global with sharing virtual class PaymentPageController {
     }
     
     static testMethod void testPPC_PayLater() {
+        // ensure we have a config to test against.
+        Payment_Processor__c config = new Payment_Processor__c();
+        config.payment_processor__c = 'PayPal';
+        config.Default_Connection__c = true;
+        config.API_username__c = 'my login id';
+        config.name = 'config for testing';
+        insert config;
 
         PaymentPageController ppc = new PaymentPageController();
         ppc.payer.firstName = 'Testy';
@@ -279,6 +298,13 @@ global with sharing virtual class PaymentPageController {
     }
 
     static testMethod void testPPC_getinfo() {
+        // ensure we have a config to test against.
+        Payment_Processor__c config = new Payment_Processor__c();
+        config.payment_processor__c = 'PayPal';
+        config.Default_Connection__c = true;
+        config.API_username__c = 'my login id';
+        config.name = 'config for testing';
+        insert config;
 
 		// try the get details option
         PaymentPageController ppc = new PaymentPageController();
@@ -290,6 +316,13 @@ global with sharing virtual class PaymentPageController {
     }
  
     static testMethod void testPPC_refund() {
+        // ensure we have a config to test against.
+        Payment_Processor__c config = new Payment_Processor__c();
+        config.payment_processor__c = 'PayPal';
+        config.Default_Connection__c = true;
+        config.API_username__c = 'my login id';
+        config.name = 'config for testing';
+        insert config;
 
         // setup dummy data
         Test.setCurrentPage(Page.PaymentRefund);
