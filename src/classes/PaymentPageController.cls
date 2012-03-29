@@ -37,23 +37,18 @@ global with sharing virtual class PaymentPageController {
     global OnlinePayment.PaymentProfileResult recurringResult { get; set; }
     global string errText { get; private set; }
 
-    private map<string, Payment_API_Config__c> configSettingsMap;
-
+	PaymentApiConfig apiConfig;
+	
     // constructor
     global PaymentPageController() {
+        apiConfig = new PaymentApiConfig();
+        defaultIsPaypal = ( apiConfig.defaultProcessor.payment_processor__c == 'Paypal' );
         
-        // load payment processor settings and find the default
-        configSettingsMap = Payment_API_Config__c.getAll();
-        if (configSettingsMap == null) configSettingsMap = new map<string, Payment_API_Config__c>();
         configOptions = new list<selectOption>();
-        for (Payment_API_Config__c pac : configSettingsMap.values()) {
-            configOptions.add(new selectOption( pac.name, pac.name ));
-            if (pac.default_connection__c == true) {
-                selectedConfig = pac.name;
-                defaultIsPaypal = (pac.gwop__Processor__c == 'Paypal');
-            }
-        }
-		
+        for (string s : apiConfig.processorMap.keyset()) 
+            configOptions.add(new selectOption( s, s ));
+        selectedConfig = apiConfig.defaultProcessor.name;
+        		
 		// set up expiration picklists
         expMonths = new list<selectOption>();
         for (integer i = 1; i <= 12; i++)
@@ -95,18 +90,6 @@ global with sharing virtual class PaymentPageController {
         set {
             whatToDo = (value) ? 'paylater' : 'paynow';
         }
-    }
-    
-    protected OnlinePayment.APIAuthorization getAuth( string configName ) {
-        OnlinePayment.APIAuthorization auth;
-        if (configSettingsMap.containsKey(configName)) {
-            Payment_API_Config__c config = configSettingsMap.get( configName );
-            auth = new OnlinePayment.APIAuthorization(
-                config.login_id__c, config.password__c, config.signature__c, 
-                OnlinePayment.getRemoteHost(), config.sandbox__c 
-            );
-        }
-        return auth;
     }
     
     // make a test payment
@@ -163,15 +146,14 @@ global with sharing virtual class PaymentPageController {
         paymentResult = null;
         recurringResult = null;
         
-        string processor = configSettingsMap.get(selectedConfig).processor__c;
-        payment.pmtProcessor = (processor == 'Paypal') ? 
+        payment.pmtProcessor = (apiConfig.getProcessor( selectedConfig ) == 'Paypal') ? 
             OnlinePayment.Processor.PAYPAL : OnlinePayment.Processor.AUTHNET;
         
         //call the method to build the itemlist
         constructItems(); 
         
         try {
-            OnlinePayment.APIAuthorization auth = getAuth( selectedConfig );
+            OnlinePayment.APIAuthorization auth = apiConfig.getAuth( selectedConfig );
             OnlinePayment op = new OnlinePayment(auth);
             list<OnlinePayment.OnlineTxnMessage> msgs;
             string errorMsg;
@@ -258,13 +240,6 @@ global with sharing virtual class PaymentPageController {
     }
     
     static testMethod void testPPC() {
-        // ensure we have a config to test against.
-        Payment_API_Config__c config = new Payment_API_Config__c();
-        config.processor__c = 'Paypal';
-        config.Default_Connection__c = true;
-        config.Login_Id__c = 'my login id';
-        config.name = 'config for testing';
-        insert config;
 
         // setup dummy data
         PaymentPageController ppc = new PaymentPageController();
@@ -285,13 +260,6 @@ global with sharing virtual class PaymentPageController {
     }
     
     static testMethod void testPPC_PayLater() {
-        // ensure we have a config to test against.
-        Payment_API_Config__c config = new Payment_API_Config__c();
-        config.processor__c = 'Authnet';
-        config.Default_Connection__c = true;
-        config.Login_Id__c = 'my login id';
-        config.name = 'config for testing';
-        insert config;
 
         PaymentPageController ppc = new PaymentPageController();
         ppc.payer.firstName = 'Testy';
@@ -311,13 +279,6 @@ global with sharing virtual class PaymentPageController {
     }
 
     static testMethod void testPPC_getinfo() {
-        // ensure we have a config to test against.
-        Payment_API_Config__c config = new Payment_API_Config__c();
-        config.processor__c = 'Paypal';
-        config.Default_Connection__c = true;
-        config.Login_Id__c = 'my login id';
-        config.name = 'config for testing';
-        insert config;
 
 		// try the get details option
         PaymentPageController ppc = new PaymentPageController();
@@ -329,13 +290,6 @@ global with sharing virtual class PaymentPageController {
     }
  
     static testMethod void testPPC_refund() {
-        // ensure we have a config to test against.
-        Payment_API_Config__c config = new Payment_API_Config__c();
-        config.processor__c = 'Paypal';
-        config.Default_Connection__c = true;
-        config.Login_Id__c = 'my login id';
-        config.name = 'config for testing';
-        insert config;
 
         // setup dummy data
         Test.setCurrentPage(Page.PaymentRefund);

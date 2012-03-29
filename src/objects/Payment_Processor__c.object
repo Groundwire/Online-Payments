@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionOverrides>
+        <actionName>Accept</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Clone</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Delete</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Edit</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>List</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>New</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Tab</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>View</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <enableActivities>false</enableActivities>
+    <enableFeeds>false</enableFeeds>
+    <enableHistory>false</enableHistory>
+    <enableReports>false</enableReports>
+    <fields>
+        <fullName>API_Login_Id__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Authorize.Net only, required API Login Id</inlineHelpText>
+        <label>API Login Id</label>
+        <length>175</length>
+        <maskChar>asterisk</maskChar>
+        <maskType>all</maskType>
+        <required>false</required>
+        <type>EncryptedText</type>
+    </fields>
+    <fields>
+        <fullName>API_Password__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Paypal only, required password</inlineHelpText>
+        <label>API Password</label>
+        <length>175</length>
+        <maskChar>asterisk</maskChar>
+        <maskType>all</maskType>
+        <required>false</required>
+        <type>EncryptedText</type>
+    </fields>
+    <fields>
+        <fullName>API_Signature__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Paypal only, required signature</inlineHelpText>
+        <label>API Signature</label>
+        <length>175</length>
+        <maskChar>asterisk</maskChar>
+        <maskType>all</maskType>
+        <required>false</required>
+        <type>EncryptedText</type>
+    </fields>
+    <fields>
+        <fullName>API_Username__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Paypal only, required username field</inlineHelpText>
+        <label>API Username</label>
+        <length>175</length>
+        <maskChar>asterisk</maskChar>
+        <maskType>all</maskType>
+        <required>false</required>
+        <type>EncryptedText</type>
+    </fields>
+    <fields>
+        <fullName>Default_Connection__c</fullName>
+        <defaultValue>false</defaultValue>
+        <externalId>false</externalId>
+        <inlineHelpText>Check this box to use this payment processor connection by default when there are multiple connections available.</inlineHelpText>
+        <label>Default Connection</label>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>Payment_Processor__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>The payment gateway/processor to which these API credentials apply</inlineHelpText>
+        <label>Payment Processor</label>
+        <picklist>
+            <picklistValues>
+                <fullName>Authorize.Net</fullName>
+                <default>false</default>
+            </picklistValues>
+            <picklistValues>
+                <fullName>PayPal</fullName>
+                <default>false</default>
+            </picklistValues>
+            <sorted>false</sorted>
+        </picklist>
+        <type>Picklist</type>
+    </fields>
+    <fields>
+        <fullName>Sandbox__c</fullName>
+        <defaultValue>false</defaultValue>
+        <externalId>false</externalId>
+        <inlineHelpText>Check this box for test accounts so they will log into the Sandbox URL for API access. If this option is not set properly, your API login will fail.</inlineHelpText>
+        <label>Sandbox</label>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>Transaction_Key__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>Authorize.Net only, required Transaction Key</inlineHelpText>
+        <label>Transaction Key</label>
+        <length>175</length>
+        <maskChar>asterisk</maskChar>
+        <maskType>all</maskType>
+        <required>false</required>
+        <type>EncryptedText</type>
+    </fields>
+    <label>Payment Processor</label>
+    <listViews>
+        <fullName>All</fullName>
+        <columns>NAME</columns>
+        <columns>Payment_Processor__c</columns>
+        <columns>Default_Connection__c</columns>
+        <columns>Sandbox__c</columns>
+        <filterScope>Everything</filterScope>
+        <label>All</label>
+    </listViews>
+    <nameField>
+        <label>Payment Processor Name</label>
+        <type>Text</type>
+    </nameField>
+    <pluralLabel>Payment Processors</pluralLabel>
+    <searchLayouts>
+        <customTabListAdditionalFields>Payment_Processor__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Sandbox__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Default_Connection__c</customTabListAdditionalFields>
+    </searchLayouts>
+    <sharingModel>ReadWrite</sharingModel>
+</CustomObject>
