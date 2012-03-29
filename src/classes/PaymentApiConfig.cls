@@ -1,4 +1,4 @@
-global with sharing class PaymentApiConfig {
+global without sharing class PaymentApiConfig {
 
 	global Payment_Processor__c defaultProcessor { get; private set; }	
 	global map<string,Payment_Processor__c> processorMap { get; private set; }

@@ -95,7 +95,7 @@ global with sharing virtual class PaymentPageController {
     // make a test payment
     global virtual pageReference submitToPaymentProcessor() {
         success = false;
-        
+
         // Do some basic validation in case they don't have javascript (and in order to avoid )
         string invalid;
         if (whatToDo == 'paynow' || whatToDo == 'paylater' || whatToDo == 'auth') {
@@ -153,7 +153,7 @@ global with sharing virtual class PaymentPageController {
         constructItems(); 
         
         try {
-            OnlinePayment.APIAuthorization auth = apiConfig.getAuth( selectedConfig );
+            OnlinePayment.APIAuthorization auth = apiConfig.getAuth( selectedConfig );            
             OnlinePayment op = new OnlinePayment(auth);
             list<OnlinePayment.OnlineTxnMessage> msgs;
             string errorMsg;
