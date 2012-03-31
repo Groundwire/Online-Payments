@@ -6,8 +6,9 @@
     <tab>standard-Account</tab>
     <tab>standard-Contact</tab>
     <tab>standard-Opportunity</tab>
-    <tab>Configure_Payments</tab>
+    <tab>Payment_Processor__c</tab>
     <tab>Make_Payments</tab>
     <tab>Payment_Notification__c</tab>
+    <tab>Payment_Page__c</tab>
     <tab>About_Online_Payments</tab>
 </CustomApplication>

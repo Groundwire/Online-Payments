@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionOverrides>
+        <actionName>Accept</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Clone</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Delete</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Edit</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>List</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>New</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>Tab</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>View</actionName>
+        <type>Default</type>
+    </actionOverrides>
+    <deploymentStatus>Deployed</deploymentStatus>
+    <enableActivities>false</enableActivities>
+    <enableFeeds>false</enableFeeds>
+    <enableHistory>false</enableHistory>
+    <enableReports>false</enableReports>
+    <fields>
+        <fullName>Amount_Options__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>A radio button list of suggested amounts. This list should be separated by semicolons (e.g. 25;50;100;250;1000). A simple amount entry field will be displayed if amount options are not specified.</inlineHelpText>
+        <label>Amount Options</label>
+        <length>255</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Campaign__c</fullName>
+        <deleteConstraint>SetNull</deleteConstraint>
+        <externalId>false</externalId>
+        <inlineHelpText>Relate payments from this page to a particular campaign. NOTE: This is only possible if your processing class handles associating payments (like Opportunities) with a campaign, otherwise this field is ignored.</inlineHelpText>
+        <label>Campaign</label>
+        <referenceTo>Campaign</referenceTo>
+        <relationshipLabel>Payment Pages</relationshipLabel>
+        <relationshipName>Payment_Pages</relationshipName>
+        <required>false</required>
+        <type>Lookup</type>
+    </fields>
+    <fields>
+        <fullName>Form_Epilogue__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>The epilogue text to your payment form. This text will show below the payment form on the page.</inlineHelpText>
+        <label>Form Epilogue</label>
+        <length>32768</length>
+        <type>Html</type>
+        <visibleLines>25</visibleLines>
+    </fields>
+    <fields>
+        <fullName>Form_Header__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>The form header is the header text at the top of the form in the body of the page, displayed in H1 style just preceding the Form Prologue text</inlineHelpText>
+        <label>Form Header</label>
+        <length>255</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Form_Prologue__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>The prologue text to your payment form. This text will show above the payment form on the page.</inlineHelpText>
+        <label>Form Prologue</label>
+        <length>32768</length>
+        <type>Html</type>
+        <visibleLines>25</visibleLines>
+    </fields>
+    <fields>
+        <fullName>Include_Recurring_Payment_Option__c</fullName>
+        <defaultValue>false</defaultValue>
+        <externalId>false</externalId>
+        <inlineHelpText>If checked, the page will display a checkbox field on the payment page to make the amount a monthly recurring payment.</inlineHelpText>
+        <label>Include Recurring Payment Option</label>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>Item_Name__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>The name of the item being purchased with this payment page. In the case of Groundwire Base, the Item Name is the Opportunity Record Type that is created</inlineHelpText>
+        <label>Item Name</label>
+        <length>120</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Page_Title__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>The page title defines a title in the browser toolbar, provides a title for the page when it is added to favorites and displays a title for the page in search-engine results</inlineHelpText>
+        <label>Page Title</label>
+        <length>255</length>
+        <required>true</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Submit_Button_Text__c</fullName>
+        <defaultValue>&apos;Submit&apos;</defaultValue>
+        <externalId>false</externalId>
+        <inlineHelpText>Text displayed on the submit button of the payment page</inlineHelpText>
+        <label>Submit Button Text</label>
+        <length>80</length>
+        <required>true</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Thank_You_Body_Text__c</fullName>
+        <externalId>false</externalId>
+        <inlineHelpText>The thank you text is displayed in paragraph format in the body of the page upon successful submit of a payment</inlineHelpText>
+        <label>Thank You Body Text</label>
+        <length>32768</length>
+        <type>Html</type>
+        <visibleLines>25</visibleLines>
+    </fields>
+    <fields>
+        <fullName>Thank_You_Header__c</fullName>
+        <defaultValue>&apos;Thank You&apos;</defaultValue>
+        <externalId>false</externalId>
+        <inlineHelpText>The thank you header is the header text at the top of the form in the body of the page, displayed in H1 style upon successful submit of a payment</inlineHelpText>
+        <label>Thank You Header</label>
+        <length>255</length>
+        <required>true</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <label>Payment Page</label>
+    <listViews>
+        <fullName>All</fullName>
+        <columns>NAME</columns>
+        <columns>Page_Title__c</columns>
+        <columns>Amount_Options__c</columns>
+        <filterScope>Everything</filterScope>
+        <label>All</label>
+    </listViews>
+    <nameField>
+        <label>Payment Page Name</label>
+        <type>Text</type>
+    </nameField>
+    <pluralLabel>Payment Pages</pluralLabel>
+    <searchLayouts/>
+    <sharingModel>ReadWrite</sharingModel>
+</CustomObject>

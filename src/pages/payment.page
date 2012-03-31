@@ -1,0 +1,419 @@
+<!-- TO DO: Fix Validation Error on Amount -->
+
+<apex:page controller="PaymentPageController" title="{!IF(ISNULL(paymentPage),'Donate',paymentPage.Page_Title__c)}" showHeader="false" standardStylesheets="false" id="pg" >
+<apex:composition template="PaymentSiteTemplate">  
+<apex:define name="body">
+    <apex:stylesheet value="{!URLFOR($Resource.OnlinePaymentResources, 'bootstrap/css/bootstrap.css')}" />
+    <apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery.validate.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'bootstrap/js/bootstrap.js')}" />
+
+    <style type="text/css">
+        table.spaceRight label { margin-right:10px; }
+        .helptext { font-size: 95%; }
+        .wrapper { 
+            width: 600px;
+            white-space: pre-wrap;
+            white-space: -moz-pre-wrap;
+            word-wrap: break-word;
+        }
+        input.invalid { border: 2px solid red; }
+        label.invalid { border: 0px; float: none; color: red; padding-left: .5em; vertical-align: middle; font-style:italic; white-space: nowrap; }
+		
+		#otherAmount {
+			margin-left: -10px;
+			}
+		
+		fieldset legend {
+			display: block;
+			padding-left: 150px;
+			font-size: 19.5px;
+			line-height: 1;
+			color: #404040;
+			font-weight:bold;
+			border-bottom: none;
+			}
+		.form-horizontal .recurringOptionLabel {
+			width:auto;
+		}
+		
+		select[multiple], select[size] {
+			height: 2em;
+		}
+        
+    </style>
+
+    <script type="text/javascript">
+        var j$ = jQuery.noConflict(); 
+    
+        var validator;
+        
+        j$().ready(function() {
+            validator = j$("form.validate").validate( {
+                errorClass: "invalid"
+            } );
+            j$.validator.addClassRules( "positive", {
+                digits: true,
+                min: 1,
+                max: 9999
+            });
+            
+            j$.validator.addMethod("selectamount", function(value, element) { 
+                 //returns a boolean, true is invalid, false is valid
+                 var checked = j$(".amount-list input:checked").length != 0;
+                 if (checked) {
+                 	if (j$("#radioOther:checked").length > 0 && j$("#inputAmount").val() == '') {
+                 		return false;
+                 	} 
+                 } else {
+                 	return false;
+                 }
+                 return true;
+            }, "Please select an amount.");
+            
+            j$.validator.addMethod("selectRequired", function(value, element) { 
+                 //returns a boolean, true is invalid, false is valid
+                 if (j$('.state_dropdown').val() == 'Select a state') {
+                 	return false; 
+                 } else {
+                 	return true;
+                 }
+            }, "This field is required.");
+            
+            j$("form.validate").submit( function(){
+                if (validator.form()) {
+                    j$("#overlay").show();
+                    j$("#pmt-modal").show();
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+            j$('input[id$="submit"]').click( function(){
+                if (validator.form()) {
+                    j$("#overlay").show();
+                    j$("#pmt-modal").show();
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+            
+            j$('#inputAmount').focus( function(){
+                j$('#radioOther').attr('checked','checked');
+            });
+            
+            j$('.amountRadio').change(function(){
+                if( j$(this).val() != 'Other' ) {
+                    j$('input[id$="amtText"]').val(j$(this).val());
+                    j$('#inputAmount').val('');
+                }
+            });
+            
+            j$('#inputAmount').bind('keyup change', function(){
+                if (j$(this).val() != '') {
+                    j$('input[id$="amtText"]').val(j$(this).val());
+                }
+            });
+            
+            j$('.state_dropdown').change(function(){
+                if (j$(this).val() != '' || j$(this).val() != 'Select a state') {
+                    j$('input[id$="payerState"]').val(j$(this).val());
+                }
+            }); 
+            
+            j$('#modal-from-dom').modal({
+                keyboard: true,
+                backdrop: true, 
+                show: false
+            });
+            
+        });
+    </script>
+
+<div id="overlay" style="display: none;"></div>
+<div id="pmt-modal" style="display: none;">
+    <div align="center" class="pleaseWait">Please wait while your payment is processed...<br/>
+    <img id="processing" src="{!URLFOR($Resource.OnlinePaymentResources, 'spinner.gif')}" />
+    </div>
+</div>
+
+<div class="bootstrap">
+  <div class="container-fluid">
+    
+    <apex:outputPanel rendered="{!success <> true}" >
+		<div class="page-header" >
+	        <h1><apex:outputText value="{!paymentPage.Form_Header__c}" rendered="{!NOT(ISNULL(paymentPage))}" />
+	        	<apex:outputText value="Support our Work!" rendered="{!ISNULL(paymentPage)}" /></h1> 
+	    </div>
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!success}" >
+		<div class="page-header" >
+	        <h1><apex:outputText value="{!paymentPage.Thank_You_Header__c}" rendered="{!NOT(ISNULL(paymentPage))}" />
+	        	<apex:outputText value="Thank You!" rendered="{!ISNULL(paymentPage)}" /></h1>
+	    </div>
+	    <apex:outputText value="{!paymentPage.Thank_You_Body_Text__c}" escape="false" rendered="{!NOT(ISNULL(paymentPage))}" />
+    </apex:outputPanel>
+
+    <apex:form styleclass="validate form-horizontal" forceSSL="true" rendered="{!NOT(success)}">
+
+        <apex:outputText value="{!paymentPage.Form_Prologue__c}" escape="false" rendered="{!NOT(ISNULL(paymentPage))}" />
+    
+        <hr />
+
+        <apex:repeat value="{!messages}" var="msg">
+            <apex:outputPanel layout="block" styleclass="alert-message">
+                <apex:outputText value="{!msg.summary}" />
+            </apex:outputPanel>
+        </apex:repeat>
+
+        <fieldset>
+            <legend>Donation Amount</legend>
+	            <div class="control-group">
+	                <label class="control-label amount-list"></label>
+	                <div class="controls">
+	                	<apex:outputPanel rendered="{!AND(NOT(ISNULL(paymentPage)),NOT(ISNULL(paymentPage.Amount_Options__c)))}">
+		                	<apex:repeat value="{!PaymentAmounts}" var="amount" id="theRepeat">
+								<label class="radio">
+			                		<input type="radio" name="optionsRadios" class="amountRadio selectamount" value="{!amount}" />
+			                		<span>${!amount}</span>
+		                		</label>
+	    					</apex:repeat>
+		                	<label class="radio">
+		                		<input type="radio" name="optionsRadios" class="amountRadio selectamount" id="radioOther" value="Other" />
+		                		<span>Other [Enter Amount]</span>
+		                	</label>
+	                	</apex:outputPanel>
+	                	<div class="input-prepend" id="otherAmount">
+		                    <span class="add-on">$</span><input class="number input-small" id="inputAmount" size="16" type="text" />
+		                    <apex:inputHidden value="{!amountText}" id="amtText" />
+	                	</div>
+	                	<apex:outputPanel rendered="{!AND(NOT(ISNULL(paymentPage)),paymentPage.Include_Recurring_Payment_Option__c)}">
+			                <div class="input">
+			                    <label class="control-label recurringOptionLabel">
+			                        <apex:inputCheckbox value="{!payLater}" id="recurringDonation" />
+			                        Make this a recurring donation each month
+			                    </label>
+			                </div>
+                		</apex:outputPanel>
+	                </div>
+	            </div>
+        </fieldset>
+        
+        <div class="row">
+            <div class="span4">
+	            <fieldset>
+	                <legend>Payment Information</legend>
+	                	<div class="control-group">
+		                	<label class="control-label">Card Type</label>
+		                	<div class="controls">
+		                		<apex:selectList value="{!card.cardType}" id="ctype" size="1">
+		                            <apex:selectOption itemLabel="Visa" itemvalue="Visa" />
+		                            <apex:selectOption itemLabel="MasterCard" itemvalue="MasterCard" />
+		                            <apex:selectOption itemLabel="Discover" itemvalue="Discover" />
+		                            <apex:selectOption itemLabel="American Express" itemvalue="Amex" />
+		                        </apex:selectList>
+		                   	</div>
+		               	</div>
+		               	<div class="control-group">
+		                   	<label class="control-label">Card Number</label>
+		                    <div class="controls">
+		                        <apex:inputText value="{!card.acctNumber}" id="acct" styleclass="required creditcard" />
+		                    </div>
+		                </div>
+		                <div class="control-group">
+		                    <label class="control-label">Expiration Date</label>
+		                    <div class="controls">
+		                        <apex:selectList value="{!card2.expMonth}" id="xmo" size="1" styleclass="required span1" >
+		                            <apex:selectOptions value="{!expMonths}" />
+		                        </apex:selectList>&nbsp;
+		                        <apex:selectList value="{!card2.expYear}" id="xyr" size="1" styleclass="required span2" >
+		                            <apex:selectOptions value="{!expYears}" />
+		                        </apex:selectList>
+		                    </div>
+		                </div>
+		                <div class="control-group">
+		                    <label class="control-label">Security Code</label>
+		                    <div class="controls">
+		                        <apex:inputText value="{!card.cvvCode}" id="cvv" styleclass="span1 required positive" />
+		                        <a href="#modal-from-dom" id="modalLink" data-toggle="modal">What's This?</a>
+		                        <div id="modal-from-dom" class="modal" style="display:none;"> 
+		                            <div class="modal-header">
+		                                <a href="#" class="close" data-dismiss="modal">&times;</a>
+		                                <h3>Where is my Security Code?</h3>
+		                            </div>
+		                            <div class="modal-body">
+		                                <img id="CVVCodeImage" src="{!URLFOR($Resource.OnlinePaymentResources, 'cvv_image.jpeg')}" width="274" height="184"/> 
+		                            </div>
+		                            <div class="modal-footer">
+		                                <a href="#" class="btn close" data-dismiss="modal">Close</a>
+		                            </div>
+		                        </div>
+		                    </div>
+		           		</div>
+	            </fieldset>
+			</div>	      
+            
+            <div class="span6">
+	            <fieldset>
+	                <legend>Billing Information</legend>
+	                	<div class="control-group">
+		                	<label class="control-label">Name</label>
+		                	<div class="controls">
+		                		<div class="input">
+			                        <apex:inputText value="{!payer.FirstName}" id="fname" styleclass="required span2" />&nbsp;
+			                        <apex:inputText value="{!payer.LastName}" id="lname" styleclass="required span2" />
+			                    </div>
+		                   	</div>
+		               	</div>
+		               	<div class="control-group">
+		                	<label class="control-label">Street</label>
+		                	<div class="controls">
+		                		<div class="input">
+			                        <apex:inputText value="{!payer.billingAddress.street}" id="street" styleclass="span3 required" />
+			                    </div>
+		                   	</div>
+		               	</div>
+		               	<div class="control-group">
+		                	<label class="control-label">City</label>
+		                	<div class="controls">
+		                		<div class="input">
+			                        <apex:inputText value="{!payer.billingAddress.city}" id="city"  styleclass="span3 required" />
+			                    </div>
+		                   	</div>
+		               	</div>
+		               	<div class="control-group">
+		                	<label class="control-label">State</label>
+							  	<div class="controls">
+							  	<select name="State" class="state_dropdown selectRequired span3 docs-input-sizes" >
+								  	<option value="">Select a state</option> 
+								  	<option value="AL" >Alabama</option>
+								  	<option value="AK" >Alaska</option>
+									<option value="AS" >American Samoa</option>
+									<option value="AZ" >Arizona</option>
+									<option value="AR" >Arkansas</option>
+									<option value="CA" >California</option>
+									<option value="CO" >Colorado</option>
+									<option value="CT" >Connecticut</option>
+									<option value="DE" >Delaware</option>
+									<option value="DC" >D.C.</option>
+									<option value="FL" >Florida</option>
+									<option value="GA" >Georgia</option>
+									<option value="GU" >Guam</option>
+									<option value="HI" >Hawaii</option>
+									<option value="ID" >Idaho</option>
+									<option value="IL" >Illinois</option>
+									<option value="IN" >Indiana</option>
+									<option value="IA" >Iowa</option>
+									<option value="KS" >Kansas</option>
+									<option value="KY" >Kentucky</option>
+									<option value="LA" >Louisiana</option>
+									<option value="ME" >Maine</option>
+									<option value="MD" >Maryland</option>
+									<option value="MA" >Massachusetts</option>
+									<option value="MI" >Michigan</option>
+									<option value="MN" >Minnesota</option>
+									<option value="MS" >Mississippi</option>
+									<option value="MO" >Missouri</option>
+									<option value="MT" >Montana</option>
+									<option value="NE" >Nebraska</option>
+									<option value="NV" >Nevada</option>
+									<option value="NH" >New Hampshire</option>
+									<option value="NJ" >New Jersey</option>
+									<option value="NM" >New Mexico</option>
+									<option value="NY" >New York</option>
+									<option value="NC" >North Carolina</option>
+									<option value="ND" >North Dakota</option>
+									<option value="MP" >Northern Mariana Islands</option>
+									<option value="OH" >Ohio</option>
+									<option value="OK" >Oklahoma</option>
+									<option value="OR" >Oregon</option>
+									<option value="PA" >Pennsylvania</option>
+									<option value="PR" >Puerto Rico</option>
+									<option value="RI" >Rhode Island</option>
+									<option value="SC" >South Carolina</option>
+									<option value="SD" >South Dakota</option>
+									<option value="TN" >Tennessee</option>
+									<option value="TX" >Texas</option>
+									<option value="UT" >Utah</option>
+									<option value="VT" >Vermont</option>
+									<option value="VI" >Virgin Islands</option>
+									<option value="VA" >Virginia</option>
+									<option value="WA" >Washington</option>
+									<option value="WV" >West Virginia</option>
+									<option value="WI" >Wisconsin</option>
+									<option value="WY" >Wyoming</option>
+								        <option value="AA" >Armed Forces (the) Americas</option>
+								        <option value="AE" >Armed Forces Europe</option>
+								        <option value="AP" >Armed Forces Pacific</option>
+									<option value="AB" >Alberta</option>
+									<option value="BC" >British Columbia</option>
+									<option value="MB" >Manitoba</option>
+									<option value="NF" >Newfoundland</option>
+									<option value="NB" >New Brunswick</option>
+									<option value="NS" >Nova Scotia</option>
+									<option value="NT" >Northwest Territories</option>
+									<option value="NU" >Nunavut</option>
+									<option value="ON" >Ontario</option>
+									<option value="PE" >Prince Edward Island</option>
+									<option value="QC" >Quebec</option>
+									<option value="SK" >Saskatchewan</option>
+									<option value="YT" >Yukon Territory</option>
+									<option value="Other">Other</option>
+								</select>
+								<apex:inputHidden value="{!payer.billingAddress.state}" id="payerState" />
+								</div>
+	                    </div>
+		               	<div class="control-group">
+		                	<label class="control-label">Postal Code</label>
+		                	<div class="controls">
+		                		<div class="input">
+			                        <apex:inputText value="{!payer.billingAddress.zip}" id="zip" styleclass="span3 required" />
+			                    </div>
+		                   	</div>
+		               	</div>
+		               	<div class="control-group">
+		                	<label class="control-label">Country</label>
+		                	<div class="controls">
+		                		<div class="input">
+			                        <apex:selectList value="{!payer.billingAddress.country}" id="countrycode" size="1" >
+			                            <apex:selectOption itemLabel="United States" itemvalue="US" />
+			                            <apex:selectOption itemLabel="Canada" itemvalue="CA" />
+			                        </apex:selectList>
+			                    </div>
+		                   	</div>
+		               	</div>
+		               	<div class="control-group">
+		                	<label class="control-label">Email</label>
+		                	<div class="controls">
+		                		<div class="input">
+			                        <apex:inputText value="{!payer.Email}" id="email" styleclass="span3 required email" />
+			                    </div>
+		                   	</div>
+		               	</div>
+		               	<div class="control-group">
+		                	<label class="control-label">Phone</label>
+		                	<div class="controls">
+		                		<div class="input">
+			                        <apex:inputText value="{!payer.billingAddress.phone}" id="phone" />
+			                    </div>
+		                   	</div>
+		               	</div>
+	            </fieldset>
+	            
+	    	</div>
+        </div>
+       	
+       	<div class="form-actions">
+			<apex:commandButton value="{!IF(ISNULL(paymentPage),'Donate',paymentPage.Submit_Button_Text__c)}" action="{!submitToPaymentProcessor}" styleclass="btn btn-large btn-primary" />
+       	</div>
+       
+        <apex:outputText value="{!paymentPage.Form_Epilogue__c}" escape="false" rendered="{!NOT(ISNULL(paymentPage))}" />
+        
+    </apex:form>
+    
+</div>
+</div>
+</apex:define>
+</apex:composition>
+</apex:page>

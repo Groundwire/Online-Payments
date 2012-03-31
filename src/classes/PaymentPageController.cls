@@ -36,6 +36,9 @@ global with sharing virtual class PaymentPageController {
     global OnlinePayment.PaymentTxnResult paymentResult { get; set; }
     global OnlinePayment.PaymentProfileResult recurringResult { get; set; }
     global string errText { get; private set; }
+    
+    // custom payment page
+    global Payment_Page__c paymentPage { get; private set; }
 
 	PaymentApiConfig apiConfig;
 	
@@ -85,16 +88,32 @@ global with sharing virtual class PaymentPageController {
 		        try {
 		            maxAmount = decimal.valueOf(amountText2.replaceAll('$', '').replaceAll(',', ''));
 		        } catch(exception ex) { }
+		        
+		        //if a payment page has been specified, query for it to use that content on the page
+		        string pageId = params.get('pageid');
+		        if (pageId != null) {
+		        	paymentPage = [SELECT Form_Prologue__c, Page_Title__c, Submit_Button_Text__c, Form_Header__c, Amount_Options__c, Campaign__c,
+		        					Form_Epilogue__c, Item_Name__c, Thank_You_Header__c, Thank_You_Body_Text__c, Include_Recurring_Payment_Option__c 
+		        					FROM Payment_Page__c WHERE id = :pageId LIMIT 1];	
+	        	}
 			}                        			
 			if (whatToDo == null) whatToDo = 'paynow';		
-        }
-    } 
+    	} 
+    }
     
     // boolean property that sets whatToDo to paylater (can be used to drive a checkbox)
     global boolean payLater { get;
         set {
             whatToDo = (value) ? 'paylater' : 'paynow';
         }
+    }
+    
+    global virtual List<string> getPaymentAmounts() {
+        List<string> options = new List<string>(); 
+        if (paymentPage != null && paymentPage.Amount_Options__c != null) {
+			options = paymentPage.Amount_Options__c.split(';');
+        } 
+        return options; 
     }
     
     // make a test payment
@@ -153,6 +172,16 @@ global with sharing virtual class PaymentPageController {
         
         payment.pmtProcessor = (apiConfig.getProcessor( selectedConfig ) == 'PayPal') ? 
             OnlinePayment.Processor.PAYPAL : OnlinePayment.Processor.AUTHNET;
+        
+        //if we received an Item Name from the payment page, set the itemName property
+        if (paymentPage != null && paymentPage.Item_Name__c != null) {
+        	itemName = paymentPage.Item_Name__c;
+        }
+        
+        //if the Payment Page is associated with a Campaign, add that to the custom string
+        if (paymentPage != null && paymentPage.Campaign__c != null) {
+        	payment.custom = '{"opportunity": {"CampaignId": ' + JSON.serialize(paymentPage.Campaign__c) + '}}';
+        }
         
         //call the method to build the itemlist
         constructItems(); 
