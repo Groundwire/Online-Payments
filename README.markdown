@@ -6,6 +6,7 @@ Overview
 Groundwire Online Payments is a core package for integrating Salesforce.com with your payment gateway for the purpose of collecting one-time and recurring payments directly through the Salesforce.com user interface or a customizable Salesforce Sites page.  This package is the credit card processing engine that connects your Salesforce.com instance with a payment gateway like PayPal or Authorize.Net and hands off your transaction results to a customizable database processing class that exists outside of this managed package. The idea here is that each organization is unique, in terms of how you want your payments processed and recorded in the database, and this package makes no presumptions but allows you to write your own logic and connect it to this credit card engine.
 
 This installation covers:
+
 * Package installation from an install link or the AppExchange
 * Overview of custom objects and configuration of apps and tabs included in this package.
 * Configuration of one or more Payment Processor connections to PayPal or Authorize.Net, including sandbox environments for testing.
