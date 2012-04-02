@@ -34,6 +34,7 @@ Installation Instructions
 Custom Objects
 --------------
 Groundwire Online Payments includes three new custom objects:
+
 * **Payment Processors** - This object holds your payment gateway settings to PayPal or Authorize.Net and the following custom fields:
 ** Payment Processor Name - Text - Your internal name of this payment gateway connection, for reference is search results, list views, etc.
 ** Payment Processor - Picklist - PayPal or Authorize.Net
@@ -82,6 +83,7 @@ Groundwire Online Payments includes three new custom objects:
 Application Permissions
 -----------------------
 For each custom profile, you will need to set object and field-level permissions for the objects and custom fields contained within this package. We recommend allowing access only to system administrators and user profiles for people who have top-level access to payment information within the organization. System Administrators have all object permissions enabled by default but to enable additional profiles to manage online payments:
+
 * Go to Setup > Administration Setup > Manage Users > Profiles and edit the profiles you wish to enable. 
 * In Custom App Settings, make sure the Online Payments app is visible
 * In Tab Settings, make sure the following tabs are Default On - About Online Payments, Payment Notifications, Payment Pages, Payment Processors, and Payment Terminal
@@ -89,7 +91,8 @@ For each custom profile, you will need to set object and field-level permissions
 
 Configuring Payment Processors
 ------------------------------
-You will need credentials to add at least one payment processor (payment gateway) on either Authorize.Net or PayPal.  This can be a sandbox or developer account if you are just testing the integration.  To add a payment processor:
+You will need credentials to add at least one payment processor (payment gateway) on either Authorize.Net or PayPal before you can use Groundwire Online Payments to collect money.  This can be a sandbox or developer account if you are just testing the integration.  To add a payment processor:
+
 1. Select Online Payments from the application drop-down menu on the top right of the screen.
 2. Click on the Payment Processors tab and then the New button.
 3. Enter in your credentials to either PayPal or Authorize.Net.  NOTE: The fields API Login Id and Transaction Key are only for Authorize.Net and the fields API Username, API Password, and API Signature are only for PayPal. You may not enter in credentials from more than one processor into the same record, you must create a new Payment Processor record for each of your Payment Processor connections.
@@ -106,3 +109,12 @@ Configuring Online Payment for Salesforce Sites
 5. Make sure your site is configured with Login = Not Allowed and that the site is Active (a checkbox).
 6. Still from the Site record, click on Public Access Settings.  In the section called Field Level Security, under Payment Pages, click the View button and then Edit.  Make sure all fields are marked as Visible. Do the same for Payment Notification. DO NOT do this for Payment Processors. Click the Edit button in the Public Access Settings, and scroll down to Standard Object Permissions.  For Accounts, Contacts and Opportunities, allow Read and Create.  In Custom Object Permissions enable Read, Create, Edit, Delete on Payment Notifications and Payment Pages. Still in the Public Access Settings, click the edit button on Enabled Apex Class Access and enable all classes marked with the prefix gwop.
 7. To test to see if your site works, go to the Site record, copy the URL of the Secure Web Address, paste it into a browser and add payment to the URL. For example - https://gwop-developer-edition.na12.force.com/payment - this should bring up the basic payment page.
+
+Creating Custom Payment Pages
+-----------------------------
+The Payment Pages feature allows administrators to create multiple versions of payment pages that are all based on one basic payment page template.  Administrators can create as many versions of the page as they please and each can be customized to have custom text on the header of the payment page, the prologue text before the form, the epilogue text after the form, the thank you header, thank you body text, submit button text, and the linked campaign or item that's being purchased on each page.  To create a custom payment page:
+
+1. Select Online Payments from the application drop-down menu on the top right of the screen.
+2. Click on the Payment Pages tab and then the New button.
+3. Enter in your custom content, amount options, related campaign, item name etc. and click Save.  
+4. Brief explanation, the Groundwire Online Payments package alone will do nothing to create opportunities, but if you are configuring this for a Groundwire Base client and have the Groundwire Base Online Payments Extension installed, you can use the Campaign field to relate Opportunities from a particular payment page to a Campaign and Item Name to indicate a Record Type of Opportunities from that Payment Page.
