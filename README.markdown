@@ -36,49 +36,49 @@ Custom Objects
 Groundwire Online Payments includes three new custom objects:
 
 * **Payment Processors** - This object holds your payment gateway settings to PayPal or Authorize.Net and the following custom fields:
-** Payment Processor Name - Text - Your internal name of this payment gateway connection, for reference is search results, list views, etc.
-** Payment Processor - Picklist - PayPal or Authorize.Net
-** Default Connection - Checkbox - Check this box to use this payment processor connection by default when there are multiple connections available.
-** Sandbox - Checkbox - Check this box for Authorize.Net or PayPal test accounts so they will log into the Sandbox URL for API access. If this option is not set properly, your API login will fail.
-** API Username - Encrypted Text - Paypal only, required username field
-** API Password - Encrypted Text - Paypal only, required password
-** API Signature - Encrypted Text - Paypal only, required signature
-** API Login Id - Encrypted Text - Authorize.Net only, required API Login Id
-** Transaction Key - Encrypted Text - Authorize.Net only, required Transaction Key
+	* Payment Processor Name - Text - Your internal name of this payment gateway connection, for reference is search results, list views, etc.
+	* Payment Processor - Picklist - PayPal or Authorize.Net
+	* Default Connection - Checkbox - Check this box to use this payment processor connection by default when there are multiple connections available.
+	* Sandbox - Checkbox - Check this box for Authorize.Net or PayPal test accounts so they will log into the Sandbox URL for API access. If this option is not set properly, your API login will fail.
+	* API Username - Encrypted Text - Paypal only, required username field
+	* API Password - Encrypted Text - Paypal only, required password
+	* API Signature - Encrypted Text - Paypal only, required signature
+	* API Login Id - Encrypted Text - Authorize.Net only, required API Login Id
+	* Transaction Key - Encrypted Text - Authorize.Net only, required Transaction Key
 * **Payment Notifications** - This objects holds every response that you get when your Salesforce instance communicates with Authorize.Net or PayPal for one-time, recurring payments, or refunds. It contains the following custom fields:
-** Notification Title - Text - Auto-name field to indicate where this log originated
-** Notification Type - Indicates whether this log came in through a webservice ping, and apex callout from Salesforce to the payment gateway, or an IPN/Silent Post
-** Transaction Type - Text - The type of transaction the notification represents when provided by the processor. When we are calling the processor, this will be the name of the processor method we are calling.
-** Payer Email - Email - email address of the payer of this transaction
-** Payment Status - Text - The status from the Payment Processor: Completed, Authorized, Pending, Declined, Reversed, or Failed. It's not a picklist, because different processors might have different values.
-** Payment Amount
-** Item Number - Text - If this payment was the purchase of an item, this is the corresponding item number
-** Item Name - Text - If this payment was the purchase of an item, this is the corresponding item name
-** Test - Checkbox - Indicates whether or not this was a test transaction to a sandbox or test gateway account
-** Transaction Id - Text - for single payments, the returned transaction Id of this transaction from your payment gateway
-** Recurring Transaction Id - for recurring payments, the returned transaction Id of this transaction from your payment gateway
-** Parent Transaction Id - for refunds, the returned transaction Id of this transaction from your payment gateway
-** Payer Id - If this payer has an account in your payment gateways system, this is that payer's id in that system
-** Processed - Checkbox - indicates whether or not this transaction was processed by Salesforce. This is an internal flag for our package to indicate that database processing has or has not yet occurred.
-** Opportunity - Lookup - If the custom processing class that lives outside of this package creates opportunities, it can be set on a Payment notification record which Opportunity relates to this Payment Notification.
-** Request or Parameters - Long Text - For caller's this is the full request xml. For listener's, this is a list of name value pairs of the parameters.
-** Response - Long Text - The full response string from the processor, when our code has called the processor directly. This will be empty on notifications from the processor.
-** Processing Result - Long Text - If the notification is processed, indicates the result of the processing, such as whether a new contact was created or an existing match found. If the notification can't be processed successfully, indicates the error encountered.
-** errorLineNumber - Text - for debug purposes only, the line number of code that caused the exception error
-** errorStackTrace - Text - for debug purposes only, the stack trace of code that caused the exception error
+	* Notification Title - Text - Auto-name field to indicate where this log originated
+	* Notification Type - Indicates whether this log came in through a webservice ping, and apex callout from Salesforce to the payment gateway, or an IPN/Silent Post
+	* Transaction Type - Text - The type of transaction the notification represents when provided by the processor. When we are calling the processor, this will be the name of the processor method we are calling.
+	* Payer Email - Email - email address of the payer of this transaction
+	* Payment Status - Text - The status from the Payment Processor: Completed, Authorized, Pending, Declined, Reversed, or Failed. It's not a picklist, because different processors might have different values.
+	* Payment Amount
+	* Item Number - Text - If this payment was the purchase of an item, this is the corresponding item number
+	* Item Name - Text - If this payment was the purchase of an item, this is the corresponding item name
+	* Test - Checkbox - Indicates whether or not this was a test transaction to a sandbox or test gateway account
+	* Transaction Id - Text - for single payments, the returned transaction Id of this transaction from your payment gateway
+	* Recurring Transaction Id - for recurring payments, the returned transaction Id of this transaction from your payment gateway
+	* Parent Transaction Id - for refunds, the returned transaction Id of this transaction from your payment gateway
+	* Payer Id - If this payer has an account in your payment gateways system, this is that payer's id in that system
+	* Processed - Checkbox - indicates whether or not this transaction was processed by Salesforce. This is an internal flag for our package to indicate that database processing has or has not yet occurred.
+	* Opportunity - Lookup - If the custom processing class that lives outside of this package creates opportunities, it can be set on a Payment notification record which Opportunity relates to this Payment Notification.
+	* Request or Parameters - Long Text - For caller's this is the full request xml. For listener's, this is a list of name value pairs of the parameters.
+	* Response - Long Text - The full response string from the processor, when our code has called the processor directly. This will be empty on notifications from the processor.
+	* Processing Result - Long Text - If the notification is processed, indicates the result of the processing, such as whether a new contact was created or an existing match found. If the notification can't be processed successfully, indicates the error encountered.
+	* errorLineNumber - Text - for debug purposes only, the line number of code that caused the exception error
+	* errorStackTrace - Text - for debug purposes only, the stack trace of code that caused the exception error
 * **Payment Pages** - This package include a basic but configurable Visualforce page that allows users to create multiple versions of the same payment page with different content like prologue text, epilogue text, amount options, related campaign, or hardcoded item name. The payment page include the following custom fields:
-** Payment Page Name - Your internal name of this payment page, for reference is search results, list views, etc.
-** Page Title - Text - The page title defines a title in the browser toolbar, provides a title for the page when it is added to favorites and displays a title for the page in search-engine results
-** Amount Options - Text - A radio button list of suggested amounts. This list should be separated by semicolons (e.g. 25;50;100;250;1000). A simple amount entry field will be displayed if amount options are not specified.
-** Campaign - Lookup - Relate payments from this page to a particular campaign. NOTE: This is only possible if your processing class handles associating payments (like Opportunities) with a campaign, otherwise this field is ignored.
-** Include Recurring Payment Option - Checkbox - If checked, the page will display a checkbox field on the payment page to make the amount a monthly recurring payment.
-** Item Name - Text - The name of the item being purchased with this payment page. In the case of Groundwire Base, the Item Name is the Opportunity Record Type that is created
-** Form Header - Text - The form header is the header text at the top of the form in the body of the page, displayed in H1 style just preceding the Form Prologue text
-** Form Prologue - Rich Text - The prologue text to your payment form. This text will show above the payment form on the page.
-** Form Epilogue - Rich Text - The epilogue text to your payment form. This text will show below the payment form on the page.
-** Thank You Header - Text - The thank you header is the header text at the top of the form in the body of the page, displayed in H1 style upon successful submit of a payment
-** Thank You Body Text - Rich Text - The thank you text is displayed in paragraph format in the body of the page upon successful submit of a payment
-** Submit Button Text - Text - Text displayed on the submit button of the payment page
+	* Payment Page Name - Your internal name of this payment page, for reference is search results, list views, etc.
+	* Page Title - Text - The page title defines a title in the browser toolbar, provides a title for the page when it is added to favorites and displays a title for the page in search-engine results
+	* Amount Options - Text - A radio button list of suggested amounts. This list should be separated by semicolons (e.g. 25;50;100;250;1000). A simple amount entry field will be displayed if amount options are not specified.
+	* Campaign - Lookup - Relate payments from this page to a particular campaign. NOTE: This is only possible if your processing class handles associating payments (like Opportunities) with a campaign, otherwise this field is ignored.
+	* Include Recurring Payment Option - Checkbox - If checked, the page will display a checkbox field on the payment page to make the amount a monthly recurring payment.
+	* Item Name - Text - The name of the item being purchased with this payment page. In the case of Groundwire Base, the Item Name is the Opportunity Record Type that is created
+	* Form Header - Text - The form header is the header text at the top of the form in the body of the page, displayed in H1 style just preceding the Form Prologue text
+	* Form Prologue - Rich Text - The prologue text to your payment form. This text will show above the payment form on the page.
+	* Form Epilogue - Rich Text - The epilogue text to your payment form. This text will show below the payment form on the page.
+	* Thank You Header - Text - The thank you header is the header text at the top of the form in the body of the page, displayed in H1 style upon successful submit of a payment
+	* Thank You Body Text - Rich Text - The thank you text is displayed in paragraph format in the body of the page upon successful submit of a payment
+	* Submit Button Text - Text - Text displayed on the submit button of the payment page
 
 Application Permissions
 -----------------------
