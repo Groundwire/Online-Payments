@@ -1,8 +1,4 @@
-<!-- TO DO: Fix Validation Error on Amount -->
-
 <apex:page controller="PaymentPageController" title="{!IF(ISNULL(paymentPage),'Donate',paymentPage.Page_Title__c)}" showHeader="false" standardStylesheets="false" id="pg" >
-<apex:composition template="PaymentSiteTemplate">  
-<apex:define name="body">
     <apex:stylesheet value="{!URLFOR($Resource.OnlinePaymentResources, 'bootstrap/css/bootstrap.css')}" />
     <apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery.js')}" />
     <apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery.validate.js')}" />
@@ -83,7 +79,7 @@
             j$("form.validate").submit( function(){
                 if (validator.form()) {
                     j$("#overlay").show();
-                    j$("#pmt-modal").show();
+                    j$("#modal").show();
                     return true;
                 } else {
                     return false;
@@ -92,7 +88,7 @@
             j$('input[id$="submit"]').click( function(){
                 if (validator.form()) {
                     j$("#overlay").show();
-                    j$("#pmt-modal").show();
+                    j$("#modal").show();
                     return true;
                 } else {
                     return false;
@@ -132,9 +128,9 @@
     </script>
 
 <div id="overlay" style="display: none;"></div>
-<div id="pmt-modal" style="display: none;">
-    <div align="center" class="pleaseWait">Please wait while your payment is processed...<br/>
-    <img id="processing" src="{!URLFOR($Resource.OnlinePaymentResources, 'spinner.gif')}" />
+<div id="modal" class="modal" style="display: none;">
+    <div align="center" class="modal-body">Please wait while your payment is processed...<br/>
+    	<img id="processing" src="{!URLFOR($Resource.OnlinePaymentResources, 'spinner.gif')}" />
     </div>
 </div>
 
@@ -162,7 +158,8 @@
         <hr />
 
         <apex:repeat value="{!messages}" var="msg">
-            <apex:outputPanel layout="block" styleclass="alert-message">
+            <apex:outputPanel layout="block" styleclass="alert alert-block {!IF(success,'alert-success','alert-error')}">
+            	<a class="close" data-dismiss="alert">×</a>
                 <apex:outputText value="{!msg.summary}" />
             </apex:outputPanel>
         </apex:repeat>
@@ -170,8 +167,8 @@
         <fieldset>
             <legend>Donation Amount</legend>
 	            <div class="control-group">
-	                <label class="control-label amount-list"></label>
-	                <div class="controls">
+	                <label class="control-label"></label>
+	                <div class="controls amount-list">
 	                	<apex:outputPanel rendered="{!AND(NOT(ISNULL(paymentPage)),NOT(ISNULL(paymentPage.Amount_Options__c)))}">
 		                	<apex:repeat value="{!PaymentAmounts}" var="amount" id="theRepeat">
 								<label class="radio">
@@ -224,10 +221,10 @@
 		                <div class="control-group">
 		                    <label class="control-label">Expiration Date</label>
 		                    <div class="controls">
-		                        <apex:selectList value="{!card2.expMonth}" id="xmo" size="1" styleclass="required span1" >
+		                        <apex:selectList value="{!card.expMonth}" id="xmo" size="1" styleclass="required span1" >
 		                            <apex:selectOptions value="{!expMonths}" />
 		                        </apex:selectList>&nbsp;
-		                        <apex:selectList value="{!card2.expYear}" id="xyr" size="1" styleclass="required span2" >
+		                        <apex:selectList value="{!card.expYear}" id="xyr" size="1" styleclass="required span2" >
 		                            <apex:selectOptions value="{!expYears}" />
 		                        </apex:selectList>
 		                    </div>
@@ -414,6 +411,4 @@
     
 </div>
 </div>
-</apex:define>
-</apex:composition>
 </apex:page>
