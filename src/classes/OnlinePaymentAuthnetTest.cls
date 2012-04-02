@@ -6,7 +6,7 @@
 ********************************************************************************************************/
 
 @istest
-global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet {
+global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet { 
 
     public static string testName;  
 

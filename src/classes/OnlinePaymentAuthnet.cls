@@ -5,7 +5,7 @@
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
 ********************************************************************************************************/
 
-global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
+global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment { 
 	/*
 	TODO: 
 	In testing, should check encoding - e.g. accented chars

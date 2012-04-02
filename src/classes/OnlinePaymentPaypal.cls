@@ -5,7 +5,7 @@
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
 ********************************************************************************************************/
 
-global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment { 
+global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 
 	/*
 	TODO: 
