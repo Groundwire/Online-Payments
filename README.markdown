@@ -101,8 +101,8 @@ You will need credentials to add at least one payment processor (payment gateway
 5. For Sandbox and Developer accounts, you must indicate that the processor connection is a Sandbox by checking off that box on the Payment Processor record.
 6. NOTE: Once a Payment Processor record is saved, the credentials are encrypted and can only be viewed by users with the profile permission to View Encrypted Data.  We recommend having no users with this permission if possible, since these credentials could allow someone to credit money directly from your bank account and present a significant financial security risk.  Choose users of this profile wisely.
 
-Configuring Online Payment for Salesforce Sites
------------------------------------------------
+Configuring Online Payments with Salesforce Sites
+-------------------------------------------------
 1. First setup your Salesforce.com Site according the the Sites documentation - <https://na12.salesforce.com/help/doc/en/salesforce_platform_portal_implementation_guide.pdf>
 2. Once your site is setup, you'll need to enable the following Visualforce Pages - gwop.PaymentListenerAuthnet, gwop.PaymentListenerPaypal, gwop.PaymentSiteTemplate, gwop.payment.  To enable these Visualforce page, go to each site record in Salesforce by clicking on Setup > App Setup > Develop > Sites and click on the Site Label.  On the Site page, in the section called Site Visualforce Pages, click on Edit and locate the pages mentioned above and move them over to the Enabled Visualforce Pages.
 3. Still on the Site record, click the Edit button and change the Active Site Home Page to gwop.payment and the Site Template to gwop.PaymentSiteTemplate and click Save
