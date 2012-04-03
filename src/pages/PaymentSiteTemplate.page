@@ -1,0 +1,7 @@
+<apex:page controller="PaymentSiteTemplateController" showHeader="false" standardStylesheets="false" id="PaymentSiteTemplate">
+  <apex:stylesheet value="{!strURLtoCSSFile}" /> 
+  <apex:insert name="body"/>
+  <apex:insert name="footer">
+    <site:googleAnalyticsTracking />
+  </apex:insert>
+</apex:page>
