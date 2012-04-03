@@ -1,3 +1,5 @@
+<!-- TO DO: Fix Validation Error on Amount -->
+
 <apex:page controller="PaymentPageController" title="{!IF(ISNULL(paymentPage),'Donate',paymentPage.Page_Title__c)}" showHeader="false" standardStylesheets="false" id="pg" >
 <<<<<<< HEAD
 =======
