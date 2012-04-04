@@ -21,7 +21,7 @@
 *  provide a mechanism for testing the listener configuration
 -----------------------------------------------------------------------------------------------*/	
 
-global virtual class PaymentListenerPaypal {
+global virtual class PaymentListenerPaypal {  
 
 	// settings object
 	global OnlinePaymentSettings__c opSettings; 
@@ -312,8 +312,10 @@ global virtual class PaymentListenerPaypal {
 		 			OnlinePayment.PaymentStatus.COMPLETED :
 		 		(params.get('pending_reason') == 'authorization') ? OnlinePayment.PaymentStatus.AUTHORIZED :
 		 		(ipn.Payment_Status__c == 'Pending') ? OnlinePayment.PaymentStatus.PENDING :
-		 		(ipn.Payment_Status__c == 'Failed' || ipn.Payment_Status__c == 'Expired' || ipn.Payment_Status__c == 'Denied' || ipn.Payment_Status__c == 'Voided') ? 
+		 		(ipn.Payment_Status__c == 'Failed' || ipn.Payment_Status__c == 'Expired' || ipn.Payment_Status__c == 'Denied') ? 
 		 			OnlinePayment.PaymentStatus.FAILED :
+		 		(ipn.Payment_Status__c == 'Voided') ? 
+		 			OnlinePayment.PaymentStatus.VOIDED :
 		 		(ipn.Payment_Status__c == 'Refunded' || ipn.Payment_Status__c == 'Reversed') ? OnlinePayment.PaymentStatus.REVERSED : 
 		 		null;
 					

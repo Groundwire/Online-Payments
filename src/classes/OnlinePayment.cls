@@ -5,7 +5,7 @@
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
 ********************************************************************************************************/
   
-global virtual class OnlinePayment { 
+global virtual class OnlinePayment {
 
     // store the auth once for all calls
     public APIAuthorization auth;       
@@ -213,7 +213,8 @@ global virtual class OnlinePayment {
         AUTHORIZED,     // you need to take action
         PENDING,        // you might need to take action, or just wait
         DECLINED,       // bad credit, zipcode, or cvs code
-        FAILED,         // previously pending/authorized, but no longer
+        FAILED,         // an error occurred
+        VOIDED,           // previously pending/authorized, but no longer
         REVERSED        // previously completed, money was refunded
     }
     global enum PaymentType { 
@@ -433,6 +434,7 @@ global virtual class OnlinePayment {
                 (payment.pmtStatus == OnlinePayment.PaymentStatus.PENDING) ? 'Pending' :
                 (payment.pmtStatus == OnlinePayment.PaymentStatus.DECLINED) ? 'Declined' :
                 (payment.pmtStatus == OnlinePayment.PaymentStatus.REVERSED) ? 'Reversed' : 
+                (payment.pmtStatus == OnlinePayment.PaymentStatus.VOIDED) ? 'Void' : 
                 (payment.pmtStatus == OnlinePayment.PaymentStatus.FAILED) ? 'Failed' : 'unknown'),
             Transaction_Id__c = payment.txnId,
             Recurring_Transaction_Id__c = payment.recurringTxnId,

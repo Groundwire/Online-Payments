@@ -5,7 +5,7 @@
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
 ********************************************************************************************************/
 
-global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment { 
+global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {  
 	/*
 	TODO: 
 	In testing, should check encoding - e.g. accented chars
@@ -256,10 +256,10 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			
 			// set payment status to correct state 
 			if (result.success) {
-				payment.pmtStatus = (payment.action == OnlinePayment.PaymentAction.AUTHORIZE) ? 
-					OnlinePayment.PaymentStatus.AUTHORIZED : OnlinePayment.PaymentStatus.COMPLETED;
+				payment.pmtStatus = (payment.action == PaymentAction.AUTHORIZE) ? 
+					PaymentStatus.AUTHORIZED : PaymentStatus.COMPLETED;
 			} else {
-				payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
+				payment.pmtStatus = PaymentStatus.FAILED;
 			}		
 			
 			if (result.success && fLogAndCreateOpps) {
@@ -319,11 +319,9 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			result = callAuthnet( encoder.xml );
 
 			// send result to salesforce
+			payment.action = PaymentAction.VOIDTXN;
 			if (result.success) {
-				
-				// it is a paradox, but with void, success means you FAILED
-				payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
-				payment.action = PaymentAction.VOIDTXN;
+				payment.pmtStatus = PaymentStatus.VOIDED;
 
 				if (fLog) {
 				    ClassFactory f = new ClassFactory();			
@@ -334,6 +332,8 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		            oppId = opmt.opportunityId;
 		            result.dbSuccess = true;
 				}
+			} else {
+				payment.pmtStatus = PaymentStatus.FAILED;
 			}		
 		} catch (exception ex) {
 			result.success = false;
@@ -343,14 +343,13 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			// fall thru to log the ipn, and return the result object.		
 		}	
 		
-		// log the failure.
+		// log the void.
 		if (fLog) {
 			payment.pmtProcessor = Processor.AUTHNET;
 			payment.txnId = txnId;
-			
 			Payment_Notification__c ipn = logNotification(null, payment, 'Apex Payment Callout', payment.action, 
 				encoder == null ? null : strXmlScrub(encoder.xml), 
-				result.responseText, false, false, result.errorMessage, false);	
+				result.responseText, auth.sandbox, false, result.errorMessage, false);	
 			ipn.Transaction_Type__c = 'Authnet VoidTransaction()';
             ipn.isProcessed__c = result.dbSuccess == null ? false : result.dbSuccess;
             ipn.opportunity__c = oppId;              
@@ -424,15 +423,14 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 				result = callAuthnet( encoder.xml );
 				
 				// retrieve the new txnId
+				payment.action = PaymentAction.REFUND;
 				if (result.success) {
+					payment.pmtStatus = PaymentStatus.REVERSED;
 					payment.parentTxnId = payment.txnId;
 					
 					XMLDecoder decoder = new XMLDecoder( result.responseText );
 					if ( decoder.openGroup('transactionResponse') )
-						payment.txnId = decoder.getElement('transId');
-	
-					payment.action = PaymentAction.REFUND;
-					payment.pmtStatus = PaymentStatus.REVERSED;
+						payment.txnId = decoder.getElement('transId');	
 						
 					// send result to salesforce
 				    ClassFactory f = new ClassFactory();
@@ -443,8 +441,8 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 				
 		            oppId = opmt.opportunityId;   
 		            result.dbSuccess = true;
-				} else {		
-					payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
+				} else {
+					payment.pmtStatus = PaymentStatus.FAILED;
 				}		
 			} catch (exception ex) {
 				result.success = false;
@@ -455,10 +453,10 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			}	
 			
 			// log the result
-			payment.pmtProcessor = Processor.AUTHNET;			
+			payment.pmtProcessor = Processor.AUTHNET;
 			Payment_Notification__c ipn = logNotification(null, payment, 'Apex Payment Callout', payment.action, 
 				encoder == null ? null : strXmlScrub(encoder.xml), 
-				result.responseText, false, false, result.errorMessage, false);	
+				result.responseText, auth.sandbox, false, result.errorMessage, false);	
 			ipn.Transaction_Type__c = 'Authnet RefundTransaction()';
 	        ipn.isProcessed__c = result.dbSuccess == null ? false : result.dbSuccess;  
 	        ipn.opportunity__c = oppId;
@@ -626,10 +624,10 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 	
 			// set payment status to correct thing
 			if (result.success) {
-				payment.pmtStatus = (payment.action == OnlinePayment.PaymentAction.AUTHORIZE) ? 
-					 OnlinePayment.PaymentStatus.AUTHORIZED : OnlinePayment.PaymentStatus.COMPLETED;
+				payment.pmtStatus = (payment.action == PaymentAction.AUTHORIZE) ? 
+					 PaymentStatus.AUTHORIZED : PaymentStatus.COMPLETED;
 			} else {
-				payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
+				payment.pmtStatus = PaymentStatus.FAILED;
 			}	
 			
 			if (result.success) {

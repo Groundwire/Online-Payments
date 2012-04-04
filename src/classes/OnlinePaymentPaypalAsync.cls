@@ -17,7 +17,7 @@ global virtual class OnlinePaymentPaypalAsync implements Database.Batchable<SObj
          		'gwop__Payer_ID__c, gwop__Payment_Amount__c, gwop__Payment_Status__c, gwop__Request__c from gwop__Payment_Notification__c ' + 
        			'WHERE gwop__IsProcessed__c = false ' +
        			' AND gwop__Notification_Type__c = \'IPN / Silent Post\' ' +
-       			' AND gwop__Payment_Status__c != \'Error\' AND gwop__Payment_Status__c != \'Declined\' AND gwop__Payment_Status__c != \'Failed\' ' +
+       			' AND gwop__Payment_Status__c != \'Error\' AND gwop__Payment_Status__c != \'Declined\' AND gwop__Payment_Status__c != \'Failed\' AND gwop__Payment_Status__c != \'Void\' ' +
        			' ORDER BY gwop__transaction_type__c DESC';
        			// FOR UPDATE not needed (nor allowed) because locking is implied for each batch.
 	} 

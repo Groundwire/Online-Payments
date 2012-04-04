@@ -5,7 +5,7 @@
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
 ********************************************************************************************************/
 
-global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
+global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {  
 
 	/*
 	TODO: 
@@ -218,10 +218,10 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 			
 			// set payment status to correct thing
 			if (result.success) {
-				payment.pmtStatus = (payment.action == OnlinePayment.PaymentAction.AUTHORIZE) ? 
-					OnlinePayment.PaymentStatus.AUTHORIZED: OnlinePayment.PaymentStatus.COMPLETED;
+				payment.pmtStatus = (payment.action == PaymentAction.AUTHORIZE) ? 
+					PaymentStatus.AUTHORIZED: PaymentStatus.COMPLETED;
 			} else {
-				payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
+				payment.pmtStatus = PaymentStatus.FAILED;
 			}		
 				
 			if (result.success) {
@@ -392,10 +392,10 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 			
 			// set payment status to correct thing
 			if (result.success) {
-				payment.pmtStatus = (payment.action == OnlinePayment.PaymentAction.AUTHORIZE) ? 
-					OnlinePayment.PaymentStatus.AUTHORIZED: OnlinePayment.PaymentStatus.COMPLETED;
+				payment.pmtStatus = (payment.action == PaymentAction.AUTHORIZE) ? 
+					PaymentStatus.AUTHORIZED: PaymentStatus.COMPLETED;
 			} else {
-				payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
+				payment.pmtStatus = PaymentStatus.FAILED;
 			}		
 			
 			if (result.success) {
@@ -449,11 +449,9 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 			result = callPaypal( encoder.url );
 
 			// send result to salesforce
-			if (result.success) {
-				
-				// it is a paradox, but with void, success means you FAILED
-				payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
-				payment.action = PaymentAction.VOIDTXN;
+			payment.action = PaymentAction.VOIDTXN;
+			if (result.success) {	
+				payment.pmtStatus = PaymentStatus.VOIDED;
 				payment.txnId = result.params.get('AUTHORIZATIONID');	
 
 			    ClassFactory f = new ClassFactory();			
@@ -463,6 +461,8 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 			
 	            oppId = opmt.opportunityId;
 	            result.dbSuccess = true;
+			} else {
+				payment.pmtStatus = PaymentStatus.FAILED;
 			}		
 				
 		} catch (exception ex) {
@@ -512,9 +512,9 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 			result = callPaypal( encoder.url );
 				
 			// put Paypal data into payment object
+			payment.action = PaymentAction.REFUND; 
 			if (result.success) {
 				payment.pmtStatus = PaymentStatus.REVERSED;
-				payment.action = PaymentAction.REFUND; 
 				payment.parentTxnId = payment.txnId; 
 				payment.txnId = result.params.get('REFUNDTRANSACTIONID');
 
@@ -525,6 +525,8 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 		        opmt.processSinglePayment();
 	            oppId = opmt.opportunityId;   
 	            result.dbSuccess = true;
+			} else {
+				payment.pmtStatus = PaymentStatus.FAILED;
 			}		
 				
 		} catch (exception ex) {

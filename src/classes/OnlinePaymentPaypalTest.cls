@@ -6,7 +6,7 @@
 ********************************************************************************************************/
 
 @istest
-global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {
+global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal { 
 
 	public static string testName;
 
@@ -210,6 +210,7 @@ global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {
             from Payment_Notification__c where Transaction_Id__c = '0CN71292R76361617'];
         system.debug(listPn);
         system.assertEquals(1, listPn.size());
+		system.assertEquals('Void', listPn[0].Payment_Status__c);
         system.assertEquals(true, listPn[0].IsProcessed__c); 
     }
     
@@ -227,6 +228,7 @@ global with sharing class OnlinePaymentPaypalTest extends OnlinePaymentPaypal {
             from Payment_Notification__c where Transaction_Id__c =: '0CN71292R76361617'];
         system.debug(listPn);
         system.assertEquals(1, listPn.size());
+		system.assertEquals('Reversed', listPn[0].Payment_Status__c);
         system.assertEquals(true, listPn[0].IsProcessed__c); 
     }
 

@@ -6,7 +6,7 @@
 ********************************************************************************************************/
 
 @istest
-global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet { 
+global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet {    
 
     public static string testName;  
 
@@ -195,6 +195,7 @@ global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet 
             from Payment_Notification__c where Transaction_Id__c = '8811881188'];
         system.debug(listPn);
         system.assertEquals(1, listPn.size());
+        system.assertEquals('Void', listPn[0].Payment_Status__c);
         system.assertEquals(true, listPn[0].IsProcessed__c); 
     }
     
@@ -213,6 +214,7 @@ global with sharing class OnlinePaymentAuthnetTest extends OnlinePaymentAuthnet 
             from Payment_Notification__c where Transaction_Id__c = '9911991199'];
         system.debug(listPn);
         system.assertEquals(1, listPn.size());
+        system.assertEquals('Reversed', listPn[0].Payment_Status__c);
         system.assertEquals(true, listPn[0].IsProcessed__c); 
     }
     

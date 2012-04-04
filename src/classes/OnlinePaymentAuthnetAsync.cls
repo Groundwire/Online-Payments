@@ -5,7 +5,7 @@
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
 ********************************************************************************************************/
 
-global class OnlinePaymentAuthnetAsync implements Database.Batchable<SObject>, Database.Stateful, Schedulable { 
+global class OnlinePaymentAuthnetAsync implements Database.Batchable<SObject>, Database.Stateful, Schedulable {  
 
     global String query { get; set; }
 
@@ -37,7 +37,7 @@ global class OnlinePaymentAuthnetAsync implements Database.Batchable<SObject>, D
                     ' gwop__Payer_ID__c, gwop__Payment_Amount__c, gwop__Payment_Status__c, gwop__Request__c from gwop__Payment_Notification__c ' + 
                     ' WHERE gwop__IsProcessed__c = false AND gwop__IsTest__c = false AND gwop__transaction_type__c != null ' +
 	       			' AND gwop__Notification_Type__c = \'IPN / Silent Post\' ' +
-                    ' AND gwop__Payment_Status__c != \'Error\' AND gwop__Payment_Status__c != \'Declined\' AND gwop__Payment_Status__c != \'Failed\' ' +
+                    ' AND gwop__Payment_Status__c != \'Error\' AND gwop__Payment_Status__c != \'Declined\' AND gwop__Payment_Status__c != \'Failed\' AND gwop__Payment_Status__c != \'Void\' ' +
                     ' ORDER BY gwop__transaction_type__c DESC '        
             );
             id batchinstanceid = database.executeBatch (batch, 10);

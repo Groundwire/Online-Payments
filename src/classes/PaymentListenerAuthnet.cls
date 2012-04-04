@@ -31,7 +31,7 @@
 *  call back to authnet for more information (such as subscription params)
 ********************************************************************************************************/
 
-global virtual class PaymentListenerAuthnet {
+global virtual class PaymentListenerAuthnet {  
 
     // settings object 
     public OnlinePaymentSettings__c opSettings;
@@ -254,7 +254,7 @@ global virtual class PaymentListenerAuthnet {
                 (paymentStatus == 'Approved') ? ( 
                     (txnType == 'AUTH_ONLY') ? OnlinePayment.PaymentStatus.AUTHORIZED : 
                     (txnType == 'CREDIT') ? OnlinePayment.PaymentStatus.REVERSED : 
-                    (txnType == 'VOID') ? OnlinePayment.PaymentStatus.FAILED :
+                    (txnType == 'VOID') ? OnlinePayment.PaymentStatus.VOIDED :
                     OnlinePayment.PaymentStatus.COMPLETED) :
                 (paymentStatus == 'Held for Review') ? OnlinePayment.PaymentStatus.PENDING :
                 (paymentStatus == 'Declined' || paymentStatus == 'Error') ? 

@@ -5,7 +5,7 @@
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
 ********************************************************************************************************/
 
-global with sharing virtual class PaymentPageController {
+global with sharing virtual class PaymentPageController { 
 
     // properties
     global list<SelectOption> configOptions { get; private set; }
