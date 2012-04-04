@@ -364,82 +364,97 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		XMLEncoder encoder;
 		string refundTxnId;
 		id oppId;
-		boolean fVoidedInstead = false; 
 
+		// query the original payment in order to make sure it is already settled
+		string qStatus;
+		string qAmount;	
 		try {
-			// build the URL
-			encoder = getEncoder('createTransactionRequest');
-	
-			// top section
-			encoder.openGroup('transactionRequest');
-			encoder.addElement('transactionType', 'refundTransaction');
-
-			if (payment.totalAmount != null)
-				encoder.addElement('amount', payment.totalAmount);		// amount is optional - use for partial refund
-			encoder.openGroup('payment');
-			encoder.openGroup('creditCard');
-			encoder.addElement('cardNumber', card.acctNumber);			// last 4 digits of credit card are required
-			if (card.expMonth != null && card.expYear != null)			// expiration date is required
-				encoder.addElement('expirationDate', ((card.expMonth.length()==1) ? '0' : '') + card.expMonth + 
-					((card.expYear.length()==2) ? '20' : '') + card.expYear);
-			encoder.closeGroup();
-			encoder.closeGroup();
-			encoder.addElement('refTransId', payment.txnId);			// transaction id of payment to be refunded
-
-			encoder.openGroup('transactionSettings');
-			encoder.openGroup('setting');
-			encoder.addElement('settingName', 'testRequest');
-			encoder.addElement('settingValue', (testRequest) ? 'true' : 'false');
-			encoder.closeGroup();
-			encoder.openGroup('setting');
-			encoder.addElement('settingName', 'emailCustomer');
-			encoder.addElement('settingValue', (emailCustomer) ? 'true' : 'false');
-			encoder.closeGroup();
-			encoder.closeGroup(); 
-			
-			// make the call
-			result = callAuthnet( encoder.xml );
-			
-			// retrieve the new txnId
-			if (result.success) {
-				payment.parentTxnId = payment.txnId;
-				
+			result = getTransactionDetails( payment.txnId );
+			if (result.success) {				
 				XMLDecoder decoder = new XMLDecoder( result.responseText );
-				if ( decoder.openGroup('transactionResponse') )
-					payment.txnId = decoder.getElement('transId');
-
-				payment.action = PaymentAction.REFUND;
-				payment.pmtStatus = PaymentStatus.REVERSED;
-					
-				// send result to salesforce
-			    ClassFactory f = new ClassFactory();
-			
-			    PaymentToSalesforce opmt = f.makePaymentToSalesforce();                                                 
-		        opmt.payment = payment;
-		        opmt.processSinglePayment();
-			
-	            oppId = opmt.opportunityId;   
-	            result.dbSuccess = true;
-			} else {		
-				// if transaction was not yet settled and a specific amount was not specified, we should do a void instead
-				if (result.errorMessage.contains('The referenced transaction does not meet the criteria for issuing a credit.') &&
-						payment.totalAmount == null) {
-					result = VoidTransaction( payment.txnId, true );
-					fVoidedInstead = true;
-				} else {
-					payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
+				if ( decoder.openGroup('transaction') ) {
+					qStatus = decoder.getElement('transactionStatus');
+					qAmount = decoder.getElement('settleAmount');
 				}
-			}		
-		} catch (exception ex) {
-			result.success = false;
-			result.errorMessage = ex.getMessage();
-			result.errorStackTrace = ex.getStackTraceString();
-			result.errorLineNumber = ex.getLineNumber();	
-			// fall thru to log the ipn, and return the result object.		
-		}	
+				// if we managed to get the amount and we need it for the refund, fill it in
+				if (payment.totalAmount == null) 
+					payment.totalAmount = decimal.valueOf(qAmount);
+			}
+		} catch (exception ex) { }
 		
-		// log the result
-		if (!fVoidedInstead) {
+		// if the transaction is not yet settled, and the refund is for the full amount, perform a void instead
+		if ( qStatus != null && qStatus.toLowerCase().contains('pending') && 
+			qAmount != null && decimal.valueOf(qAmount) == payment.totalAmount ) { 
+
+			result = VoidTransaction( payment.txnId, true );
+		} else {
+			
+			try {
+				// build the URL
+				encoder = getEncoder('createTransactionRequest');
+		
+				// top section
+				encoder.openGroup('transactionRequest');
+				encoder.addElement('transactionType', 'refundTransaction');
+	
+				if (payment.totalAmount != null)
+					encoder.addElement('amount', payment.totalAmount);		// amount is required
+				encoder.openGroup('payment');
+				encoder.openGroup('creditCard');
+				encoder.addElement('cardNumber', card.acctNumber);			// last 4 digits of credit card are required
+				if (card.expMonth != null && card.expYear != null)			// expiration date is required
+					encoder.addElement('expirationDate', ((card.expMonth.length()==1) ? '0' : '') + card.expMonth + 
+						((card.expYear.length()==2) ? '20' : '') + card.expYear);
+				encoder.closeGroup();
+				encoder.closeGroup();
+				encoder.addElement('refTransId', payment.txnId);			// transaction id of payment to be refunded
+	
+				encoder.openGroup('transactionSettings');
+				encoder.openGroup('setting');
+				encoder.addElement('settingName', 'testRequest');
+				encoder.addElement('settingValue', (testRequest) ? 'true' : 'false');
+				encoder.closeGroup();
+				encoder.openGroup('setting');
+				encoder.addElement('settingName', 'emailCustomer');
+				encoder.addElement('settingValue', (emailCustomer) ? 'true' : 'false');
+				encoder.closeGroup();
+				encoder.closeGroup(); 
+				
+				// make the call
+				result = callAuthnet( encoder.xml );
+				
+				// retrieve the new txnId
+				if (result.success) {
+					payment.parentTxnId = payment.txnId;
+					
+					XMLDecoder decoder = new XMLDecoder( result.responseText );
+					if ( decoder.openGroup('transactionResponse') )
+						payment.txnId = decoder.getElement('transId');
+	
+					payment.action = PaymentAction.REFUND;
+					payment.pmtStatus = PaymentStatus.REVERSED;
+						
+					// send result to salesforce
+				    ClassFactory f = new ClassFactory();
+				
+				    PaymentToSalesforce opmt = f.makePaymentToSalesforce();                                                 
+			        opmt.payment = payment;
+			        opmt.processSinglePayment();
+				
+		            oppId = opmt.opportunityId;   
+		            result.dbSuccess = true;
+				} else {		
+					payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
+				}		
+			} catch (exception ex) {
+				result.success = false;
+				result.errorMessage = ex.getMessage();
+				result.errorStackTrace = ex.getStackTraceString();
+				result.errorLineNumber = ex.getLineNumber();	
+				// fall thru to log the ipn, and return the result object.		
+			}	
+			
+			// log the result
 			payment.pmtProcessor = Processor.AUTHNET;			
 			Payment_Notification__c ipn = logNotification(null, payment, 'Apex Payment Callout', payment.action, 
 				encoder == null ? null : strXmlScrub(encoder.xml), 
