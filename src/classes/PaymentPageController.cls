@@ -180,7 +180,7 @@ global with sharing virtual class PaymentPageController {
         
         //if the Payment Page is associated with a Campaign, add that to the custom string
         if (paymentPage != null && paymentPage.Campaign__c != null) {
-        	payment.custom = '{"opportunity": {"CampaignId": ' + JSON.serialize(paymentPage.Campaign__c) + '}}';
+        	payment.CampaignId = paymentPage.Campaign__c;
         }
         
         //call the method to build the itemlist
