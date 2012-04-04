@@ -1,9 +1,12 @@
 <apex:page controller="PaymentPageController" title="{!IF(ISNULL(paymentPage),'Donate',paymentPage.Page_Title__c)}" showHeader="false" standardStylesheets="false" id="pg" >
     <apex:stylesheet value="{!URLFOR($Resource.OnlinePaymentResources, 'bootstrap/css/bootstrap.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.OnlinePaymentResources, 'bootstrap/css/datepicker.css')}" />
     <apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery.js')}" />
+    <apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/json2.js')}" />
     <apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'js/jquery.validate.js')}" />
     <apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'bootstrap/js/bootstrap.js')}" />
-
+    <apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'bootstrap/js/bootstrap-datepicker.js')}" />
+    
     <style type="text/css">
         table.spaceRight label { margin-right:10px; }
         .helptext { font-size: 95%; }
@@ -43,6 +46,8 @@
         var j$ = jQuery.noConflict(); 
     
         var validator;
+        
+        var customData = {};
         
         j$().ready(function() {
             validator = j$("form.validate").validate( {
@@ -89,6 +94,25 @@
                 if (validator.form()) {
                     j$("#overlay").show();
                     j$("#modal").show();
+                    
+                    //find all of the custom fields on the page and stuff them into the custom field 
+					j$('input[data-sffield],select[data-sffield],textarea[data-sffield]').each( function(){  
+					 	var objectName = j$(this).attr('data-sfobject');
+					 	var fieldName = j$(this).attr('data-sffield');
+					 	
+					 	if (customData[objectName]==undefined && objectName != undefined) {
+					 		customData[objectName] = {};
+					 	} 
+					 	
+					 	if (objectName == undefined) {
+					 		customData[fieldName] = j$(this).val();
+					 	} else {
+					 		customData[objectName][fieldName] = j$(this).val();				 	
+					 	}
+					}); 
+					 
+					j$('input[id$="hiddenCustom"]').val(JSON.stringify(customData));
+                    
                     return true;
                 } else {
                     return false;
@@ -117,6 +141,8 @@
                     j$('input[id$="payerState"]').val(j$(this).val());
                 }
             }); 
+            
+            j$('#datepicker').datepicker();
             
             j$('#modal-from-dom').modal({
                 keyboard: true,
@@ -152,7 +178,9 @@
     </apex:outputPanel>
 
     <apex:form styleclass="validate form-horizontal" forceSSL="true" rendered="{!NOT(success)}">
-
+		
+		<apex:inputHidden value="{!payment.custom}" id="hiddenCustom" />
+		
         <apex:outputText value="{!paymentPage.Form_Prologue__c}" escape="false" rendered="{!NOT(ISNULL(paymentPage))}" />
     
         <hr />
