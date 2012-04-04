@@ -131,7 +131,7 @@ The Custom Payment Pages within the Groundwire Online Payments package does not 
 4. All new custom fields require two custom attributes on the input, textarea, or select component. The page is styled using Twitter Bootstrap, example markup can be found here: <http://twitter.github.com/bootstrap/base-css.html>
 5. Checkbox example:
 
- 	   <div class="control-group">
+ 	   ```<div class="control-group">
 	   		<label class="control-label" for="input01">Text input</label>
 	        <div class="controls">
 	           	<label class="checkbox">
@@ -139,11 +139,11 @@ The Custom Payment Pages within the Groundwire Online Payments package does not 
 	           		I wish to make this donation anonymously
 				</label>
 	        </div>
-	   </div>>
+	   </div>```
 
 6. SelectList (picklist) example:
 
-	   <div class="control-group">
+	   ```<div class="control-group">
 	    	<label class="control-label" for="select01">Select list</label>
 	        <div class="controls">
 	        	<select data-sfobject="Opportunity" data-sffield="MyPicklist__c" id="select01">
@@ -154,6 +154,6 @@ The Custom Payment Pages within the Groundwire Online Payments package does not 
 	                <option>5</option>
 	            </select>
 	        </div>
-	   </div>
+	   </div>```
 
 7. You can even use Payment Pages content sections with this custom page with custom fields.  In order to use your custom page you will need to append the page's Salesforce Id to the querystring of the payment page. From the record of the payment page, copy the 15 digit URL that represents the Salesforce id of that record. The final URL will look something like https://MY-SALESFORCE-SITE-URL.COM/YOURUNMANAGEDPAGENAME?pageid=YOUR-PAYMENT-PAGE-ID . To get your site URL, navigate to your Site record and copy the Secure Web Address. Be sure to use the Page Name and not the Page Label in the URL of the Visualforce page
