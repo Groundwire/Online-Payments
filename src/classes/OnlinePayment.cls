@@ -278,8 +278,9 @@ global virtual class OnlinePayment {
         global id contactId { get; set; }
         global id accountId { get; set; }
     
-        // after a successful call to one of the methods, this will be set to the associated opportunity
+        // after a successful call to one of the methods, this will be set to the associated opportunity, and associate that opp with a campaign
         global id opportunityId { get; set; }
+        global id campaignId { get; set; }      
     
         // we will either find or create one or both of these before creating opps
         global contact payerContact { get; private set; }
