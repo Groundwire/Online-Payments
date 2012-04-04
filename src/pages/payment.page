@@ -10,12 +10,7 @@
     <style type="text/css">
         table.spaceRight label { margin-right:10px; }
         .helptext { font-size: 95%; }
-        .wrapper { 
-            width: 600px;
-            white-space: pre-wrap;
-            white-space: -moz-pre-wrap;
-            word-wrap: break-word;
-        }
+        
         input.invalid { border: 2px solid red; }
         label.invalid { border: 0px; float: none; color: red; padding-left: .5em; vertical-align: middle; font-style:italic; white-space: nowrap; }
 		
@@ -24,6 +19,7 @@
 			}
 		
 		fieldset legend {
+			width: auto;
 			display: block;
 			padding-left: 150px;
 			font-size: 19.5px;
