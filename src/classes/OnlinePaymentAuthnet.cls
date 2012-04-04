@@ -364,6 +364,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		XMLEncoder encoder;
 		string refundTxnId;
 		id oppId;
+		boolean fVoidedInstead = false; 
 
 		try {
 			// build the URL
@@ -419,8 +420,15 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 			
 	            oppId = opmt.opportunityId;   
 	            result.dbSuccess = true;
-			} else {
-				payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
+			} else {		
+				// if transaction was not yet settled and a specific amount was not specified, we should do a void instead
+				if (result.errorMessage.contains('The referenced transaction does not meet the criteria for issuing a credit.') &&
+						payment.totalAmount == null) {
+					result = VoidTransaction( payment.txnId, true );
+					fVoidedInstead = true;
+				} else {
+					payment.pmtStatus = OnlinePayment.PaymentStatus.FAILED;
+				}
 			}		
 		} catch (exception ex) {
 			result.success = false;
@@ -431,14 +439,16 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		}	
 		
 		// log the result
-		payment.pmtProcessor = Processor.AUTHNET;			
-		Payment_Notification__c ipn = logNotification(null, payment, 'Apex Payment Callout', payment.action, 
-			encoder == null ? null : strXmlScrub(encoder.xml), 
-			result.responseText, false, false, result.errorMessage, false);	
-		ipn.Transaction_Type__c = 'Authnet RefundTransaction()';
-        ipn.isProcessed__c = result.dbSuccess == null ? false : result.dbSuccess;  
-        ipn.opportunity__c = oppId;
-		insert ipn;
+		if (!fVoidedInstead) {
+			payment.pmtProcessor = Processor.AUTHNET;			
+			Payment_Notification__c ipn = logNotification(null, payment, 'Apex Payment Callout', payment.action, 
+				encoder == null ? null : strXmlScrub(encoder.xml), 
+				result.responseText, false, false, result.errorMessage, false);	
+			ipn.Transaction_Type__c = 'Authnet RefundTransaction()';
+	        ipn.isProcessed__c = result.dbSuccess == null ? false : result.dbSuccess;  
+	        ipn.opportunity__c = oppId;
+			insert ipn;
+		}
 		return result;
 	}
 
