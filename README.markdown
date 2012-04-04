@@ -111,11 +111,45 @@ Configuring Online Payments with Salesforce Sites
 6. Still from the Site record, click on Public Access Settings.  In the section called Field Level Security, under Payment Pages, click the View button and then Edit.  Make sure all fields are marked as Visible. Do the same for Payment Notification. DO NOT do this for Payment Processors. Click the Edit button in the Public Access Settings, and scroll down to Standard Object Permissions.  For Accounts, Contacts and Opportunities, allow Read and Create.  In Custom Object Permissions enable Read, Create, Edit, Delete on Payment Notifications and Payment Pages. Still in the Public Access Settings, click the edit button on Enabled Apex Class Access and enable all classes marked with the prefix gwop.
 7. To test to see if your site works, go to the Site record, copy the URL of the Secure Web Address, paste it into a browser and add payment to the URL. For example - https://gwop-developer-edition.na12.force.com/payment - this should bring up the basic payment page.
 
-Creating Custom Payment Pages
------------------------------
+Creating Custom Payment Pages (No Custom Fields)
+------------------------------------------------
 The Payment Pages feature allows administrators to create multiple versions of payment pages that are all based on one basic payment page template.  Administrators can create as many versions of the page as they please and each can be customized to have custom text on the header of the payment page, the prologue text before the form, the epilogue text after the form, the thank you header, thank you body text, submit button text, and the linked campaign or item that's being purchased on each page.  To create a custom payment page:
 
 1. Select Online Payments from the application drop-down menu on the top right of the screen.
 2. Click on the Payment Pages tab and then the New button.
 3. Enter in your custom content, amount options, related campaign, item name etc. and click Save.  
 4. Brief explanation, the Groundwire Online Payments package alone will do nothing to create opportunities, but if you are configuring this for a Groundwire Base client and have the Groundwire Base Online Payments Extension installed, you can use the Campaign field to relate Opportunities from a particular payment page to a Campaign and Item Name to indicate a Record Type of Opportunities from that Payment Page.
+5. In order to use your custom page you will need to append the page's Salesforce Id to the querystring of the payment page. From the record of the payment page, copy the 15 digit URL that represents the Salesforce id of that record. The final URL will look something like https://MY-SALESFORCE-SITE-URL.COM/payment?pageid=YOUR-PAYMENT-PAGE-ID . To get your site URL, navigate to your Site record and copy the Secure Web Address
+
+Creating Custom Payment Pages (With Custom Fields)
+--------------------------------------------------
+The Custom Payment Pages within the Groundwire Online Payments package does not support adding custom fields because you cannot edit Visualforce pages within a managed package.  However, the page has been designed with extensibility in mind and an unmanaged version of the same page can be slightly modified to support adding custom fields without needing to extend the payment page's controller.  
+
+1. To add custom fields, the first thing you will need to do is copy the supplied payment Visualforce page.  Go To Setup > App Setup > Develop > Pages and click on the page called payment.  Copy the page in its entirety to your clipboard.
+2. The next step is to create your own new Visualforce page. Go To Setup > App Setup > Develop > Pages and click on the New button.  Choose an appropriate name for your new page and paste the contents of your clipboard into Visualforce Markup area and click Save.
+3. We support adding any type of new custom field except multi-select and lookup. Checkboxes, text fields, long text, date fields, and picklists are all supported.  
+4. All new custom fields require two custom attributes on the input, textarea, or select component. The page is styled using Twitter Bootstrap, example markup can be found here: <http://twitter.github.com/bootstrap/base-css.html>
+5. Checkbox example:
+ 	   <<div class="control-group">
+	   		<label class="control-label" for="input01">Text input</label>
+	        <div class="controls">
+	           	<label class="checkbox">
+					<input type="checkbox" data-sfobject="Contact" data-sffield="Anonymous__c" class="input-xlarge" id="input01">
+	           		I wish to make this donation anonymously
+				</label>
+	        </div>
+	   	</div>>
+6. SelectList (picklist) example:
+	   <<div class="control-group">
+	    	<label class="control-label" for="select01">Select list</label>
+	        <div class="controls">
+	        	<select data-sfobject="Opportunity" data-sffield="MyPicklist__c" id="select01">
+	                <option>something</option>
+	                <option>2</option>
+	                <option>3</option>
+	                <option>4</option>
+	                <option>5</option>
+	            </select>
+	        </div>
+	    </div>>
+7. You can even use Payment Pages content sections with this custom page with custom fields.  In order to use your custom page you will need to append the page's Salesforce Id to the querystring of the payment page. From the record of the payment page, copy the 15 digit URL that represents the Salesforce id of that record. The final URL will look something like https://MY-SALESFORCE-SITE-URL.COM/YOURUNMANAGEDPAGENAME?pageid=YOUR-PAYMENT-PAGE-ID . To get your site URL, navigate to your Site record and copy the Secure Web Address. Be sure to use the Page Name and not the Page Label in the URL of the Visualforce page
