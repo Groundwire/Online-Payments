@@ -34,6 +34,7 @@
     </actionOverrides>
     <deploymentStatus>Deployed</deploymentStatus>
     <enableActivities>false</enableActivities>
+    <enableEnhancedLookup>false</enableEnhancedLookup>
     <enableFeeds>false</enableFeeds>
     <enableHistory>false</enableHistory>
     <enableReports>false</enableReports>
@@ -58,6 +59,14 @@
         <relationshipName>Payment_Pages</relationshipName>
         <required>false</required>
         <type>Lookup</type>
+    </fields>
+    <fields>
+        <fullName>Custom_Fields__c</fullName>
+        <externalId>false</externalId>
+        <label>Custom Fields</label>
+        <length>32768</length>
+        <type>LongTextArea</type>
+        <visibleLines>20</visibleLines>
     </fields>
     <fields>
         <fullName>Form_Epilogue__c</fullName>

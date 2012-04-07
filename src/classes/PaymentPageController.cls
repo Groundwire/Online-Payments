@@ -92,7 +92,7 @@ global with sharing virtual class PaymentPageController {
 		        //if a payment page has been specified, query for it to use that content on the page
 		        string pageId = params.get('pageid');
 		        if (pageId != null) {
-		        	paymentPage = [SELECT Form_Prologue__c, Page_Title__c, Submit_Button_Text__c, Form_Header__c, Amount_Options__c, Campaign__c,
+		        	paymentPage = [SELECT Form_Prologue__c, Page_Title__c, Submit_Button_Text__c, Form_Header__c, Amount_Options__c, Campaign__c, Custom_Fields__c,
 		        					Form_Epilogue__c, Item_Name__c, Thank_You_Header__c, Thank_You_Body_Text__c, Include_Recurring_Payment_Option__c 
 		        					FROM Payment_Page__c WHERE id = :pageId LIMIT 1];	
 	        	}

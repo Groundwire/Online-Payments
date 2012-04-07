@@ -7,6 +7,12 @@
     <apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'bootstrap/js/bootstrap.js')}" />
     <apex:includescript value="{!URLFOR($Resource.OnlinePaymentResources, 'bootstrap/js/bootstrap-datepicker.js')}" />
     
+    <script type="text/template" id="customFields">
+		<div class="custom">
+			{!IF(ISNULL(paymentPage),'',paymentPage.Custom_Fields__c)}
+		</div>
+	</script>
+    
     <style type="text/css">
         table.spaceRight label { margin-right:10px; }
         .helptext { font-size: 95%; }
@@ -46,6 +52,45 @@
         var customData = {};
         
         j$().ready(function() {
+        	
+        	// Custom fields
+        	var customFields = j$('#customFields');
+        	if (customFields.html() != '') {
+        		
+        		var fields;
+        		
+        		fields = j$(customFields.html()).find('.control-group');
+        		
+        		fields.each(function () {
+        			
+        			var obj, insert_before, parent_form,
+        				insert_after, sibling_id, sibling;
+        			
+        			obj = j$(this);
+        			parent_form = j$('form[id$="paymentForm"]');
+        			insert_after = obj.attr('data-insert_after');
+        			insert_before = obj.attr('data-insert_before');
+        			
+        			if (insert_after != undefined && insert_after != '') {
+        				sibling_id = insert_after;
+        			} else if (insert_before != undefined && insert_before != '') {
+        				sibling_id = insert_before;
+        			}
+        			
+        			sibling = parent_form.find('*[id$="'+sibling_id+'"]').closest('.control-group');
+        			
+        			if (sibling.length) {
+	        			if (insert_after == sibling_id) {
+	        				sibling.after(obj);
+	        			} else if (insert_before == sibling_id) {
+	        				sibling.before(obj);
+	        			}
+        			}
+        			
+        		});
+        		
+        	}
+        
             validator = j$("form.validate").validate( {
                 errorClass: "invalid"
             } );
@@ -113,6 +158,7 @@
                 } else {
                     return false;
                 }
+                
             });
             
             j$('#inputAmount').focus( function(){
@@ -173,7 +219,7 @@
 	    <apex:outputText value="{!paymentPage.Thank_You_Body_Text__c}" escape="false" rendered="{!NOT(ISNULL(paymentPage))}" />
     </apex:outputPanel>
 
-    <apex:form styleclass="validate form-horizontal" forceSSL="true" rendered="{!NOT(success)}">
+    <apex:form id="paymentForm" styleclass="validate form-horizontal" forceSSL="true" rendered="{!NOT(success)}">
 		
 		<apex:inputHidden value="{!payment.custom}" id="hiddenCustom" />
 		
@@ -426,7 +472,7 @@
         </div>
        	
        	<div class="form-actions">
-			<apex:commandButton value="{!IF(ISNULL(paymentPage),'Donate',paymentPage.Submit_Button_Text__c)}" action="{!submitToPaymentProcessor}" styleclass="btn btn-large btn-primary" />
+			<apex:commandButton value="{!IF(ISNULL(paymentPage),'Donate',paymentPage.Submit_Button_Text__c)}" id="submit" action="{!submitToPaymentProcessor}" styleclass="btn btn-large btn-primary" />
        	</div>
        
         <apex:outputText value="{!paymentPage.Form_Epilogue__c}" escape="false" rendered="{!NOT(ISNULL(paymentPage))}" />
