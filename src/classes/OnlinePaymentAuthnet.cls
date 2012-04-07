@@ -274,6 +274,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		        opmt.processSinglePayment();
 				oppId = opmt.opportunityId;
 		        result.dbSuccess = true;                    
+		        result.errorMessage = matchResultString( opmt.payerMatchResult );    // not really an error message, but it works               
 			}
 		} catch (exception ex) {
 			result.errorMessage = ex.getMessage();
@@ -331,6 +332,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 				
 		            oppId = opmt.opportunityId;
 		            result.dbSuccess = true;
+			        result.errorMessage = matchResultString( opmt.payerMatchResult );    // not really an error message, but it works               
 				}
 			} else {
 				payment.pmtStatus = PaymentStatus.FAILED;
@@ -441,6 +443,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 				
 		            oppId = opmt.opportunityId;   
 		            result.dbSuccess = true;
+			        result.errorMessage = matchResultString( opmt.payerMatchResult );    // not really an error message, but it works               
 				} else {
 					payment.pmtStatus = PaymentStatus.FAILED;
 				}		
@@ -641,6 +644,7 @@ global virtual with sharing class OnlinePaymentAuthnet extends OnlinePayment {
 		        opmt.startRecurringPayments();
 	            oppId = opmt.opportunityId;   
 	            result.dbSuccess = true;                 
+		        result.errorMessage = matchResultString( opmt.payerMatchResult );    // not really an error message, but it works               
 			}
 		} catch (exception ex) {
 			result.errorMessage = ex.getMessage();

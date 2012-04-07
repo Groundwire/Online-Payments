@@ -236,7 +236,8 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 				
 		        opmt.processSinglePayment();
 		        oppId = opmt.opportunityId;
-		        result.dbSuccess = true;                    
+		        result.dbSuccess = true; 
+		        result.errorMessage = matchResultString( opmt.payerMatchResult );    // not really an error message, but it works               
 			}
 		} catch (exception ex) {
 			result.errorMessage = ex.getMessage();
@@ -248,8 +249,8 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
         // log the ipn record
 		boolean isTest = auth.sandbox; 
 		Payment_Notification__c ipn = logNotification(payer, payment, 'Apex Payment Callout', payment.action, 
-			encoder == null ? null : strUrlScrub(encoder.url), 
-			baseResult.responseText, isTest, false, result.errorMessage, false);	
+			encoder == null ? null : strUrlScrub(encoder.url), baseResult.responseText, isTest, false, 
+			result.errorMessage, false);	
 		ipn.Transaction_Type__c = 'Paypal DoDirectPayment()';
         ipn.isProcessed__c = result.dbSuccess == null ? false : result.dbSuccess;  
         ipn.opportunity__c = oppId;
@@ -265,7 +266,7 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 		// declare all variables before we do the try/catch, so we can access things afterwards.		
 		NVPEncoder encoder;
 		OnlineTxnResult baseResult = new OnlineTxnResult();
-		PaymentProfileResult result = new PaymentProfileResult(); 
+		PaymentProfileResult result = new PaymentProfileResult();
 		ID oppId;
 		
 		try {
@@ -411,6 +412,7 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 		        opmt.startRecurringPayments();
 		        oppId = opmt.opportunityId;                    
 				result.dbSuccess = true;		        
+		        result.errorMessage = matchResultString( opmt.payerMatchResult );    // not really an error message, but it works               
 			}
 		} catch (exception ex) {
 			result.errorMessage = ex.getMessage();
@@ -422,8 +424,8 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
         // log the ipn record
 		boolean isTest = auth.sandbox; 
 		Payment_Notification__c ipn = logNotification(payer, payment, 'Apex Payment Callout', payment.action, 
-			encoder == null ? null : strUrlScrub(encoder.url), 
-			baseResult.responseText, isTest, false, result.errorMessage, false);	
+			encoder == null ? null : strUrlScrub(encoder.url), baseResult.responseText, isTest, false, 
+			result.errorMessage, false);	
 		ipn.Transaction_Type__c = 'Paypal CreateRecurringPaymentsProfile()';
         ipn.isProcessed__c = result.dbSuccess == null ? false : result.dbSuccess;  
         ipn.opportunity__c = oppId;
@@ -461,6 +463,7 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 			
 	            oppId = opmt.opportunityId;
 	            result.dbSuccess = true;
+		        result.errorMessage = matchResultString( opmt.payerMatchResult );    // not really an error message, but it works               
 			} else {
 				payment.pmtStatus = PaymentStatus.FAILED;
 			}		
@@ -525,6 +528,7 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 		        opmt.processSinglePayment();
 	            oppId = opmt.opportunityId;   
 	            result.dbSuccess = true;
+		        result.errorMessage = matchResultString( opmt.payerMatchResult );    // not really an error message, but it works               
 			} else {
 				payment.pmtStatus = PaymentStatus.FAILED;
 			}		

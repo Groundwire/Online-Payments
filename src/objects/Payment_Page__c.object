@@ -33,12 +33,14 @@
         <type>Default</type>
     </actionOverrides>
     <deploymentStatus>Deployed</deploymentStatus>
+    <deprecated>false</deprecated>
     <enableActivities>false</enableActivities>
     <enableFeeds>false</enableFeeds>
     <enableHistory>false</enableHistory>
     <enableReports>false</enableReports>
     <fields>
         <fullName>Amount_Options__c</fullName>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>A radio button list of suggested amounts. This list should be separated by semicolons (e.g. 25;50;100;250;1000). A simple amount entry field will be displayed if amount options are not specified.</inlineHelpText>
         <label>Amount Options</label>
@@ -50,6 +52,7 @@
     <fields>
         <fullName>Campaign__c</fullName>
         <deleteConstraint>SetNull</deleteConstraint>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>Relate payments from this page to a particular campaign. NOTE: This is only possible if your processing class handles associating payments (like Opportunities) with a campaign, otherwise this field is ignored.</inlineHelpText>
         <label>Campaign</label>
@@ -61,6 +64,7 @@
     </fields>
     <fields>
         <fullName>Form_Epilogue__c</fullName>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>The epilogue text to your payment form. This text will show below the payment form on the page.</inlineHelpText>
         <label>Form Epilogue</label>
@@ -70,6 +74,7 @@
     </fields>
     <fields>
         <fullName>Form_Header__c</fullName>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>The form header is the header text at the top of the form in the body of the page, displayed in H1 style just preceding the Form Prologue text</inlineHelpText>
         <label>Form Header</label>
@@ -80,6 +85,7 @@
     </fields>
     <fields>
         <fullName>Form_Prologue__c</fullName>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>The prologue text to your payment form. This text will show above the payment form on the page.</inlineHelpText>
         <label>Form Prologue</label>
@@ -90,6 +96,7 @@
     <fields>
         <fullName>Include_Recurring_Payment_Option__c</fullName>
         <defaultValue>false</defaultValue>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>If checked, the page will display a checkbox field on the payment page to make the amount a monthly recurring payment.</inlineHelpText>
         <label>Include Recurring Payment Option</label>
@@ -97,6 +104,7 @@
     </fields>
     <fields>
         <fullName>Item_Name__c</fullName>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>The name of the item being purchased with this payment page. In the case of Groundwire Base, the Item Name is the Opportunity Record Type that is created</inlineHelpText>
         <label>Item Name</label>
@@ -107,6 +115,7 @@
     </fields>
     <fields>
         <fullName>Page_Title__c</fullName>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>The page title defines a title in the browser toolbar, provides a title for the page when it is added to favorites and displays a title for the page in search-engine results</inlineHelpText>
         <label>Page Title</label>
@@ -118,6 +127,7 @@
     <fields>
         <fullName>Submit_Button_Text__c</fullName>
         <defaultValue>&apos;Submit&apos;</defaultValue>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>Text displayed on the submit button of the payment page</inlineHelpText>
         <label>Submit Button Text</label>
@@ -128,6 +138,7 @@
     </fields>
     <fields>
         <fullName>Thank_You_Body_Text__c</fullName>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>The thank you text is displayed in paragraph format in the body of the page upon successful submit of a payment</inlineHelpText>
         <label>Thank You Body Text</label>
@@ -138,6 +149,7 @@
     <fields>
         <fullName>Thank_You_Header__c</fullName>
         <defaultValue>&apos;Thank You&apos;</defaultValue>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>The thank you header is the header text at the top of the form in the body of the page, displayed in H1 style upon successful submit of a payment</inlineHelpText>
         <label>Thank You Header</label>

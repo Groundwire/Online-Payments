@@ -446,7 +446,7 @@ global virtual class OnlinePayment {
             Response__c = response,
             IsTest__c = isTest,
             IsProcessed__c = processed,
-            Processing_Result__c = processingResult,   // either the match result if processed, or an error if not
+            Processing_Result__c = processingResult,
             opportunity__c = payment.opportunityId
         );
 
@@ -461,6 +461,15 @@ global virtual class OnlinePayment {
         } 
         return ipn;
     }
+
+	global static string matchResultString( MatchResult mr ) {
+		return ( 
+			(mr == MatchResult.TRANSACTION_MATCH) ? 'Transaction ID match' :
+			(mr == MatchResult.CONTACT_MATCH) ? 'Contact match' :
+			(mr == MatchResult.NEW_CONTACT) ? 'New contact created' : 
+			(mr == MatchResult.ACCOUNT_MATCH) ? 'Account match' : 
+			(mr == MatchResult.NEW_ACCOUNT) ? 'New account created' : null);
+	}
     
     global static string getRemoteHost() { 
         string ret = '127.0.0.1';

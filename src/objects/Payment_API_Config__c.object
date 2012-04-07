@@ -2,6 +2,7 @@
 <CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
     <customSettingsType>List</customSettingsType>
     <customSettingsVisibility>Protected</customSettingsVisibility>
+    <description>This setting is no longer used.  Please enter credentials on the Payment Processors tab.</description>
     <enableEnhancedLookup>false</enableEnhancedLookup>
     <enableFeeds>false</enableFeeds>
     <fields>
@@ -66,5 +67,5 @@
         <type>Text</type>
         <unique>false</unique>
     </fields>
-    <label>Payment API Config</label>
+    <label>Payment API Config - DEPRECATED</label>
 </CustomObject>

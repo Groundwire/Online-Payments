@@ -3,7 +3,11 @@
 // This program is free software; you can redistribute it and/or modify it under the terms of the 
 // GNU General Public License version 3 as published by the Free Software Foundation. http://www.gnu.org/licenses/gpl.html
 -->
-<apex:page controller="PaymentConfigController" title="Online Payments from Groundwire" showHeader="true" sidebar="true" id="pg" >
+<apex:page controller="PaymentConfigController" title="Online Payments from Groundwire" showHeader="true" sidebar="true" id="pg" action="{!redir}">
+
+This page is deprecated. To specify API credentials for payment processing, please use the Payment Processors tab.
+
+<!-- 
  <style>
  	table.spaceRight label { margin-right:10px; }
 	.narrow { width:60px; }
@@ -105,4 +109,5 @@
 	        </apex:pageBlockSection>
        </apex:pageBlock>
 </apex:form>
+ -->
 </apex:page>

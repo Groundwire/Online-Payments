@@ -7,6 +7,12 @@
 
 public with sharing class PaymentConfigController { 
 
+	public pageReference redir() {
+		return new pageReference('/a01');
+	}
+
+/* DEPRECATED
+
 	public Payment_API_Config__c config { get; set; }
 	public list<SelectOption> configOptions { get; private set; }	
 	public string selection { get; set; }
@@ -119,4 +125,5 @@ public with sharing class PaymentConfigController {
     	// make sure it is gone
     	system.assertEquals(cConfigs, pcc.configList.size());
     }
+*/
 }

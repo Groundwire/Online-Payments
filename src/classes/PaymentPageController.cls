@@ -74,17 +74,17 @@ global with sharing virtual class PaymentPageController {
 			if (ApexPages.currentPage() != null) {
 				map<string,string> params = ApexPages.currentPage().getParameters();
 				
-				whatToDo = params.get('action');  
-				txnId = params.get('txnid');
-				transactionName = params.get('title');
-				amountText = params.get('amount');
-				amountText2 = params.get('amount');
-				card.acctNumber = params.get('cc');
-				card.expMonth = params.get('month');
-				card.expYear = params.get('year');
-				card2.acctNumber = params.get('cc');
-				card2.expMonth = params.get('month');
-				card2.expYear = params.get('year');
+				whatToDo = (params.get('txnid') == '') ? null : params.get('action');  
+				txnId = (params.get('txnid') == '') ? null : params.get('txnid');
+				transactionName = (params.get('title') == '') ? null : params.get('title');
+				amountText = (params.get('amount') == '') ? null : params.get('amount');
+				amountText2 = (params.get('amount') == '') ? null : params.get('amount');
+				card.acctNumber = (params.get('cc') == '') ? null : params.get('cc');
+				card.expMonth = (params.get('month') == '') ? null : params.get('month');
+				card.expYear = (params.get('year') == '') ? null : params.get('year');
+				card2.acctNumber = (params.get('cc') == '') ? null : params.get('cc');
+				card2.expMonth = (params.get('month') == '') ? null : params.get('month');
+				card2.expYear = (params.get('year') == '') ? null : params.get('year');
 		        try {
 		            maxAmount = decimal.valueOf(amountText2.replaceAll('$', '').replaceAll(',', ''));
 		        } catch(exception ex) { }

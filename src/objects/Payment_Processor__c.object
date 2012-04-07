@@ -33,12 +33,14 @@
         <type>Default</type>
     </actionOverrides>
     <deploymentStatus>Deployed</deploymentStatus>
+    <deprecated>false</deprecated>
     <enableActivities>false</enableActivities>
     <enableFeeds>false</enableFeeds>
     <enableHistory>false</enableHistory>
     <enableReports>false</enableReports>
     <fields>
         <fullName>API_Login_Id__c</fullName>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>Authorize.Net only, required API Login Id</inlineHelpText>
         <label>API Login Id</label>
@@ -50,6 +52,7 @@
     </fields>
     <fields>
         <fullName>API_Password__c</fullName>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>Paypal only, required password</inlineHelpText>
         <label>API Password</label>
@@ -61,6 +64,7 @@
     </fields>
     <fields>
         <fullName>API_Signature__c</fullName>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>Paypal only, required signature</inlineHelpText>
         <label>API Signature</label>
@@ -72,6 +76,7 @@
     </fields>
     <fields>
         <fullName>API_Username__c</fullName>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>Paypal only, required username field</inlineHelpText>
         <label>API Username</label>
@@ -84,6 +89,7 @@
     <fields>
         <fullName>Default_Connection__c</fullName>
         <defaultValue>false</defaultValue>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>Check this box to use this payment processor connection by default when there are multiple connections available.</inlineHelpText>
         <label>Default Connection</label>
@@ -91,6 +97,7 @@
     </fields>
     <fields>
         <fullName>Payment_Processor__c</fullName>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>The payment gateway/processor to which these API credentials apply</inlineHelpText>
         <label>Payment Processor</label>
@@ -110,6 +117,7 @@
     <fields>
         <fullName>Sandbox__c</fullName>
         <defaultValue>false</defaultValue>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>Check this box for test accounts so they will log into the Sandbox URL for API access. If this option is not set properly, your API login will fail.</inlineHelpText>
         <label>Sandbox</label>
@@ -117,6 +125,7 @@
     </fields>
     <fields>
         <fullName>Transaction_Key__c</fullName>
+        <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>Authorize.Net only, required Transaction Key</inlineHelpText>
         <label>Transaction Key</label>
