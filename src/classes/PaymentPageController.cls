@@ -234,8 +234,9 @@ global with sharing virtual class PaymentPageController {
             }
             
             // display result
-            if (errorMsg == null)
-                apexPages.addmessage(new ApexPages.Message(ApexPages.Severity.INFO, 'Transaction successful.'));                
+            if (success)
+                apexPages.addmessage(new ApexPages.Message(ApexPages.Severity.INFO, 'Transaction successful.' + 
+                	((errorMsg == null) ? '' : (' ' + errorMsg))));
             else
                 apexPages.addmessage(new ApexPages.Message(ApexPages.Severity.ERROR, errorMsg));
 

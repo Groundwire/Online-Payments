@@ -5,7 +5,7 @@
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
 ********************************************************************************************************/
 
-public with sharing class ClassFactory { 
+public with sharing class ClassFactory {
 
     public PaymentToSalesforce makePaymentToSalesforce() {
 		//system.debug('makePaymentToSalesforce DJH');

@@ -132,11 +132,11 @@
 	</script>
 
   <apex:form styleclass="validate" >
-  <apex:sectionheader title="Online Payments from Groundwire" subtitle="Online Transaction Test Page" />
+  <apex:sectionheader title="Online Payment Terminal" />
         <apex:pageBlock >
             <apex:pageBlockButtons >
-                <apex:commandbutton value="Prefill PayPal" onclick="prefillPayPal();" />
-                <apex:commandbutton value="Prefill Authorize.Net" onclick="prefillAuthNet();" />
+                <input type="button" value="Prefill PayPal" onclick="prefillPayPal();" class="btn" />
+                <input type="button" value="Prefill Authorize.Net" onclick="prefillAuthNet();" class="btn" />
                 <apex:commandButton value="Submit" action="{!submitToPaymentProcessor}" styleclass="submitbtn" />
             </apex:pageBlockButtons>
             
@@ -164,7 +164,7 @@
 	     <apex:pageBlockSection columns="2" collapsible="false" >
 	     	<apex:pageBlockSectionItem >
 	      	<apex:outputLabel value="Payment Processor" />
-	          <apex:selectList value="{!selectedConfig}" >
+	          <apex:selectList value="{!selectedConfig}" size="4" >
 	          <apex:selectOptions value="{!configOptions}" />
 	         </apex:selectList>
 	      </apex:pageBlockSectionItem>

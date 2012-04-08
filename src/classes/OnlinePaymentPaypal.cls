@@ -5,7 +5,7 @@
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
 ********************************************************************************************************/
 
-global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {  
+global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment { 
 
 	/*
 	TODO: 
@@ -651,6 +651,7 @@ global virtual with sharing class OnlinePaymentPaypal extends OnlinePayment {
 	private string strUrlScrub(string strUrl) {
 		// strip out pwd and cc info from the url.		
 		strUrl = strUrl.replaceAll('&PWD=[a-zA-z0-9]*&', '&PWD=*****&');
+		strUrl = strUrl.replaceAll('&SIGNATURE=[a-zA-z0-9]*&', '&SIGNATURE=*****&');
 		strUrl = strUrl.replaceAll('&ACCT=[a-zA-z0-9]*&', '&ACCT=*****&');
 		strUrl = strUrl.replaceAll('&CVV2=[a-zA-z0-9]*&', '&CVV2=*****&');
 		return strUrl;

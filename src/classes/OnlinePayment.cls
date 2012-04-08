@@ -5,7 +5,7 @@
 * This program is released under the GNU Affero General Public License, Version 3. http://www.gnu.org/licenses/
 ********************************************************************************************************/
   
-global virtual class OnlinePayment {
+global virtual class OnlinePayment { 
 
     // store the auth once for all calls
     public APIAuthorization auth;       
@@ -464,11 +464,11 @@ global virtual class OnlinePayment {
 
 	global static string matchResultString( MatchResult mr ) {
 		return ( 
-			(mr == MatchResult.TRANSACTION_MATCH) ? 'Transaction ID match' :
-			(mr == MatchResult.CONTACT_MATCH) ? 'Contact match' :
-			(mr == MatchResult.NEW_CONTACT) ? 'New contact created' : 
-			(mr == MatchResult.ACCOUNT_MATCH) ? 'Account match' : 
-			(mr == MatchResult.NEW_ACCOUNT) ? 'New account created' : null);
+			(mr == MatchResult.TRANSACTION_MATCH) ? 'Transaction ID found.' :
+			(mr == MatchResult.CONTACT_MATCH) ? 'Contact matched.' :
+			(mr == MatchResult.NEW_CONTACT) ? 'New contact created.' : 
+			(mr == MatchResult.ACCOUNT_MATCH) ? 'Account matched.' : 
+			(mr == MatchResult.NEW_ACCOUNT) ? 'New account created.' : null);
 	}
     
     global static string getRemoteHost() { 
