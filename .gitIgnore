@@ -12,7 +12,6 @@ src/objects/Campaign.object
 src/objects/CampaignMember.object
 src/objects/Case.object
 src/objects/CaseContactRole.object
-src/objects/Contact.object
 src/objects/ContentVersion.object
 src/objects/Contract.object
 src/objects/ContractContactRole.object
@@ -20,7 +19,6 @@ src/objects/Event.object
 src/objects/Idea.object
 src/objects/JigsawSavedSearch.object
 src/objects/Lead.object
-src/objects/Opportunity.object
 src/objects/OpportunityContactRole.object
 src/objects/OpportunityLineItem.object
 src/objects/PartnerRole.object
