@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customSettingsType>Hierarchy</customSettingsType>
+    <customSettingsVisibility>Public</customSettingsVisibility>
+    <enableFeeds>false</enableFeeds>
+    <fields>
+        <fullName>Account_Fields_to_Overwrite__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>List of fields that you want to overwrite in matched accounts when they are provided in the online payment data.  Separate field names with semicolons (e.g. phone;address).</inlineHelpText>
+        <label>Account Fields to Overwrite</label>
+        <length>255</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Auth_Net_Page_Params_Always_Synchronous__c</fullName>
+        <defaultValue>&quot;terminal&quot;</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>Authorize.Net Page parameters like &apos;terminal&apos; to always process synchronously. This overrides Auth.Net TxnType setting</inlineHelpText>
+        <label>Auth.Net Page Params Always Synchronous</label>
+        <length>255</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Auth_Net_TxnType_to_Hold_Processing__c</fullName>
+        <defaultValue>&quot;prior_auth_capture;auth_only;void&quot;</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>Credit Card Transaction Types to hold for later processing (scheduled batch), semicolon delimited. Possible values include: auth_capture, auth_only, prior_auth_capture, credit, capture_only, unlinked_credit, void</inlineHelpText>
+        <label>Auth.Net TxnType to Hold Processing</label>
+        <length>255</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Company_Name_Indicates_Org_Payer__c</fullName>
+        <defaultValue>false</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>When looking for a matching payer where a company name is specified, selecting this option results in the organization owning the opportunity. If not selected, only opps with company name and NO contact name are attributed to the organization.</inlineHelpText>
+        <label>Company Name Indicates Org Payer</label>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>Contact_Fields_to_Overwrite__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>List of fields that you want to overwrite in matched contacts when they are provided in the online payment data.  Separate field names with semicolons (e.g. phone;address).</inlineHelpText>
+        <label>Contact Fields to Overwrite</label>
+        <length>255</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Create_Lost_Opps__c</fullName>
+        <defaultValue>false</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>If selected, closed lost opportunities will be created for new online payments that have a status of Failed.</inlineHelpText>
+        <label>Create Lost Opps</label>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>Create_Pending_Opps__c</fullName>
+        <defaultValue>true</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>If selected, open opportunity records will be created for payments that arrive with a status of Pending or Authorized.</inlineHelpText>
+        <label>Create Pending Opps</label>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>Default_Record_Type__c</fullName>
+        <defaultValue>&quot;Gift&quot;</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>Record type for online payment opportunities.  You can specify exceptions to this rule using the Item Record Types setting.</inlineHelpText>
+        <label>Default Record Type</label>
+        <length>100</length>
+        <required>true</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Delete_After_N_Months__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>Number of months after which payment notification logs should be automatically deleted.</inlineHelpText>
+        <label>Delete After N Months</label>
+        <precision>2</precision>
+        <required>false</required>
+        <scale>0</scale>
+        <type>Number</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Dont_Match_Contacts_by_Email__c</fullName>
+        <defaultValue>false</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>If this box is checked, the payment listener will skip dupchecking of contacts based on email &amp; name.  It will still match on payer ID.  Use this if dupchecking will be handled by an external app such as Dupeblocker.</inlineHelpText>
+        <label>Don&apos;t Match Contacts by Email</label>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>Home_Address_is_Other__c</fullName>
+        <defaultValue>true</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>If selected, contact addresses get stored in the Other address fields; if not, they go in the Mailing address fields.</inlineHelpText>
+        <label>Home Address is Other</label>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>Item_Record_Types__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>List of record types to use for specific item names from the online payment, in the form: ItemName1, RecordType; ItemName2, RecordType</inlineHelpText>
+        <label>Item Record Types</label>
+        <length>255</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Match_Email_Only_When_Name_Matches__c</fullName>
+        <defaultValue>true</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>When matching payments by email, if this option is selected, we will require an exact match on email AND name last name plus first letter of first name.  Otherwise, email alone will match even if name is different.</inlineHelpText>
+        <label>Match Email Only When Name Matches</label>
+        <type>Checkbox</type>
+    </fields>
+    <fields>
+        <fullName>Merchant_Verification_String__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>Authorize.net authentication string for Relay Response / Silent Post. Enter the merchant&apos;s MD5 Hash value (found in the Authorize.net Merchant Interface).</inlineHelpText>
+        <label>Auth.net Merchant Verification String</label>
+        <length>100</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Opp_Stage_for_Closed_Opps__c</fullName>
+        <defaultValue>&quot;Closed Won&quot;</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <label>Opp Stage for Closed Opps</label>
+        <length>100</length>
+        <required>true</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Opp_Stage_for_Lost_Opps__c</fullName>
+        <defaultValue>&quot;Closed Lost&quot;</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <label>Opp Stage for Lost Opps</label>
+        <length>100</length>
+        <required>true</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Opp_Stage_for_New_Payments__c</fullName>
+        <defaultValue>&quot;Won, Not Thanked&quot;</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <label>Opp Stage for New Payments</label>
+        <length>100</length>
+        <required>true</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Opp_Stage_for_Partial_Refunds__c</fullName>
+        <defaultValue>&quot;Closed Won&quot;</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>Stage for online payment opportunities that have been partially refunded.  Should be a stage in the Closed Won category.</inlineHelpText>
+        <label>Opp Stage for Partial Refunds</label>
+        <length>100</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Opp_Stage_for_Pending_Payments__c</fullName>
+        <defaultValue>&quot;Payment Pending&quot;</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <label>Opp Stage for Pending Payments</label>
+        <length>100</length>
+        <required>true</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Opp_Stage_for_Refunds__c</fullName>
+        <defaultValue>&quot;Refunded&quot;</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>Stage for online payment opportunities that have been fully refunded.  Should be a stage in the Closed Lost category.</inlineHelpText>
+        <label>Opp Stage for Refunds</label>
+        <length>100</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>PaymentToSalesforce_Class_Name__c</fullName>
+        <defaultValue>&quot;gwop.PaymentToSalesforce&quot;</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>The fully qualified name of the PaymentToSalesforce class to use for recording opportunities and related objects into Saleforce.</inlineHelpText>
+        <label>PaymentToSalesforce Class Name</label>
+        <length>255</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Paypal_Receiver_Email__c</fullName>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>Paypal email of the receiver account(s) for which to accept notifications. Separate multiple receiver email addresses with a semicolon.</inlineHelpText>
+        <label>Paypal Receiver Email</label>
+        <length>100</length>
+        <required>false</required>
+        <type>Text</type>
+        <unique>false</unique>
+    </fields>
+    <fields>
+        <fullName>Process_Test_Payments__c</fullName>
+        <defaultValue>true</defaultValue>
+        <deprecated>false</deprecated>
+        <externalId>false</externalId>
+        <inlineHelpText>If yes, the Online Payment listener will log payments from the test server.</inlineHelpText>
+        <label>Process Test Payments</label>
+        <type>Checkbox</type>
+    </fields>
+    <label>Online Payment Settings</label>
+</CustomObject>

@@ -20,7 +20,6 @@ src/objects/Event.object
 src/objects/Idea.object
 src/objects/JigsawSavedSearch.object
 src/objects/Lead.object
-src/objects/OnlinePaymentSettings__c.object
 src/objects/Opportunity.object
 src/objects/OpportunityContactRole.object
 src/objects/OpportunityLineItem.object
