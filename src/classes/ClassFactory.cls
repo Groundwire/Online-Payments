@@ -20,7 +20,7 @@ public with sharing class ClassFactory {
         }
 		if (strClass == null) strClass = 'gwop.PaymentToSalesforce';
 		
-		List<String> listStr = strClass.split('.');
+		List<String> listStr = strClass.split('\\.');
 		if (listStr.size() > 1) {
 			strNamespace = listStr[0];
 			strClass = listStr[1];
