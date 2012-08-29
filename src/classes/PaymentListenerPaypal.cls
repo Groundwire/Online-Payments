@@ -110,7 +110,7 @@ global virtual class PaymentListenerPaypal {
 				params.get('recurring_payment_id') : params.get('subscr_id');
 			String parentTxnId = params.get('parent_txn_id');
 			String paymentStatus = params.get('payment_status');
-			if (paymentStatus == null) paymentStatus = 'Unknown';
+			if (paymentStatus == null && txnId != null) paymentStatus = 'Unknown';
 			String itemName = params.get('item_name');
 			if (itemName == null) itemName = params.get('product_name');
 			String itemNumber = params.get('item_number');			
@@ -174,7 +174,7 @@ global virtual class PaymentListenerPaypal {
 			
 			// due to PayPal sending multiple IPN's concurrently for subscription signup and the first payment,
 			// we need to process them later from batch, to enforce handling them sequentially.
-			if (txnType == 'recurring_payment' || txnType == 'subscr_payment')	{
+			if (txnType == 'recurring_payment' || txnType == 'subscr_payment' || txnType == 'recurring_payment_profile_created')	{
 				futureProcessIPN(ipn);	
 			} else {
 				ProcessIPN(ipn, true);
@@ -377,8 +377,9 @@ global virtual class PaymentListenerPaypal {
 				ipn.opportunity__c = opmt.opportunityId;					
 				ipn.isProcessed__c = true;
 															
-			} else if (ipn.Transaction_Type__c == 'subscr_cancel'	   //Subscription canceled
-						|| ipn.Transaction_Type__c == 'subscr_eot') {  //Subscription expired
+			} else if (ipn.Transaction_Type__c == 'subscr_cancel'	    //Subscription canceled
+						|| ipn.Transaction_Type__c == 'subscr_eot'		//Subscription expired
+						|| ipn.Transaction_Type__c == 'recurring_payment_profile_cancel') {  
 
 				// process cancellation		
 				opmt.cancelRecurringPayments();											
