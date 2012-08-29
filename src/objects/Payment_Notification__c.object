@@ -237,7 +237,7 @@
         <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>the line number of code that caused the exception error</inlineHelpText>
-        <label>errorLineNumber</label>
+        <label>Error Line Number</label>
         <precision>6</precision>
         <required>false</required>
         <scale>0</scale>
@@ -249,7 +249,7 @@
         <deprecated>false</deprecated>
         <externalId>false</externalId>
         <inlineHelpText>the stack trace of code that caused the exception error</inlineHelpText>
-        <label>errorStackTrace</label>
+        <label>Error Stack Trace</label>
         <length>32768</length>
         <type>LongTextArea</type>
         <visibleLines>5</visibleLines>
@@ -264,9 +264,9 @@
         <columns>Payment_Status__c</columns>
         <columns>Transaction_Id__c</columns>
         <columns>Payer_Email__c</columns>
-        <columns>Receiver_Email__c</columns>
-        <columns>CREATED_DATE</columns>
         <columns>IsTest__c</columns>
+        <columns>IsProcessed__c</columns>
+        <columns>Processing_Result__c</columns>
         <filterScope>Everything</filterScope>
         <label>All Notifications</label>
     </listViews>
@@ -331,6 +331,11 @@
         <type>Text</type>
     </nameField>
     <pluralLabel>Payment Notifications</pluralLabel>
-    <searchLayouts/>
+    <searchLayouts>
+        <customTabListAdditionalFields>Payment_Status__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Transaction_Type__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>IsTest__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>CREATED_DATE</customTabListAdditionalFields>
+    </searchLayouts>
     <sharingModel>ReadWrite</sharingModel>
 </CustomObject>

@@ -164,6 +164,7 @@
         <columns>NAME</columns>
         <columns>Page_Title__c</columns>
         <columns>Amount_Options__c</columns>
+        <columns>Include_Recurring_Payment_Option__c</columns>
         <filterScope>Everything</filterScope>
         <label>All</label>
     </listViews>
@@ -172,6 +173,10 @@
         <type>Text</type>
     </nameField>
     <pluralLabel>Payment Pages</pluralLabel>
-    <searchLayouts/>
+    <searchLayouts>
+        <customTabListAdditionalFields>Page_Title__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Amount_Options__c</customTabListAdditionalFields>
+        <customTabListAdditionalFields>Include_Recurring_Payment_Option__c</customTabListAdditionalFields>
+    </searchLayouts>
     <sharingModel>ReadWrite</sharingModel>
 </CustomObject>
