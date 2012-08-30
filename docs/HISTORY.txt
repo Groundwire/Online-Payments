@@ -1,6 +1,12 @@
 Changelog
 =========
 
+2.X - released
+--------------
+
+* added support for PayPal cancel recurring
+* Changes to the API settings to move them to a custom object and make clear that old settings object is deprecated.
+
 1.13 (all beta versions)
 -------------------------
 
