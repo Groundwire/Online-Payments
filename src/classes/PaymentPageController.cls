@@ -22,6 +22,10 @@ global with sharing virtual class PaymentPageController {
     global string pmtPeriod { get; set; }
     global string amountText { get; set; }
 
+	// currency code - paypal supports USD (default), AUD, CAD, CZK, DKK, EUR, HKD, HUF, JPY, NOK, NZD, PLN, GBP, SGD, SEK, CHF
+	// you can set this property on the VF page, or in the Payment Page object, or using the 'currency' parameter in the URL
+    global string currencyCode { get; set; }
+
     global string txnId { get; set; }
     global string amountText2 { get; set; }
     global OnlinePayment.CreditCardData card2 { get; set; } 
@@ -79,6 +83,7 @@ global with sharing virtual class PaymentPageController {
 				transactionName = (params.get('title') == '') ? null : params.get('title');
 				amountText = (params.get('amount') == '') ? null : params.get('amount');
 				amountText2 = (params.get('amount') == '') ? null : params.get('amount');
+				currencyCode = (params.get('currency') == '') ? null : params.get('currency');
 				card.acctNumber = (params.get('cc') == '') ? null : params.get('cc');
 				card.expMonth = (params.get('month') == '') ? null : params.get('month');
 				card.expYear = (params.get('year') == '') ? null : params.get('year');
@@ -92,9 +97,13 @@ global with sharing virtual class PaymentPageController {
 		        //if a payment page has been specified, query for it to use that content on the page
 		        string pageId = params.get('pageid');
 		        if (pageId != null) {
-		        	paymentPage = [SELECT Form_Prologue__c, Page_Title__c, Submit_Button_Text__c, Form_Header__c, Amount_Options__c, Campaign__c,
-		        					Form_Epilogue__c, Item_Name__c, Thank_You_Header__c, Thank_You_Body_Text__c, Include_Recurring_Payment_Option__c 
-		        					FROM Payment_Page__c WHERE id = :pageId LIMIT 1];	
+		        	paymentPage = [SELECT Form_Prologue__c, Page_Title__c, Submit_Button_Text__c, Form_Header__c, Amount_Options__c, 
+		        					Campaign__c, Form_Epilogue__c, Item_Name__c, Thank_You_Header__c, Thank_You_Body_Text__c, 
+		        					Include_Recurring_Payment_Option__c, Currency_Code__c 
+		        					FROM Payment_Page__c WHERE id = :pageId LIMIT 1];
+		        					
+		        	if (currencyCode == null && paymentPage.Currency_Code__c != null)
+		        		currencyCode = paymentPage.Currency_Code__c;	
 	        	}
 			}                        			
 			if (whatToDo == null) whatToDo = 'paynow';		
@@ -172,6 +181,9 @@ global with sharing virtual class PaymentPageController {
         
         payment.pmtProcessor = (apiConfig.getProcessor( selectedConfig ) == 'PayPal') ? 
             OnlinePayment.Processor.PAYPAL : OnlinePayment.Processor.AUTHNET;
+            
+        //set alternate currency if we have one
+        payment.currencyCode = currencyCode;
         
         //if we received an Item Name from the payment page, set the itemName property
         if (paymentPage != null && paymentPage.Item_Name__c != null) {
