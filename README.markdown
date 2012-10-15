@@ -123,7 +123,7 @@ The Payment Pages feature allows administrators to create multiple versions of p
 
 Creating Custom Payment Pages (With Custom Fields)
 --------------------------------------------------
-The Custom Payment Pages within the Groundwire Online Payments package does not support adding custom fields because you cannot edit Visualforce pages within a managed package.  However, the page has been designed with extensibility in mind and an unmanaged version of the same page can be slightly modified to support adding custom fields without needing to extend the payment page's controller.  
+The custom Payment Pages within the Groundwire Online Payments package does not support adding custom fields because you cannot edit Visualforce pages within a managed package.  However, the page has been designed with extensibility in mind and an unmanaged version of the same page can be slightly modified to support adding custom fields without needing to extend the payment page's controller.  
 
 1. To add custom fields, the first thing you will need to do is copy the supplied payment Visualforce page.  Go To Setup > App Setup > Develop > Pages and click on the page called payment.  Copy the page in its entirety to your clipboard.
 2. The next step is to create your own new Visualforce page. Go To Setup > App Setup > Develop > Pages and click on the New button.  Choose an appropriate name for your new page and paste the contents of your clipboard into Visualforce Markup area and click Save.
@@ -159,3 +159,21 @@ The Custom Payment Pages within the Groundwire Online Payments package does not 
 7. Notice the attributes in the above example-- data-sfobject specifies which object the field is on and data-sffield specifies the API Name of the field.  The only objects available for writing to in the Groundwire Base Extension of Online Payments are the Contact, Account, Opportunity, and Payment objects.
 8. You can even use Payment Pages content sections with this custom page with custom fields.  In order to use your custom page you will need to append the page's Salesforce Id to the querystring of the payment page. From the record of the payment page, copy the 15 digit URL that represents the Salesforce id of that record. The final URL will look something like https://MY-SALESFORCE-SITE-URL.COM/YOURUNMANAGEDPAGENAME?pageid=YOUR-PAYMENT-PAGE-ID . To get your site URL, navigate to your Site record and copy the Secure Web Address. Be sure to use the Page Name and not the Page Label in the URL of the Visualforce page
 8. Lastly, don't forget to add your new Visualforce page to your Salesforce Site.  From your Site record, in the Enabled Visualforce Pages section, click the edit button and move your new page to the Enabled list.
+
+Multi-Currency Support and Configuration
+----------------------------------------
+The custom payment pages within the Groundwire Online Payments package supports accepting a *single* alternative currency, but full multi-currency support is not enabled as of version 2.6 release.  Currently, alternate currencies are only supported by Paypal, not Authorize.Net.  The use case here would be that if you have a client whose Salesforce is entirely in Great British Pounds and Multi-Currency has not been enabled, you can configure passing all payment information to Paypal in GBP.  To do so, the following setup is required:
+
+1. Setup Paypal Payments Pro and designate GBP as the default home currency in Paypal.
+2. Our Online Payments package is only compatible with single currency organizations, multi-currency in Salesforce is not yet supported but is on the roadmap.
+3. Set the Currency Locale on the Company Information sub-menu to the appropriate country/currency.
+4. Set the Currency Code picklist to the single accepted currency by going to Setup > Create > Objects > Payment Page and click on the Currency Code field name. Delete the unnecessary values leaving only the signle currency that you are willing to accept.  Only one is allowed at this time. Go into that picklist value and make it the Default.
+5. Navigate to any existing Payment Pages that may already be setup, add the Currency Code picklist to the page layout and set it to GBP. WARNING: not setting this field will pass payment data in USD, which is the API default currency.
+6. Test a payment, look in Paypal, which should show the breakdown of payment information by currency.  
+
+Alternatively, the currency code can be passed in on the URL of the Payment Page as a parameter.  By appending ?currency=GBP to the querystring of your payment page URL, you can set the value of the currency on that payment page.  
+
+In order to support full multi-currency Salesforce organizations, the following enhancements are needed:
+1. Adding support for currency conversions in the PaymentsToSalesforceGW processing class.
+2. Adding more robust error handling and notifications to Salesforce administrators in the event that 1) the currency code received from Paypal is not enabled in Salesforce 2) Multi-currency is not enabled in Salesforce
+3. Documenting what promises to be a more complex configuration.
