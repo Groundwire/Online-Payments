@@ -174,10 +174,10 @@ global virtual class PaymentListenerPaypal {
 			
 			// due to PayPal sending multiple IPN's concurrently for subscription signup and the first payment,
 			// we need to process them later from batch, to enforce handling them sequentially.
-			if (txnType == 'recurring_payment' || txnType == 'subscr_payment' || txnType == 'recurring_payment_profile_created')	{
-				futureProcessIPN(ipn);	
-			} else {
+			if (txnType == 'virtual_terminal' || txnType == 'express_checkout')	{
 				ProcessIPN(ipn, true);
+			} else {
+				futureProcessIPN(ipn);	
 			}	
 
 			// done!
