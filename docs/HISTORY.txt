@@ -3,6 +3,10 @@ Changelog
 
 2.6 - released
 ----------------
+* updated Paypal IPN handler to always act async except in cases where txn was exclusively Paypal initiated, like virtual_terminal for example [greenstork]
+
+2.6 - released
+----------------
 * Added support for passing currency code to Paypal - via page definition, URL param, or VF property
   For now, this allows using an alternate (not USD) currency for payment, but it must be your primary SF currency.
   Next steps would be to support multi-currency.
